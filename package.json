@@ -1,0 +1,17 @@
+{
+  "name": "twitch-overlay-server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+  "start": "node overlay-server.js"
+    
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    
+  }
+}
