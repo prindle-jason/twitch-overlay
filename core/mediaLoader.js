@@ -1,4 +1,4 @@
-// utils/mediaLoader.js
+// core/mediaLoader.js
 // Preloads images and exposes them via a cache
 
 const imageCache = {};
@@ -42,6 +42,14 @@ function preloadSounds() {
 export function getSound(key) {
     const audio = soundCache[key];
     return audio ? audio.cloneNode() : null;
+}
+
+export function getSoundDuration(key) {
+    const audio = soundCache[key];
+    if (audio && audio.duration) {
+        return audio.duration * 1000; // Convert seconds to milliseconds
+    }
+    return 0; // Duration not available yet or sound not loaded
 }
 
 function preloadImages(onComplete) {

@@ -6,14 +6,14 @@ import { ImageScaleBehavior } from '../behaviors/ImageScaleBehavior.js';
 import { ImageSlideBehavior } from '../behaviors/ImageSlideBehavior.js';
 import { SoundOnPlayBehavior } from '../behaviors/SoundOnPlayBehavior.js';
 
-export class BamUhOhEffect extends BaseEffect {
-  constructor({ W, H, duration = 5000 }) {
+export class BamSuccessEffect extends BaseEffect {
+  constructor({ W, H, duration = 4000 }) {
     super({ W, H, duration });
     
     const SCALE = 0.25;
     
     // Create Bub image (slides from left)
-    const bubImage = new ImageElement('bubFailure');
+    const bubImage = new ImageElement('bubSuccess');
     bubImage.addBehavior(new ImageScaleBehavior({ scaleX: SCALE, scaleY: SCALE }));
     
     // Calculate dimensions for positioning
@@ -29,7 +29,7 @@ export class BamUhOhEffect extends BaseEffect {
     }));
     
     // Create Bob image (slides from right)
-    const bobImage = new ImageElement('bobFailure');
+    const bobImage = new ImageElement('bobSuccess');
     bobImage.addBehavior(new ImageScaleBehavior({ scaleX: SCALE, scaleY: SCALE }));
     bobImage.addBehavior(new ImageSlideBehavior({
       startX: W,  // Off screen right
@@ -40,7 +40,7 @@ export class BamUhOhEffect extends BaseEffect {
     }));
     
     // Create sound element
-    const sound = new SoundElement('bamUhOh');
+    const sound = new SoundElement('bamHooray');
     sound.addBehavior(new SoundOnPlayBehavior());
     
     // Add all elements to the effect

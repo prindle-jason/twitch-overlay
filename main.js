@@ -1,5 +1,5 @@
 import { EffectManager } from "./core/EffectManager.js";
-import { preloadResources } from "./utils/mediaLoader.js";
+import { preloadResources } from "./core/mediaLoader.js";
 import { connectWS } from "./utils/wsUtil.js";
 
 

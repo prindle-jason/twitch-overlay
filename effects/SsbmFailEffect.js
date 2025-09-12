@@ -1,32 +1,25 @@
-import { getImage, getSound } from "../utils/mediaLoader.js";
-import { BaseEffect } from "./BaseEffect.js";
-import { getFadeInOutProgress } from "../utils/progressUtils.js";
+import { BaseEffect } from './BaseEffect.js';
+import { ImageElement } from '../elements/ImageElement.js';
+import { SoundElement } from '../elements/SoundElement.js';
+import { ImageCenteredBehavior } from '../behaviors/ImageCenteredBehavior.js';
+import { ImageFadeInOutBehavior } from '../behaviors/ImageFadeInOutBehavior.js';
+import { SoundOnPlayBehavior } from '../behaviors/SoundOnPlayBehavior.js';
 
 export class SsbmFailEffect extends BaseEffect {
   constructor({ W, H, duration = 3000 }) {
     super({ W, H, duration });
-    this.img = getImage('ssbmFailure');
-    this.imgX = (this.W - this.img.naturalWidth) / 2;
-    this.imgY = (this.H - this.img.naturalHeight) / 2;
-  this.sound = null;
-  this.sound = getSound('ssbmFail');
-  }
-
-  play() {
-    this.sound.play();
-  }
-
-  update(deltaTime) {
-    super.update(deltaTime);
-    // Sound playing logic has been moved to the play() method
-  }
-
-  draw(ctx) {
-    const progress = this.duration > 0 ? this.elapsed / this.duration : 1;
     
-    ctx.save();
-    ctx.globalAlpha = getFadeInOutProgress(progress, 0.25);
-    ctx.drawImage(this.img, this.imgX, this.imgY, this.img.naturalWidth, this.img.naturalHeight);
-    ctx.restore();
+    // Create image element with behaviors
+    const image = new ImageElement('ssbmFailure');
+    image.addBehavior(new ImageCenteredBehavior());
+    image.addBehavior(new ImageFadeInOutBehavior({ fadeTime: 0.25 }));
+    
+    // Create sound element with behavior
+    const sound = new SoundElement('ssbmFail');
+    sound.addBehavior(new SoundOnPlayBehavior());
+    
+    // Add elements to the effect
+    this.addElement(image);
+    this.addElement(sound);
   }
 }

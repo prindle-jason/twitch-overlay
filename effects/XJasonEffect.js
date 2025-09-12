@@ -1,63 +1,87 @@
-import { BaseEffect } from "./BaseEffect.js";
-import { getFadeInOutProgress } from "../utils/progressUtils.js";
-import { getImage } from "../utils/mediaLoader.js";
+// effects/XJasonEffect.js
+import { BaseEffect } from './BaseEffect.js';
+import { TimedImageElement } from '../elements/TimedImageElement.js';
+import { SoundElement } from '../elements/SoundElement.js';
+import { ImageBlurInOutBehavior } from '../behaviors/ImageBlurInOutBehavior.js';
+import { SoundOnPlayBehavior } from '../behaviors/SoundOnPlayBehavior.js';
+import { getSoundDuration } from '../core/mediaLoader.js';
+import { ImageFadeInOutBehavior } from '../behaviors/ImageFadeInOutBehavior.js';
+import { ImageJitterBehavior } from '../behaviors/ImageJitterBehavior.js';
+import { IntervalRangeTimer } from '../utils/IntervalRangeTimer.js';
 
 export class XJasonEffect extends BaseEffect {
-  constructor({ W, H, duration = 3000 }) {
-    super({ W, H, duration });
-    // --- Tweakable constants ---
-    this.POPUP_MIN_INTERVAL = 600;
-    this.POPUP_MAX_INTERVAL = 1000;
-    this.POPUP_MIN_DURATION = 900;
-    this.POPUP_MAX_DURATION = 1400;
+  constructor({ W, H }) {
+    // Use the sound duration as the effect duration
+    const soundDuration = getSoundDuration('heavyRainJason');
+    super({ W, H, duration: soundDuration });
+    
+    // Popup configuration constants
+    this.POPUP_MIN_INTERVAL = 500;
+    this.POPUP_MAX_INTERVAL = 900;
+    this.POPUP_MIN_DURATION = 1200;
+    this.POPUP_MAX_DURATION = 1600;
     this.POPUP_WIDTH = 560;
     this.POPUP_HEIGHT = 120;
-    this.img = getImage('xJason');
-    this.popups = [];
-    this.lastPopupTime = 0;
-    this.spawnInterval = this.POPUP_MIN_INTERVAL + Math.random() * (this.POPUP_MAX_INTERVAL - this.POPUP_MIN_INTERVAL);
+    
+    // Initialize the popup spawner
+    this.popupSpawner = new IntervalRangeTimer(
+      this.POPUP_MIN_INTERVAL,
+      this.POPUP_MAX_INTERVAL,
+      () => this.trySpawnPopup()
+    );
+    
+    // Add the sound element
+    const sound = new SoundElement('heavyRainJason');
+    sound.addBehavior(new SoundOnPlayBehavior());
+    this.addElement(sound);
   }
-
-  spawnPopup() {
-    const x = Math.random() * (this.W - this.POPUP_WIDTH);
-    const y = Math.random() * (this.H - this.POPUP_HEIGHT);
-    const duration = this.POPUP_MIN_DURATION + Math.random() * (this.POPUP_MAX_DURATION - this.POPUP_MIN_DURATION);
-    this.popups.push({ t: 0, x, y, duration });
+  
+  getRandomDuration() {
+    return this.POPUP_MIN_DURATION + Math.random() * (this.POPUP_MAX_DURATION - this.POPUP_MIN_DURATION);
   }
-
-  update(deltaTime) {
-    super.update(deltaTime);
-
-    // Randomly spawn popups (every spawnInterval ms)
-    this.lastPopupTime += deltaTime;
-    if (this.lastPopupTime > this.spawnInterval) {
+  
+  trySpawnPopup() {
+    // Check if there's enough time left for a new popup
+    const effectTimeRemaining = this.duration - this.elapsed;
+    const newPopupDuration = this.getRandomDuration();
+    
+    // Only spawn if popup can complete before effect ends
+    if (effectTimeRemaining >= newPopupDuration) {
       this.spawnPopup();
-      this.lastPopupTime = 0;
-      this.spawnInterval = this.POPUP_MIN_INTERVAL + Math.random() * (this.POPUP_MAX_INTERVAL - this.POPUP_MIN_INTERVAL);
     }
-    // Update popups
-    for (const p of this.popups) {
-      p.t += deltaTime;
-    }
-    // Remove finished popups
-    this.popups = this.popups.filter(p => p.t < p.duration);
   }
+  
+  spawnPopup() {
+    // Create timed popup with random duration
+    const duration = this.getRandomDuration();
+    const popup = new TimedImageElement('xJason', duration);
+    
+    // Set size and random position
+    popup.width = this.POPUP_WIDTH;
+    popup.height = this.POPUP_HEIGHT;
+    popup.x = Math.random() * (this.W - this.POPUP_WIDTH);
+    popup.y = Math.random() * (this.H - this.POPUP_HEIGHT);
+    
+    // Add behaviors for jitter, fade, and blur effects
+    popup.addBehavior(new ImageJitterBehavior({ jitterAmount: 6 }));
+    popup.addBehavior(new ImageFadeInOutBehavior({ fadeTime: 0.4 }));
+    popup.addBehavior(new ImageBlurInOutBehavior({ fadeTime: 0.4, maxBlur: 16 }));
+    
+    // Call onPlay() manually since this element was added after effect started
+    popup.onPlay();
 
-  draw(ctx) {
-    if (this.state !== "Playing") return;
-    const w = this.POPUP_WIDTH, h = this.POPUP_HEIGHT;
-    for (const p of this.popups) {
-      const progress = Math.min(p.t / p.duration, 1);
-      const x = p.x + (Math.random() - 0.5) * 12; //Add jitter
-      const y = p.y + (Math.random() - 0.5) * 12; //Add jitter
-      const alpha = getFadeInOutProgress(progress, 0.4);
-      const blurPx = 16 * (1 - alpha);
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.filter = `blur(${blurPx}px)`;
-      ctx.drawImage(this.img, x, y, w, h);
-      ctx.restore();
-    }
+    // Add to effect
+    this.addElement(popup);
+  }
+  
+  update(deltaTime) {
+    // Update all elements first
+    super.update(deltaTime);
+    
+    // Handle popup spawning with the timer
+    this.popupSpawner.update(deltaTime);
+    
+    // Remove expired popups
+    this.elements = this.elements.filter(element => !element.expired);
   }
 }

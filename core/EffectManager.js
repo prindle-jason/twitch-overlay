@@ -2,10 +2,10 @@
 // Manages effect creation, state transitions, updates, and rendering
 
 import { ConfettiEffect } from "../effects/ConfettiEffect.js";
-import { DvdBounceEffect } from "../effects/DvdBounceEffect.js";
+import { DvdEffect } from "../effects/DvdEffect.js";
 import { XJasonEffect } from "../effects/XJasonEffect.js";
 import { BamUhOhEffect } from "../effects/BamUhOhEffect.js";
-import { BamHoorayEffect } from "../effects/BamHoorayEffect.js";
+import { BamSuccessEffect } from "../effects/BamSuccessEffect.js";
 import { SsbmFailEffect } from "../effects/SsbmFailEffect.js";
 import { SsbmSuccessEffect } from "../effects/SsbmSuccessEffect.js";
 
@@ -18,13 +18,14 @@ export class EffectManager {
     this.effectIdCounter = 0;
     this.factories = {
       confetti: (opts) => new ConfettiEffect(opts),
-      dvdBounce: (opts) => new DvdBounceEffect(opts),
+      dvdBounce: (opts) => new DvdEffect({ ...opts, spawn: (type) => this.spawn(type) }),
       xJason: (opts) => new XJasonEffect(opts),
       success: (opts) => this.successFactory(opts),
       failure: (opts) => this.failureFactory(opts),
-      bamUhOh: (opts) => new BamUhOhEffect(opts),
       ssbmFail: (opts) => new SsbmFailEffect(opts),
-      bamHooray: (opts) => new BamHoorayEffect(opts),
+      ssbmSuccess: (opts) => new SsbmSuccessEffect(opts),
+      bamSuccess: (opts) => new BamSuccessEffect(opts),
+      bamUhOh: (opts) => new BamUhOhEffect(opts)
     };
   }
 
@@ -36,7 +37,7 @@ export class EffectManager {
   }
 
   successFactory(opts) {
-    const effects = [BamHoorayEffect, SsbmSuccessEffect];
+    const effects = [BamSuccessEffect, SsbmSuccessEffect];
     const EffectClass = effects[Math.floor(Math.random() * effects.length)];
     return new EffectClass({ ...opts, W: this.W, H: this.H, id: ++this.effectIdCounter });
   }
@@ -55,21 +56,22 @@ export class EffectManager {
     // Move effects from loading to playing when ready
     this.loadingEffects = this.loadingEffects.filter((e) => {
       if (e.getState() === "Playing") {
-        e.play();
+        e.onPlay();
         this.playingEffects.push(e);
         return false;
       }
       return true;
     });
 
-    // Update playing effects
-    for (let i = 0; i < this.playingEffects.length; i++) {
-      const e = this.playingEffects[i];
+    // Update and remove finished effects in one loop
+    this.playingEffects = this.playingEffects.filter((e) => {
+      if (e.state === "Finished") {
+        e.onFinish();
+        return false;
+      }
       e.update(deltaTime);
-    }
-
-    // Remove finished effects
-    this.playingEffects = this.playingEffects.filter((e) => !e.done());
+      return true;
+    });
   }
 
   draw(ctx) {
