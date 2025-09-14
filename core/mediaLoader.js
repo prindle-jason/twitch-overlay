@@ -11,7 +11,14 @@ const imageMap = {
     dvdLogo: "dvdLogo.png",
     ssbmFailure: "ssbmFailure.png",
     ssbmSuccess: "ssbmSuccess.png",
-    xJason: "xJason.svg"
+    xJason: "xJason.svg",
+    greenRupee: "greenRupee.png",
+    blueRupee: "blueRupee.png",
+    redRupee: "redRupee.png",
+    zeldaChestBody: "zeldaChestBody.png",
+    zeldaChestLid1: "zeldaChestLid1.png",
+    zeldaChestLid2: "zeldaChestLid2.png",
+    zeldaChestLid3: "zeldaChestLid3.png"
 };
 
 // Sound effect logic
@@ -22,7 +29,9 @@ const soundMap = {
     partyHorn: "partyHorn.mp3",
     ssbmFail: "ssbm-failure.mp3",
     ssbmSuccess: "ssbm-success.mp3",
-    heavyRainJason: "heavyrain-jason.mp3"
+    heavyRainJason: "heavyrain-jason.mp3",
+    zeldaOpenChest: "zelda-open-chest.mp3",
+    zeldaGetItem: "zelda-get-item.mp3"
 };
 
 const soundCache = {};

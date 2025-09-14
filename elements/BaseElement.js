@@ -4,8 +4,16 @@ export class BaseElement {
     this.behaviors = [];
     this.effect = null;
     
-    // Apply any config overrides
-    Object.assign(this, config);
+    // Handle behaviors separately to ensure they go through addBehavior
+    const { behaviors, ...otherConfig } = config;
+    
+    // Apply other config properties first
+    Object.assign(this, otherConfig);
+    
+    // Add behaviors using addBehavior method (which handles onPlay if needed)
+    if (behaviors) {
+      behaviors.forEach(behavior => this.addBehavior(behavior));
+    }
   }
 
   /**
@@ -22,6 +30,13 @@ export class BaseElement {
    */
   addBehavior(behavior) {
     this.behaviors.push(behavior);
+    
+    // If the element is already attached to a playing effect, 
+    // initialize the behavior immediately
+    if (this.effect && this.effect.state === "Playing") {
+      behavior.onPlay?.(this);
+    }
+    
     return this; // For chaining
   }
 

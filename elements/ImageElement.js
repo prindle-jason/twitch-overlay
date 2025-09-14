@@ -57,12 +57,18 @@ export class ImageElement extends BaseElement {
     // Move to position and apply rotation
     ctx.translate(this.x, this.y);
     if (this.rotation !== 0) {
-      ctx.rotate(this.rotation);
+      this.rotate(ctx);
     }
     
     // Draw the image (at 0,0 since we translated)
     ctx.drawImage(this.image, 0, 0, this.getWidth(), this.getHeight());
     
     ctx.restore();
+  }
+
+  rotate(ctx) {
+      ctx.translate(this.getWidth() / 2, this.getHeight() / 2);
+      ctx.rotate(this.rotation);
+      ctx.translate(-this.getWidth() / 2, -this.getHeight() / 2);
   }
 }
