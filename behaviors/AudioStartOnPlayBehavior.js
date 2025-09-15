@@ -9,7 +9,6 @@ export default class AudioStartOnPlayBehavior extends Entity {
     super(config, parent);
     
     this.parent = parent; // Store parent reference to control audio
-    this.delay = config.delay || 0; // Optional delay before starting audio
     this.elapsed = 0;
     this.hasTriggered = false;
   }
@@ -18,29 +17,6 @@ export default class AudioStartOnPlayBehavior extends Entity {
    * When this behavior starts, trigger parent audio after delay
    */
   onPlay() {
-    if (this.delay === 0) {
-      this.triggerParentAudio();
-    }
-    // If delay > 0, wait for onUpdate to handle timing
-  }
-  
-  /**
-   * Handle delayed audio start
-   * @param {number} deltaTime - Time elapsed since last update
-   */
-  onUpdate(deltaTime) {
-    if (this.delay > 0 && !this.hasTriggered) {
-      this.elapsed += deltaTime;
-      if (this.elapsed >= this.delay) {
-        this.triggerParentAudio();
-      }
-    }
-  }
-  
-  /**
-   * Start the parent audio entity's playback
-   */
-  triggerParentAudio() {
     if (this.parent && this.parent.playAudio && !this.hasTriggered) {
       console.log(`AudioStartOnPlayBehavior: triggering parent audio '${this.parent.name}'`);
       this.parent.playAudio();

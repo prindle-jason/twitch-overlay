@@ -47,7 +47,7 @@ class TranslateEntity extends Entity {
     const progress = Math.min(this.elapsed / this.duration, 1);
     
     // Apply configurable easing using direct function reference
-    const easedProgress = this.progressFunc(progress, this.easeCurve || this.easeTime);
+    const easedProgress = this.progressFunc(progress, this.easeTime);
     
     // Interpolate position from start to start+delta
     this.parent.x = this.startX + this.deltaX * easedProgress;

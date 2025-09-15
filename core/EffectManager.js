@@ -12,10 +12,10 @@ import { ZeldaChestEffect } from "../effects/ZeldaChestEffect.js";
 
 // Import new scene classes
 import DvdBounceScene from "../scenes/DvdBounceScene.js";
-import BamSuccessScene from "../scenes/BamSuccessScene.js";
+import BamScene from "../scenes/BamScene.js";
 
 // Import scene configs
-import { bamSuccessSceneConfig } from "../configs/BamSuccessSceneConfig.js";
+import { bamSuccessSceneConfig, bamFailureSceneConfig } from "../configs/BamSceneConfig.js";
 import { basicSceneConfig } from "../configs/BasicSceneConfig.js";
 import { childTestConfig } from "../configs/ChildTestConfig.js";
 
@@ -48,19 +48,25 @@ export class EffectManager {
         screenHeight: this.H,
         onCornerHit: () => this.spawn('confetti')
       }),
-      bamSuccess: (opts) => new BamSuccessScene({
+      bamSuccess: (opts) => new BamScene({
         ...opts,
         ...bamSuccessSceneConfig,
         screenWidth: this.W,
         screenHeight: this.H
       }),
-      bamTest: (opts) => new BamSuccessScene({
+      bamFailure: (opts) => new BamScene({
+        ...opts,
+        ...bamFailureSceneConfig,
+        screenWidth: this.W,
+        screenHeight: this.H
+      }),
+      bamTest: (opts) => new BamScene({
         ...opts,
         ...basicSceneConfig,
         screenWidth: this.W,
         screenHeight: this.H
       }),
-      childTest: (opts) => new BamSuccessScene({
+      childTest: (opts) => new BamScene({
         ...opts,
         ...childTestConfig,
         screenWidth: this.W,

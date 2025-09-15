@@ -20,7 +20,6 @@ export default class TimedEntity extends Entity {
   onUpdate(deltaTime) {
     this.elapsed += deltaTime;
     if (this.elapsed >= this.duration && this.parent) {
-      // Finish the parent entity
       this.parent.finish();
     }
   }

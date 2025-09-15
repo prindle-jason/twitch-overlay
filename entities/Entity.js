@@ -36,7 +36,6 @@ export default class Entity {
         break;
         
       case EntityState.PLAYING:
-        this.elapsed += deltaTime;
         this.onUpdate(deltaTime);
         
         if (this.shouldFinish()) {
