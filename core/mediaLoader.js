@@ -9,6 +9,7 @@ const imageMap = {
     bubSuccess: "bubSuccess.png",
     bobSuccess: "bobSuccess.png",
     dvdLogo: "dvdLogo.png",
+    bluRayLogo: "bluRayLogo.png",
     ssbmFailure: "ssbmFailure.png",
     ssbmSuccess: "ssbmSuccess.png",
     xJason: "xJason.svg"
@@ -22,7 +23,8 @@ const soundMap = {
     partyHorn: "partyHorn.mp3",
     ssbmFail: "ssbm-failure.mp3",
     ssbmSuccess: "ssbm-success.mp3",
-    heavyRainJason: "heavyrain-jason.mp3"
+    heavyRainJason: "heavyrain-jason.mp3",
+    yippee: "yippee.mp3"
 };
 
 const soundCache = {};
