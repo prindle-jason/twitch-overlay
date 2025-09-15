@@ -40,12 +40,12 @@ export class BamSuccessEffect extends BaseEffect {
     }));
     
     // Create sound element
-    const sound = new SoundElement('bamHooray');
-    sound.addBehavior(new SoundOnPlayBehavior());
+    // const sound = new SoundElement('bamHooray');
+    // sound.addBehavior(new SoundOnPlayBehavior());
     
     // Add all elements to the effect
     this.addElement(bubImage);
     this.addElement(bobImage);
-    this.addElement(sound);
+    //this.addElement(sound);
   }
 }

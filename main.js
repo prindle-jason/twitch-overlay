@@ -36,6 +36,8 @@ function loop() {
   lastFrame = now;
 
   ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "green";
+  ctx.fillRect(0, 0, W, H);
   effectManager.update(deltaTime);
   effectManager.draw(ctx);
 
