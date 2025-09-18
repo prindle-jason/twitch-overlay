@@ -27,7 +27,7 @@ const soundMap = {
     bamHooray: "bustamove-hooray.mp3",
     bamUhOh: "bustamove-uhoh.mp3",
     partyHorn: "partyHorn.mp3",
-    ssbmFail: "ssbm-failure.mp3",
+    ssbmFailure: "ssbm-failure.mp3",
     ssbmSuccess: "ssbm-success.mp3",
     heavyRainJason: "heavyrain-jason.mp3",
     zeldaOpenChest: "zelda-open-chest.mp3",

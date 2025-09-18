@@ -1,30 +1,23 @@
-import Entity from '../entities/Entity.js';
+// behaviors/ScreenCornerDetectionBehavior.js
+import { BaseBehavior } from './BaseBehavior.js';
 
-/**
- * Behavior entity that detects when parent entity reaches screen corners.
- * Triggers parent finish when corner is reached.
- */
-export default class ScreenCornerDetectionEntity extends Entity {
+export class ScreenCornerDetectionBehavior extends BaseBehavior {
   constructor(config = {}) {
     super(config);
-    
     this.screenWidth = config.screenWidth || 800;
     this.screenHeight = config.screenHeight || 600;
     this.epsilon = config.epsilon || 2;
     this.cornerReached = false;
   }
   
-  /**
-   * Check for corner collision and finish parent if detected
-   * @param {number} deltaTime - Time elapsed since last update
-   */
-  onUpdate(deltaTime) {
-    if (!this.parent || this.cornerReached) return;
+  update(element, deltaTime) {
+    // Only check if we haven't already detected a corner
+    if (this.cornerReached) return;
     
-    const x = this.parent.x;
-    const y = this.parent.y;
-    const width = this.parent.width;
-    const height = this.parent.height;
+    const x = element.x;
+    const y = element.y;
+    const width = element.width;
+    const height = element.height;
     
     // Check if element is at any corner
     const atLeft = x <= this.epsilon;
@@ -39,8 +32,6 @@ export default class ScreenCornerDetectionEntity extends Entity {
     
     if (isInCorner) {
       this.cornerReached = true;
-      // Finish the parent entity
-      this.parent.finish();
     }
   }
 }

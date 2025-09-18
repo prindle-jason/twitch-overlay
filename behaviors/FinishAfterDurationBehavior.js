@@ -1,16 +1,14 @@
-import Entity from '../entities/Entity.js';
+import BaseBehavior from './BaseBehavior.js';
 
 /**
  * Behavior entity that adds a time limit to its parent.
  * When duration expires, finishes the parent entity.
  */
-export default class TimedEntity extends Entity {
+export default class FinishAfterDurationBehavior extends BaseBehavior {
   constructor(config = {}, parent = null) {
     super(config, parent);
-    
-    this.parent = parent; // Store parent reference since we need it
     this.duration = config.duration;
-    this.elapsed = 0; // TimedEntity manages its own time
+    this.elapsed = 0; // TimedBehavior manages its own time
   }
   
   /**
@@ -29,5 +27,10 @@ export default class TimedEntity extends Entity {
    */
   shouldFinish() {
     return this.parent && this.parent.state === 'finished';
+  }
+
+  getTimeRemaining() {
+    //console.log(`TimedBehavior: duration=${this.duration}, elapsed=${this.elapsed}`);
+    return Math.max(0, this.duration - this.elapsed);
   }
 }

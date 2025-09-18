@@ -1,21 +1,22 @@
 // EffectManager.js
 // Manages effect creation, state transitions, updates, and rendering
 
-import { ConfettiEffect } from "../effects/ConfettiEffect.js";
-import { DvdEffect } from "../effects/DvdEffect.js";
-import { XJasonEffect } from "../effects/XJasonEffect.js";
-import { BamUhOhEffect } from "../effects/BamUhOhEffect.js";
-import { BamSuccessEffect } from "../effects/BamSuccessEffect.js";
-import { SsbmFailEffect } from "../effects/SsbmFailEffect.js";
-import { SsbmSuccessEffect } from "../effects/SsbmSuccessEffect.js";
-import { ZeldaChestEffect } from "../effects/ZeldaChestEffect.js";
+// import { ConfettiEffect } from "../effects/ConfettiEffect.js";
+// import { DvdEffect } from "../effects/DvdEffect.js";
+// import { XJasonEffect } from "../effects/XJasonEffect.js";
+// import { BamUhOhEffect } from "../effects/BamUhOhEffect.js";
+// import { BamSuccessEffect } from "../effects/BamSuccessEffect.js";
+// import { SsbmFailEffect } from "../effects/SsbmFailEffect.js";
+// import { SsbmSuccessEffect } from "../effects/SsbmSuccessEffect.js";
+// import { ZeldaChestEffect } from "../effects/ZeldaChestEffect.js";
 
 // Import new scene classes
 import DvdBounceScene from "../scenes/DvdBounceScene.js";
 import BamScene from "../scenes/BamScene.js";
+import SsbmScene from "../scenes/SsbmScene.js";
+import XJasonScene from "../scenes/XJasonScene.js";
 
 // Import scene configs
-import { bamSuccessSceneConfig, bamFailureSceneConfig } from "../configs/BamSceneConfig.js";
 import { basicSceneConfig } from "../configs/BasicSceneConfig.js";
 import { childTestConfig } from "../configs/ChildTestConfig.js";
 
@@ -27,59 +28,46 @@ export class EffectManager {
     this.playingEffects = [];
     this.activeScenes = [];
     this.effectIdCounter = 0;
-    this.factories = {
-      confetti: (opts) => new ConfettiEffect(opts),
-      //dvdBounce: (opts) => new DvdEffect({ ...opts, spawn: (type) => this.spawn(type) }),
-      xJason: (opts) => new XJasonEffect(opts),
-      success: (opts) => this.successFactory(opts),
-      failure: (opts) => this.failureFactory(opts),
-      ssbmFail: (opts) => new SsbmFailEffect(opts),
-      ssbmSuccess: (opts) => new SsbmSuccessEffect(opts),
-      //bamSuccess: (opts) => new BamSuccessEffect(opts),
-      bamUhOh: (opts) => new BamUhOhEffect(opts),
-      zeldaChest: (opts) => new ZeldaChestEffect(opts)
-    };
+    // this.factories = {
+    //   confetti: (opts) => new ConfettiEffect(opts),
+    //   //dvdBounce: (opts) => new DvdEffect({ ...opts, spawn: (type) => this.spawn(type) }),
+    //   //xJason: (opts) => new XJasonEffect(opts),
+    //   success: (opts) => this.successFactory(opts),
+    //   failure: (opts) => this.failureFactory(opts),
+    //   //ssbmFail: (opts) => new SsbmFailEffect(opts),
+    //   //ssbmSuccess: (opts) => new SsbmSuccessEffect(opts),
+    //   //bamSuccess: (opts) => new BamSuccessEffect(opts),
+    //   bamUhOh: (opts) => new BamUhOhEffect(opts),
+    //   zeldaChest: (opts) => new ZeldaChestEffect(opts)
+    // };
 
     // Scene factories for new entity system
     this.sceneFactories = {
-      dvdBounce: (opts) => new DvdBounceScene({
+      dvdBounce: (opts) => new DvdBounceScene(this.W, this.H, opts),
+      bamSuccess: (opts) => BamScene.createSuccess(this.W, this.H, opts),
+      bamFailure: (opts) => BamScene.createFailure(this.W, this.H, opts),
+      ssbmSuccess: (opts) => SsbmScene.createSuccess(this.W, this.H, opts),
+      ssbmFailure: (opts) => SsbmScene.createFailure(this.W, this.H, opts),
+      xJason: (opts) => XJasonScene.create(this.W, this.H, opts),
+      bamTest: (opts) => new BamScene(this.W, this.H, {
         ...opts,
-        screenWidth: this.W,
-        screenHeight: this.H,
-        onCornerHit: () => this.spawn('confetti')
+        ...basicSceneConfig
       }),
-      bamSuccess: (opts) => new BamScene({
+      childTest: (opts) => new BamScene(this.W, this.H, {
         ...opts,
-        ...bamSuccessSceneConfig,
-        screenWidth: this.W,
-        screenHeight: this.H
-      }),
-      bamFailure: (opts) => new BamScene({
-        ...opts,
-        ...bamFailureSceneConfig,
-        screenWidth: this.W,
-        screenHeight: this.H
-      }),
-      bamTest: (opts) => new BamScene({
-        ...opts,
-        ...basicSceneConfig,
-        screenWidth: this.W,
-        screenHeight: this.H
-      }),
-      childTest: (opts) => new BamScene({
-        ...opts,
-        ...childTestConfig,
-        screenWidth: this.W,
-        screenHeight: this.H
+        ...childTestConfig
       })
     };
   }
 
   failureFactory(opts) {
-    // Randomly pick BamUhOhEffect or SsbmFailEffect with equal probability
-    const effects = [BamUhOhEffect, SsbmFailEffect];
-    const EffectClass = effects[Math.floor(Math.random() * effects.length)];
-    return new EffectClass({ ...opts, W: this.W, H: this.H, id: ++this.effectIdCounter });
+    // Randomly pick between bamFailure and ssbmFailure scenes
+    const failureTypes = ['bamFailure', 'ssbmFailure'];
+    const randomType = failureTypes[Math.floor(Math.random() * failureTypes.length)];
+    
+    // Spawn the selected failure type
+    this.spawn(randomType, opts);
+    return null; // Don't return anything since spawn handles it
   }
 
   successFactory(opts) {

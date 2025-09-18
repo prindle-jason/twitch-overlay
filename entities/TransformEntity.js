@@ -5,8 +5,8 @@ import Entity from './Entity.js';
  * Handles position, scale, rotation, opacity and transform inheritance.
  */
 class TransformEntity extends Entity {
-  constructor(config = {}, parent = null) {
-    super(config, parent);
+  constructor(config = {}) {
+    super(config);
     
     // Transform properties with defaults
     this.x = config.x !== undefined ? config.x : 0;
@@ -134,6 +134,38 @@ class TransformEntity extends Entity {
       width: this.width * this.scaleX,
       height: this.height * this.scaleY
     };
+  }
+  
+  /**
+   * Get the left edge position in local coordinates (accounts for anchor)
+   * @returns {number} Left edge x coordinate
+   */
+  getLeftEdge() {
+    return this.x - (this.width * this.anchorX);
+  }
+  
+  /**
+   * Get the right edge position in local coordinates (accounts for anchor)
+   * @returns {number} Right edge x coordinate
+   */
+  getRightEdge() {
+    return this.x + (this.width * (1 - this.anchorX));
+  }
+  
+  /**
+   * Get the top edge position in local coordinates (accounts for anchor)
+   * @returns {number} Top edge y coordinate
+   */
+  getTopEdge() {
+    return this.y - (this.height * this.anchorY);
+  }
+  
+  /**
+   * Get the bottom edge position in local coordinates (accounts for anchor)
+   * @returns {number} Bottom edge y coordinate
+   */
+  getBottomEdge() {
+    return this.y + (this.height * (1 - this.anchorY));
   }
 }
 

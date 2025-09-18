@@ -6,8 +6,8 @@ import { getImage } from '../core/mediaLoader.js';
  * Gets images from mediaLoader by name.
  */
 export default class ImageEntity extends TransformEntity {
-  constructor(config = {}, parent = null) {
-    super(config, parent);
+  constructor(config = {}) {
+    super(config);
     
     this.imageName = config.imageName || null;
     this.image = null;
@@ -69,7 +69,8 @@ export default class ImageEntity extends TransformEntity {
       // Draw using anchor-based positioning
       const drawX = -this.width * this.anchorX;
       const drawY = -this.height * this.anchorY;
-      
+      ctx.filter = this.filter || 'none';
+      ctx.globalAlpha = this.opacity;
       ctx.drawImage(
         this.image,
         drawX, drawY, this.width, this.height

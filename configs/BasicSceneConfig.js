@@ -3,7 +3,7 @@
 
 import ImageEntity from '../entities/ImageEntity.js';
 import AudioEntity from '../entities/AudioEntity.js';
-import TimedEntity from '../behaviors/TimedEntity.js';
+import FinishAfterDurationBehavior from '../behaviors/FinishAfterDurationBehavior.js';
 
 export const basicSceneConfig = {
   name: 'basicScene',

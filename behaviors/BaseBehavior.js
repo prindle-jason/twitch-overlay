@@ -1,31 +1,19 @@
-// behaviors/BaseBehavior.js
-export class BaseBehavior {
-  constructor(config = {}) {
-    this.config = config;
-  }
+import Entity from '../entities/Entity.js';
 
-  /**
-   * Called when the effect starts playing
-   * @param {BaseElement} element - The element this behavior is attached to
-   */
-  onPlay(element) {
-    // Override in subclasses
-  }
-
-  /**
-   * Called every frame to update the element
-   * @param {BaseElement} element - The element this behavior is attached to
-   * @param {number} deltaTime - Time since last frame in milliseconds
-   */
-  update(element, deltaTime) {
-    // Override in subclasses
-  }
-
-  /**
-   * Called when the effect finishes
-   * @param {BaseElement} element - The element this behavior is attached to
-   */
-  onFinish(element) {
-    // Override in subclasses
+/**
+ * Base class for behavior entities.
+ * Behaviors always operate on a parent entity and require one to be provided.
+ * This enforces the contract that behaviors modify their parent.
+ */
+export default class BaseBehavior extends Entity {
+  constructor(config = {}, parent) {
+    super(config);
+    
+    // Behaviors MUST have a parent
+    if (!parent) {
+      throw new Error(`${this.constructor.name}: Behaviors require a parent entity`);
+    }
+    
+    this.parent = parent;
   }
 }

@@ -1,25 +1,30 @@
-import Entity from '../entities/Entity.js';
+import SceneEntity from '../entities/SceneEntity.js';
 import ImageEntity from '../entities/ImageEntity.js';
 import AudioEntity from '../entities/AudioEntity.js';
-import ScreenBounceEntity from '../behaviors/ScreenBounceEntity.js';
-import ScreenCornerDetectionEntity from '../behaviors/ScreenCornerDetectionEntity.js';
-import HueCycleEntity from '../behaviors/HueCycleEntity.js';
+import ScreenBounceBehavior from '../behaviors/ScreenBounceBehavior.js';
+import ScreenCornerDetectionBehavior from '../behaviors/ScreenCornerDetectionBehavior.js';
+import HueCycleBehavior from '../behaviors/HueCycleBehavior.js';
+import FinishAfterDurationBehavior from '../behaviors/FinishAfterDurationBehavior.js';
 
 /**
  * DVD bouncing logo scene.
- * Logo bounces around screen until it hits a corner, then triggers confetti.
+ * Logo bounces around screen until it hits a corner, then starts a timer and finishes after 2 seconds.
  */
-export default class DvdBounceScene extends Entity {
-  constructor(config = {}) {
-    super(config);
-    
-    this.screenWidth = config.screenWidth || 800;
-    this.screenHeight = config.screenHeight || 600;
-    this.onCornerHit = config.onCornerHit || null;
+export default class DvdBounceScene extends SceneEntity {
+  constructor(screenWidth, screenHeight, config = {}) {
+    super(screenWidth, screenHeight, config);
+
+    this.cornerReached = false;
     
     // Initialize the scene
     this.setupLogo();
     this.setupAudio();
+
+    this.finishTimer = new FinishAfterDurationBehavior({
+      duration: 2000,
+      disabled: true
+    }, this);
+    this.addChild(this.finishTimer);
   }
   
   /**
@@ -27,32 +32,37 @@ export default class DvdBounceScene extends Entity {
    */
   setupLogo() {
     // Create the DVD logo
-    this.logo = new ImageEntity('resources/images/dvdLogo.png', {
+    this.logo = new ImageEntity({
+      imageName: 'dvdLogo',
       width: 128,
       height: 56,
-      x: Math.random() * (this.screenWidth - 128),
-      y: Math.random() * (this.screenHeight - 56)
+      // DEBUG: Position logo to travel directly to bottom-right corner
+      // With default anchor (0.5, 0.5) and velocity (2, 2)
+      x: this.screenWidth - 236,  // Close enough to corner to reach it quickly
+      y: this.screenHeight - 200   // Close enough to corner to reach it quickly
+      // x: Math.random() * (this.screenWidth - 128),
+      // y: Math.random() * (this.screenHeight - 56)
     });
     
     // Add bouncing physics behavior
-    const bounceBehavior = new ScreenBounceEntity({
+    const bounceBehavior = new ScreenBounceBehavior({
       screenWidth: this.screenWidth,
       screenHeight: this.screenHeight,
       velocityX: 2.0,
       velocityY: 2.0
-    });
+    }, this.logo);
     
     // Add corner detection behavior
-    this.cornerDetector = new ScreenCornerDetectionEntity({
+    this.cornerDetector = new ScreenCornerDetectionBehavior({
       screenWidth: this.screenWidth,
       screenHeight: this.screenHeight,
       epsilon: 2
-    });
+    }, this.logo);
     
     // Add hue cycling behavior for rainbow effect
-    const hueCycleBehavior = new HueCycleEntity({
+    const hueCycleBehavior = new HueCycleBehavior({
       hueIncrement: 0.5
-    });
+    }, this.logo);
     
     // Attach behaviors to logo
     this.logo.addChild(bounceBehavior);
@@ -67,10 +77,10 @@ export default class DvdBounceScene extends Entity {
    * Setup audio for corner hit celebration
    */
   setupAudio() {
-    // Create sound for corner hits
-    this.cornerSound = new AudioEntity('resources/audio/partyHorn.mp3', {
+    // Create sound for corner hits (disabled until corner is hit)
+    this.cornerSound = AudioEntity.createOnPlayEntity('partyHorn', {//new AudioEntity({
       volume: 0.4,
-      autoPlay: false // We'll trigger it manually
+      disabled: true
     });
     
     this.addChild(this.cornerSound);
@@ -83,37 +93,23 @@ export default class DvdBounceScene extends Entity {
     super.onUpdate(deltaTime);
     
     // Check if corner was reached
-    if (this.cornerDetector && this.cornerDetector.cornerReached) {
+    if (!this.cornerReached && this.cornerDetector && this.cornerDetector.cornerReached) {
       this.handleCornerHit();
     }
   }
   
   /**
-   * Handle corner hit - play sound and trigger callback
+   * Handle corner hit - enable audio and start finish timer
    */
   handleCornerHit() {
-    // Play celebration sound
+    console.log('DvdBounceScene: Corner hit detected!');
+    this.cornerReached = true;
+
+    this.logo.disable();
+    // Enable and play celebration sound
     if (this.cornerSound) {
-      this.cornerSound.playAudio();
+      this.cornerSound.enable();
     }
-    
-    // Trigger callback if provided (e.g., spawn confetti)
-    if (this.onCornerHit) {
-      this.onCornerHit();
-    }
-    
-    // Scene finishes when corner is hit
-    this.finish();
-  }
-  
-  /**
-   * Get current logo position (useful for spawning effects at logo location)
-   * @returns {object} Object with x, y coordinates
-   */
-  getLogoPosition() {
-    if (this.logo) {
-      return { x: this.logo.x, y: this.logo.y };
-    }
-    return { x: 0, y: 0 };
+    this.finishTimer.enable();
   }
 }

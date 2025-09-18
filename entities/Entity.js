@@ -6,17 +6,12 @@ import { EntityState } from './EntityState.js';
  * Everything is an Entity - effects, elements, and behaviors are all entities.
  */
 export default class Entity {
-  constructor(config = {}, parent = null) {
+  constructor(config = {}) {
+    this.name = config.name || null;
     this.state = EntityState.READY;
+    this.disabled = config.disabled !== undefined ? config.disabled : false;
     this.children = [];
     
-    // Identity field
-    this.name = config.name || null;
-    
-    // Enable/disable control
-    this.disabled = config.disabled !== undefined ? config.disabled : false;
-    
-    // Create children from config if specified
     if (config.children && Array.isArray(config.children)) {
       config.children.forEach(childConfig => {
         this.createChildFromConfig(childConfig);

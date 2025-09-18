@@ -1,14 +1,13 @@
-import Entity from '../entities/Entity.js';
+import BaseBehavior from './BaseBehavior.js';
 
 /**
  * Behavior that starts audio playback when the parent entity starts playing.
  * Add this as a child to an AudioEntity to control when it plays.
  */
-export default class AudioStartOnPlayBehavior extends Entity {
-  constructor(config = {}, parent = null) {
+export default class AudioStartOnPlayBehavior extends BaseBehavior {
+  constructor(config = {}, parent) {
     super(config, parent);
     
-    this.parent = parent; // Store parent reference to control audio
     this.elapsed = 0;
     this.hasTriggered = false;
   }

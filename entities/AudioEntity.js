@@ -1,5 +1,6 @@
 import Entity from './Entity.js';
 import { getSound } from '../core/mediaLoader.js';
+import AudioStartOnPlayBehavior from '../behaviors/AudioStartOnPlayBehavior.js';
 
 /**
  * Entity for audio playback.
@@ -7,8 +8,8 @@ import { getSound } from '../core/mediaLoader.js';
  * Can still have children (visual effects that sync to audio).
  */
 export default class AudioEntity extends Entity {
-  constructor(config = {}, parent = null) {
-    super(config, parent);
+  constructor(config = {}) {
+    super(config);
     
     this.audioName = config.audioName || null;
     this.audio = null;
@@ -29,11 +30,36 @@ export default class AudioEntity extends Entity {
   }
   
   /**
+   * Static helper to create an AudioEntity that auto-plays on scene start
+   * @param {string} audioName - Name of the audio resource to play
+   * @param {Object} options - Optional config (volume, etc.)
+   * @returns {AudioEntity} AudioEntity with AudioStartOnPlayBehavior attached
+   */
+  static createOnPlayEntity(audioName, options = {}) {
+    const audio = new AudioEntity({
+      audioName: audioName,
+      volume: options.volume,
+      disabled: options.disabled || false,
+    });
+    
+    const autoPlayBehavior = new AudioStartOnPlayBehavior({}, audio);
+    audio.addChild(autoPlayBehavior);
+    
+    return audio;
+  }
+  
+  /**
    * Check if audio should finish naturally
    * @returns {boolean} True if audio has ended
    */
   shouldFinish() {
     return this.audio && this.audio.ended;
+  }
+
+  enable() {
+    console.log(`AudioEntity: ${this.name} enabled`);
+    super.enable();
+    //this.playAudio();
   }
   
   /**
@@ -44,6 +70,7 @@ export default class AudioEntity extends Entity {
     if (this.audio) {
       try {
         const playPromise = this.audio.play();
+        console.log(`Audio duration: ${this.audio.duration}s`);
         if (playPromise) {
           playPromise.catch(e => {
             console.warn(`Audio play failed: ${this.audioName}`, e);

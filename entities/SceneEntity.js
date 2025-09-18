@@ -3,12 +3,13 @@ import Entity from './Entity.js';
 /**
  * Base class for scene entities.
  * Provides screen dimensions for child entities that need them.
+ * Scenes are always root-level entities and never have parents.
  */
 export default class SceneEntity extends Entity {
-  constructor(config = {}, parent = null) {
-    super(config, parent);
+  constructor(screenWidth, screenHeight, config = {}) {
+    super(config); // No parent - scenes are always root level
     
-    this.screenWidth = config.screenWidth || 800;
-    this.screenHeight = config.screenHeight || 600;
+    this.screenWidth = screenWidth;
+    this.screenHeight = screenHeight;
   }
 }

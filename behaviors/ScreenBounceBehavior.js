@@ -1,36 +1,46 @@
-// behaviors/ScreenBounceBehavior.js
-import { BaseBehavior } from './BaseBehavior.js';
+import BaseBehavior from './BaseBehavior.js';
 
-export class ScreenBounceBehavior extends BaseBehavior {
-  constructor(config = {}) {
-    super(config);
+/**
+ * Behavior entity that makes a parent entity bounce off screen edges.
+ * Adds physics simulation with wall collision detection.
+ */
+export default class ScreenBounceBehavior extends BaseBehavior {
+  constructor(config = {}, parent = null) {
+    super(config, parent);
+    
     this.screenWidth = config.screenWidth || 800;
     this.screenHeight = config.screenHeight || 600;
     this.velocityX = config.velocityX || 2;
     this.velocityY = config.velocityY || 2;
   }
   
-  update(element, deltaTime) {
-    const speedScale = deltaTime / 16.67;
+  /**
+   * Update parent position and handle bouncing
+   * @param {number} deltaTime - Time elapsed since last update
+   */
+  onUpdate(deltaTime) {
+    if (!this.parent) return;
     
-    // Update position based on velocity
-    element.x += this.velocityX * speedScale;
-    element.y += this.velocityY * speedScale;
+    const speedScale = deltaTime / 16.67; // Normalize to 60fps
     
-    // Handle wall collisions and bounce
-    if (element.x < 0) {
-      element.x = 0;
+    // Update parent position based on velocity
+    this.parent.x += this.velocityX * speedScale;
+    this.parent.y += this.velocityY * speedScale;
+    
+    // Handle wall collisions and bounce using edge calculation methods
+    if (this.parent.getLeftEdge() < 0) {
+      this.parent.x = this.parent.width * this.parent.anchorX;
       this.velocityX = Math.abs(this.velocityX);
-    } else if (element.x + element.width > this.screenWidth) {
-      element.x = this.screenWidth - element.width;
+    } else if (this.parent.getRightEdge() > this.screenWidth) {
+      this.parent.x = this.screenWidth - (this.parent.width * (1 - this.parent.anchorX));
       this.velocityX = -Math.abs(this.velocityX);
     }
     
-    if (element.y < 0) {
-      element.y = 0;
+    if (this.parent.getTopEdge() < 0) {
+      this.parent.y = this.parent.height * this.parent.anchorY;
       this.velocityY = Math.abs(this.velocityY);
-    } else if (element.y + element.height > this.screenHeight) {
-      element.y = this.screenHeight - element.height;
+    } else if (this.parent.getBottomEdge() > this.screenHeight) {
+      this.parent.y = this.screenHeight - (this.parent.height * (1 - this.parent.anchorY));
       this.velocityY = -Math.abs(this.velocityY);
     }
   }

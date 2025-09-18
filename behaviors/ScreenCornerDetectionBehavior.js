@@ -1,29 +1,37 @@
-// behaviors/ScreenCornerDetectionBehavior.js
-import { BaseBehavior } from './BaseBehavior.js';
+import BaseBehavior from './BaseBehavior.js';
 
-export class ScreenCornerDetectionBehavior extends BaseBehavior {
-  constructor(config = {}) {
-    super(config);
+/**
+ * Behavior entity that detects when parent entity reaches screen corners.
+ * Triggers parent finish when corner is reached.
+ */
+export default class ScreenCornerDetectionBehavior extends BaseBehavior {
+  constructor(config = {}, parent = null) {
+    super(config, parent);
+    
     this.screenWidth = config.screenWidth || 800;
     this.screenHeight = config.screenHeight || 600;
     this.epsilon = config.epsilon || 2;
     this.cornerReached = false;
   }
   
-  update(element, deltaTime) {
-    // Only check if we haven't already detected a corner
-    if (this.cornerReached) return;
+  /**
+   * Check for corner collision and finish parent if detected
+   * @param {number} deltaTime - Time elapsed since last update
+   */
+  onUpdate(deltaTime) {
+    if (!this.parent || this.cornerReached) return;
     
-    const x = element.x;
-    const y = element.y;
-    const width = element.width;
-    const height = element.height;
+    // Use edge calculation methods that account for anchors
+    const leftEdge = this.parent.getLeftEdge();
+    const rightEdge = this.parent.getRightEdge();
+    const topEdge = this.parent.getTopEdge();
+    const bottomEdge = this.parent.getBottomEdge();
     
-    // Check if element is at any corner
-    const atLeft = x <= this.epsilon;
-    const atRight = x + width >= this.screenWidth - this.epsilon;
-    const atTop = y <= this.epsilon;
-    const atBottom = y + height >= this.screenHeight - this.epsilon;
+    // Check if element is at any corner (within epsilon tolerance)
+    const atLeft = leftEdge <= this.epsilon;
+    const atRight = rightEdge >= this.screenWidth - this.epsilon;
+    const atTop = topEdge <= this.epsilon;
+    const atBottom = bottomEdge >= this.screenHeight - this.epsilon;
     
     const isInCorner = (atLeft && atTop) || 
                       (atRight && atTop) || 
@@ -31,6 +39,7 @@ export class ScreenCornerDetectionBehavior extends BaseBehavior {
                       (atRight && atBottom);
     
     if (isInCorner) {
+      console.log('ScreenCornerDetectionBehavior: Corner reached!');
       this.cornerReached = true;
     }
   }
