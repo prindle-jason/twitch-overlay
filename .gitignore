@@ -1,5 +1,9 @@
-# Project resources (images, audio, etc.)
-resources/
+# Build outputs
+dist/
+
+# TypeScript
+*.tsbuildinfo
+
 # Dependencies
 node_modules/
 npm-debug.log*

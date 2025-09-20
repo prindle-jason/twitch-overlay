@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 120" role="img" aria-label="X JASON!">
+  <style>
+    .label {
+      font-family: "Futura","Helvetica Neue",Helvetica,Arial,sans-serif;
+      font-weight: 700;
+      letter-spacing: 2.2px;
+      font-size: 72px;
+      dominant-baseline: middle;
+      fill: white;
+      stroke: black;
+      stroke-width: 4;
+      /* Paint stroke first (behind), then fill, so white isn't overlaid by black */
+      paint-order: stroke fill;
+    }
+  </style>
+
+  <!-- Circle: draw BLACK outline first, then WHITE ring on top -->
+  <circle cx="60" cy="60" r="45" fill="none" stroke="black" stroke-width="10" />
+  <circle cx="60" cy="60" r="45" fill="none" stroke="white" stroke-width="6" />
+
+  <!-- X: draw BLACK lines first, then WHITE lines on top -->
+  <!-- black outline -->
+  <g stroke="black" stroke-linecap="round">
+    <line x1="38" y1="38" x2="82" y2="82" stroke-width="12" />
+    <line x1="38" y1="82" x2="82" y2="38" stroke-width="12" />
+  </g>
+  <!-- white fill -->
+  <g stroke="white" stroke-linecap="round">
+    <line x1="38" y1="38" x2="82" y2="82" stroke-width="8" />
+    <line x1="38" y1="82" x2="82" y2="38" stroke-width="8" />
+  </g>
+
+  <!-- Text: white with black outline, using paint-order so black doesn't overlay white -->
+  <text x="130" y="65" class="label">JASON!</text>
+</svg>
