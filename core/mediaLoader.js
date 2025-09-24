@@ -24,7 +24,8 @@ const soundMap = {
     ssbmFail: "ssbm-failure.mp3",
     ssbmSuccess: "ssbm-success.mp3",
     heavyRainJason: "heavyrain-jason.mp3",
-    yippee: "yippee.mp3"
+    yippee: "yippee.mp3",
+    tickerSound: "ticker-sound.mp3"
 };
 
 const soundCache = {};

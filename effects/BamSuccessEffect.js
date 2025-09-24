@@ -3,7 +3,7 @@ import { BaseEffect } from './BaseEffect.js';
 import { ImageElement } from '../elements/ImageElement.js';
 import { SoundElement } from '../elements/SoundElement.js';
 import { ImageScaleBehavior } from '../behaviors/ImageScaleBehavior.js';
-import { ImageSlideBehavior } from '../behaviors/ImageSlideBehavior.js';
+import { SlideBehavior } from '../behaviors/SlideBehavior.js';
 import { SoundOnPlayBehavior } from '../behaviors/SoundOnPlayBehavior.js';
 
 export class BamSuccessEffect extends BaseEffect {
@@ -20,7 +20,7 @@ export class BamSuccessEffect extends BaseEffect {
     const imgW = bubImage.image.naturalWidth * SCALE;
     const imgH = bubImage.image.naturalHeight * SCALE;
     
-    bubImage.addBehavior(new ImageSlideBehavior({
+    bubImage.addBehavior(new SlideBehavior({
       startX: 0 - imgW,  // Off screen left
       startY: H,
       endX: 0,
@@ -31,7 +31,7 @@ export class BamSuccessEffect extends BaseEffect {
     // Create Bob image (slides from right)
     const bobImage = new ImageElement('bobSuccess');
     bobImage.addBehavior(new ImageScaleBehavior({ scaleX: SCALE, scaleY: SCALE }));
-    bobImage.addBehavior(new ImageSlideBehavior({
+    bobImage.addBehavior(new SlideBehavior({
       startX: W,  // Off screen right
       startY: H,
       endX: W - imgW,  // Right edge minus image width

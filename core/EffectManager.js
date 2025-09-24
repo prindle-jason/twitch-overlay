@@ -8,6 +8,7 @@ import { BamUhOhEffect } from "../effects/BamUhOhEffect.js";
 import { BamSuccessEffect } from "../effects/BamSuccessEffect.js";
 import { SsbmFailEffect } from "../effects/SsbmFailEffect.js";
 import { SsbmSuccessEffect } from "../effects/SsbmSuccessEffect.js";
+import { TickerEffect } from "../effects/TickerEffect.js";
 
 export class EffectManager {
   constructor({ W, H }) {
@@ -25,7 +26,8 @@ export class EffectManager {
       ssbmFail: (opts) => new SsbmFailEffect(opts),
       ssbmSuccess: (opts) => new SsbmSuccessEffect(opts),
       bamSuccess: (opts) => new BamSuccessEffect(opts),
-      bamUhOh: (opts) => new BamUhOhEffect(opts)
+      bamUhOh: (opts) => new BamUhOhEffect(opts),
+      ticker: (opts) => new TickerEffect(opts)
     };
   }
 
