@@ -94,26 +94,89 @@ if (entity instanceof TransformEntity) {
 }
 ```
 
-## EntityManager
-**Responsibility**: System coordination and game loop integration
+## Scene-Based System Coordination
+**Responsibility**: Each scene owns and coordinates its own systems
 
 ```typescript
-class EntityManager {
-  constructor(
-    private updateSystem: UpdateSystem,
-    private transformSystem: TransformSystem,
-    private renderSystem: RenderSystem
-  ) {}
+abstract class Scene {
+  protected entities: Entity[] = [];
+  protected updateSystem = new UpdateSystem();
+  protected renderSystem = new RenderSystem();
+  protected transformSystem?: TransformSystem; // Optional - only if collision needed
+  protected behaviorManager = new BehaviorManager();
 
-  frame(rootEntities: Entity[], deltaTime: number, ctx: CanvasRenderingContext2D): void {
-    // Phase 1: Update entity logic and behaviors
-    this.updateSystem.process(rootEntities, deltaTime);
+  constructor(needsCollision: boolean = false) {
+    if (needsCollision) {
+      this.transformSystem = new TransformSystem();
+    }
+  }
+
+  // Main scene update loop
+  update(deltaTime: number): void {
+    // Phase 1: Update entity lifecycle and behaviors
+    this.updateSystem.process(this.entities, deltaTime, this.behaviorManager);
     
-    // Phase 2: Calculate world transforms
-    this.transformSystem.process(rootEntities);
+    // Phase 2: World coordinates calculated on-demand (if collision system exists)
+    // No explicit transform processing - handled lazily by TransformSystem
+  }
+
+  // Main scene render loop  
+  render(ctx: CanvasRenderingContext2D): void {
+    // Phase 3: Render using Canvas transforms
+    this.renderSystem.process(this.entities, ctx);
+  }
+
+  // Scene control methods
+  pause(): void {
+    this.updateSystem.pauseEntities(this.entities);
+  }
+
+  resume(): void {
+    this.updateSystem.resumeEntities(this.entities);
+  }
+
+  destroy(): void {
+    this.updateSystem.destroyEntities(this.entities);
+    this.entities = [];
+  }
+}
+```
+
+### SceneManager Coordination
+```typescript
+class SceneManager {
+  private activeScenes = new Map<string, Scene>();
+
+  frame(deltaTime: number, ctx: CanvasRenderingContext2D): void {
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Phase 3: Render to canvas
-    this.renderSystem.process(rootEntities, ctx);
+    // Update all active scenes
+    this.activeScenes.forEach(scene => {
+      scene.update(deltaTime);
+    });
+    
+    // Render all active scenes (overlapping)
+    this.activeScenes.forEach(scene => {
+      scene.render(ctx);
+    });
+    
+    // Remove finished scenes
+    this.cleanupFinishedScenes();
+  }
+
+  private cleanupFinishedScenes(): void {
+    const finishedScenes: string[] = [];
+    this.activeScenes.forEach((scene, key) => {
+      if (scene.isFinished()) {
+        scene.destroy();
+        finishedScenes.push(key);
+      }
+    });
+    
+    finishedScenes.forEach(key => {
+      this.activeScenes.delete(key);
+    });
   }
 }
 ```
@@ -126,18 +189,22 @@ class EntityManager {
 3. **Render Phase**: Draw entities using world coordinates (read-only)
 
 ### Synchronization Benefits
-- **Predictable Order**: Updates always happen before rendering
-- **No Race Conditions**: Clear phase boundaries prevent conflicts
-- **Efficient Batching**: Each system processes all entities in one pass
-- **Easy Testing**: Systems can be tested independently
+- **Scene Isolation**: Each scene manages its own entity processing
+- **Predictable Order**: Updates always happen before rendering within each scene
+- **No Cross-Scene Interference**: Scenes cannot affect each other's entities
+- **Efficient Batching**: Each system processes scene entities in one pass
+- **Easy Testing**: Scenes and systems can be tested independently
+- **Optional Complexity**: Only scenes that need collision create TransformSystem
 
 ### Data Flow
 ```
-Input Events → UpdateSystem → Entity State Changes
-                ↓
-Local Transform Changes → TransformSystem → World Coordinates
-                ↓
-World Coordinates → RenderSystem → Canvas Output
+SceneManager.frame() → Scene.update() → Scene.render()
+                          ↓                ↓
+                    UpdateSystem         RenderSystem
+                    + BehaviorManager    (Canvas Transforms)
+                          ↓
+                    TransformSystem
+                    (On-demand for collision)
 ```
 
 ## Tree Traversal Strategy
@@ -190,15 +257,22 @@ Entity (no transform)
 ## Usage Example
 ```typescript
 // Setup
-const entityManager = new EntityManager(
-  new UpdateSystem(),
-  new TransformSystem(),
-  new RenderSystem()
-);
+const sceneManager = new SceneManager();
+
+// Create scenes with different system requirements
+const visualScene = new XJasonScene(); // No collision needed
+const interactiveScene = new ZeldaChestScene(true); // Needs collision
+
+sceneManager.addScene('xjason', visualScene);
+sceneManager.addScene('chest', interactiveScene);
 
 // Game loop
 function gameLoop(deltaTime: number) {
-  entityManager.frame([sceneRoot], deltaTime, canvasContext);
+  sceneManager.frame(deltaTime, canvasContext);
   requestAnimationFrame(gameLoop);
 }
+
+// Scene-specific usage
+visualScene.spawnImage(); // Only uses UpdateSystem + RenderSystem
+interactiveScene.handleClick(x, y); // Uses TransformSystem for collision
 ```
