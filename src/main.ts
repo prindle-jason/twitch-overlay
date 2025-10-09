@@ -1,5 +1,5 @@
 // TypeScript Twitch Overlay with Streamer.bot Manager
-import { StreamerbotManager } from '@/core/StreamerbotManager';
+import { StreamerbotManager } from '@/managers/StreamerbotManager';
 
 console.log('Twitch Overlay - TypeScript Foundation Ready!');
 
