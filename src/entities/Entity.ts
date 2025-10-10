@@ -402,7 +402,7 @@ export abstract class Entity {
    * Helper method for subclasses to copy base Entity properties
    * Call this from your clone() implementation after creating the new instance
    */
-  protected copyBasicPropertiesTo(target: Entity): void {
+  protected cloneTo(target: Entity): void {
     // Copy progression state
     target._progress = this._progress;
     target._maxProgression = this._maxProgression;
