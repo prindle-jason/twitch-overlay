@@ -1,7 +1,7 @@
 import { Entity } from '../entities/Entity';
 import { EntityState } from '../entities/EntityState';
 import { RenderableEntity } from '../entities/RenderableEntity';
-import { AssetManager } from '../core/AssetManager';
+import { AssetManager } from '../managers/AssetManager';
 
 /**
  * Scene - Base class for all overlay scenes

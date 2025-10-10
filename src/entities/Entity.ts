@@ -30,6 +30,7 @@ export interface EntityConfig {
  * - 360: Rotation in degrees (0° to 360°)
  */
 export abstract class Entity {
+  private _id: string;
   // State management
   private _state: EntityState = EntityState.CONSTRUCTED;
   private _disabled: boolean = false;
@@ -46,16 +47,17 @@ export abstract class Entity {
   /**
    * Create a new entity with explicit parameters
    * Constructor should do minimal work - heavy lifting goes in onInitialize()
+   * ID is auto-generated for uniqueness
    * 
    * @param name - Human-readable name for debugging
-   * @param id - Unique identifier (auto-generated if not provided)
    * @param config - Optional configuration for progression and state
    */
   constructor(
     public readonly name: string, 
-    public readonly id: string = `${name}_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
     config: EntityConfig = {}
   ) {
+    this._id = `${name}_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+    
     // Apply configuration
     if (config.maxProgression !== undefined) {
       this._maxProgression = Math.max(0, config.maxProgression);
@@ -66,6 +68,13 @@ export abstract class Entity {
   }
 
   // === State Management ===
+
+  /**
+   * Get unique entity identifier
+   */
+  get id(): string {
+    return this._id;
+  }
 
   /**
    * Get current entity state

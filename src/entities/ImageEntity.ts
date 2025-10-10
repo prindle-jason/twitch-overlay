@@ -1,5 +1,5 @@
 import { RenderableEntity } from './RenderableEntity';
-import { AssetManager } from '../core/AssetManager';
+import { AssetManager } from '../managers/AssetManager';
 import { type EntityConfig } from './Entity';
 
 /**
@@ -14,8 +14,8 @@ export class ImageEntity extends RenderableEntity {
   private assetManager: AssetManager;
   private isImageLoaded: boolean = false;
 
-  constructor(imageFilename: string, name: string = 'image', id?: string, config?: EntityConfig) {
-    super(name, id, config);
+  constructor(imageFilename: string, name: string = 'image', config?: EntityConfig) {
+    super(name, config);
     this.imageFilename = imageFilename;
     this.assetManager = AssetManager.getInstance();
   }
@@ -151,19 +151,27 @@ export class ImageEntity extends RenderableEntity {
 
   clone(): ImageEntity {
     // Create new instance with same parameters
-    const cloned = new ImageEntity(this.imageFilename, this.name, undefined, {
+    const cloned = new ImageEntity(this.imageFilename, this.name, {
       maxProgression: this.getMaxProgression(),
       disabled: this.isDisabled()
     });
     
-    // Copy all inherited properties
-    this.copyRenderablePropertiesTo(cloned);
-    
-    // Copy image-specific properties
-    cloned.image = this.image; // Share the same loaded image
-    cloned.isImageLoaded = this.isImageLoaded;
+    // Copy all properties down the inheritance chain
+    this.cloneTo(cloned);
     
     return cloned;
+  }
+
+  /**
+   * Copy this entity's image-specific properties to the target entity
+   */
+  protected cloneTo(target: ImageEntity): void {
+    // Copy all inherited properties first
+    super.cloneTo(target);
+    
+    // Copy image-specific properties
+    target.image = this.image; // Share the same loaded image
+    target.isImageLoaded = this.isImageLoaded;
   }
 
   // === Cleanup ===
