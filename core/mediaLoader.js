@@ -12,7 +12,9 @@ const imageMap = {
     bluRayLogo: "bluRayLogo.png",
     ssbmFailure: "ssbmFailure.png",
     ssbmSuccess: "ssbmSuccess.png",
-    xJason: "xJason.svg"
+    xJason: "xJason.svg",
+    activateWindows: "activateWindows.png",
+    hypercam: "hypercam.png"
 };
 
 // Sound effect logic
