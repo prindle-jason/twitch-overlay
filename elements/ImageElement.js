@@ -33,6 +33,34 @@ export class ImageElement extends BaseElement {
   }
 
   /**
+   * Wait for the image to be ready (loaded or failed)
+   * @returns {Promise<void>}
+   */
+  async ready() {
+    const img = this.image;
+    if (!img) return;
+
+    // If already loaded, we're done
+    if (img.complete) return;
+
+    // Wait for load or error (whichever comes first)
+    await new Promise((resolve) => {
+      const onLoad = () => {
+        img.removeEventListener("error", onError);
+        resolve();
+      };
+
+      const onError = () => {
+        img.removeEventListener("load", onLoad);
+        resolve(); // Resolve even on error so effect doesn't hang
+      };
+
+      img.addEventListener("load", onLoad, { once: true });
+      img.addEventListener("error", onError, { once: true });
+    });
+  }
+
+  /**
    * Get the actual width to render (natural width if not specified)
    */
   getWidth() {

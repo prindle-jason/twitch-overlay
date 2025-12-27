@@ -11,7 +11,7 @@ export class BaseEffect {
 
   /**
    * Add an element to this effect
-   * @param {BaseElement} element 
+   * @param {BaseElement} element
    */
   addElement(element) {
     element.setEffect(this);
@@ -21,7 +21,7 @@ export class BaseEffect {
 
   /**
    * Remove an element from this effect
-   * @param {BaseElement} element 
+   * @param {BaseElement} element
    */
   removeElement(element) {
     const index = this.elements.indexOf(element);
@@ -37,6 +37,8 @@ export class BaseEffect {
    */
   async init() {
     this.elapsed = 0;
+    // Wait for all elements to be ready (images loaded, etc.)
+    await Promise.all(this.elements.map((e) => e.ready()));
     this.state = "Playing";
   }
 
@@ -45,7 +47,7 @@ export class BaseEffect {
    */
   onPlay() {
     // Trigger onPlay for all elements
-    this.elements.forEach(element => element.onPlay());
+    this.elements.forEach((element) => element.onPlay());
   }
 
   /**
@@ -54,23 +56,23 @@ export class BaseEffect {
    */
   update(deltaTime) {
     this.elapsed += deltaTime;
-    
+
     // Update all elements
-    this.elements.forEach(element => element.update(deltaTime));
-    
+    this.elements.forEach((element) => element.update(deltaTime));
+
     // Check if effect should finish
     if (this.duration !== -1 && this.elapsed >= this.duration) {
       this.state = "Finished";
-      this.elements.forEach(element => element.onFinish());
+      this.elements.forEach((element) => element.onFinish());
     }
   }
 
   /**
    * Draw all elements
-   * @param {CanvasRenderingContext2D} ctx 
+   * @param {CanvasRenderingContext2D} ctx
    */
   draw(ctx) {
-    this.elements.forEach(element => element.draw(ctx));
+    this.elements.forEach((element) => element.draw(ctx));
   }
 
   /**
@@ -78,7 +80,7 @@ export class BaseEffect {
    */
   onFinish() {
     // Trigger onFinish for all elements
-    this.elements.forEach(element => element.onFinish());
+    this.elements.forEach((element) => element.onFinish());
   }
 
   /**
