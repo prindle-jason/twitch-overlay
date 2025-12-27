@@ -1,9 +1,8 @@
 import { EffectManager } from "./core/EffectManager.js";
-import { preloadResources } from "./core/mediaLoader.js";
 import { connectWS } from "./utils/wsUtil.js";
 
-
-const W = 1920, H = 1080;
+const W = 1920,
+  H = 1080;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 canvas.width = W;
@@ -12,7 +11,6 @@ canvas.height = H;
 const effectManager = new EffectManager({ W, H });
 
 function startApp() {
-  preloadResources();
   connectWS();
 
   window.addEventListener("overlay-ws-event", (ev) => {
@@ -36,7 +34,7 @@ function loop() {
   lastFrame = now;
 
   ctx.clearRect(0, 0, W, H);
-  //ctx.fillStyle = 'green';
+  //ctx.fillStyle = "green";
   //ctx.fillRect(0, 0, W, H);
   effectManager.update(deltaTime);
   effectManager.draw(ctx);
@@ -45,4 +43,4 @@ function loop() {
 }
 
 // Start the app on window load
-window.addEventListener('load', startApp);
+window.addEventListener("load", startApp);

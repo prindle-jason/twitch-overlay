@@ -1,18 +1,18 @@
 // elements/SoundElement.js
-import { BaseElement } from './BaseElement.js';
-import { getSound } from '../core/mediaLoader.js';
+import { BaseElement } from "./BaseElement.js";
+import { getSound } from "../core/resourceRegistry.js";
 
 export class SoundElement extends BaseElement {
   constructor(soundName) {
     super();
-    
+
     // Sound properties
     this.soundName = soundName;
     this.sound = getSound(soundName);
     this.volume = 1;
     this.loop = false;
   }
-  
+
   /**
    * Play the sound
    */
@@ -23,7 +23,7 @@ export class SoundElement extends BaseElement {
       this.sound.play();
     }
   }
-  
+
   /**
    * Stop the sound
    */
@@ -33,7 +33,7 @@ export class SoundElement extends BaseElement {
       this.sound.currentTime = 0;
     }
   }
-  
+
   /**
    * SoundElement doesn't render anything to canvas
    */

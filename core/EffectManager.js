@@ -10,6 +10,7 @@ import { SsbmFailEffect } from "../effects/SsbmFailEffect.js";
 import { SsbmSuccessEffect } from "../effects/SsbmSuccessEffect.js";
 import { TickerEffect } from "../effects/TickerEffect.js";
 import { WatermarkEffect } from "../effects/WatermarkEffect.js";
+import { HeadbladeEffect } from "../effects/HeadbladeEffect.js";
 
 export class EffectManager {
   constructor({ W, H }) {
@@ -20,7 +21,8 @@ export class EffectManager {
     this.effectIdCounter = 0;
     this.factories = {
       confetti: (opts) => new ConfettiEffect(opts),
-      dvdBounce: (opts) => new DvdEffect({ ...opts, spawn: (type) => this.spawn(type) }),
+      dvdBounce: (opts) =>
+        new DvdEffect({ ...opts, spawn: (type) => this.spawn(type) }),
       xJason: (opts) => new XJasonEffect(opts),
       success: (opts) => this.successFactory(opts),
       failure: (opts) => this.failureFactory(opts),
@@ -29,7 +31,8 @@ export class EffectManager {
       bamSuccess: (opts) => new BamSuccessEffect(opts),
       bamUhOh: (opts) => new BamUhOhEffect(opts),
       ticker: (opts) => new TickerEffect(opts),
-      watermark: (opts) => new WatermarkEffect(opts)
+      watermark: (opts) => new WatermarkEffect(opts),
+      headblade: (opts) => new HeadbladeEffect(opts),
     };
   }
 
@@ -37,13 +40,23 @@ export class EffectManager {
     // Randomly pick BamUhOhEffect or SsbmFailEffect with equal probability
     const effects = [BamUhOhEffect, SsbmFailEffect];
     const EffectClass = effects[Math.floor(Math.random() * effects.length)];
-    return new EffectClass({ ...opts, W: this.W, H: this.H, id: ++this.effectIdCounter });
+    return new EffectClass({
+      ...opts,
+      W: this.W,
+      H: this.H,
+      id: ++this.effectIdCounter,
+    });
   }
 
   successFactory(opts) {
     const effects = [BamSuccessEffect, SsbmSuccessEffect];
     const EffectClass = effects[Math.floor(Math.random() * effects.length)];
-    return new EffectClass({ ...opts, W: this.W, H: this.H, id: ++this.effectIdCounter });
+    return new EffectClass({
+      ...opts,
+      W: this.W,
+      H: this.H,
+      id: ++this.effectIdCounter,
+    });
   }
 
   spawn(type, opts) {
@@ -51,7 +64,12 @@ export class EffectManager {
       // Optionally handle unknown effect type
       return;
     }
-    const effect = this.factories[type]({ ...opts, W: this.W, H: this.H, id: ++this.effectIdCounter });
+    const effect = this.factories[type]({
+      ...opts,
+      W: this.W,
+      H: this.H,
+      id: ++this.effectIdCounter,
+    });
     effect.init();
     this.loadingEffects.push(effect);
   }
