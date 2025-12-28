@@ -1,5 +1,5 @@
-import { EffectManager } from "./core/EffectManager.js";
-import { connectWS } from "./utils/wsUtil.js";
+import { EffectManager } from "./src/core/EffectManager.js";
+import { connectWS } from "./src/utils/wsUtil.js";
 
 const W = 1920,
   H = 1080;
