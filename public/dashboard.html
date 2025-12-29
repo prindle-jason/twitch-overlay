@@ -34,6 +34,10 @@
     <button id="testBtn">Send Test Event</button>
     <button id="statsBtn">Get Stats</button>
     <button id="bamSuccessBtn">Spawn Bam Success</button>
+    <button id="bamUhOhBtn">Spawn Bam UhOh</button>
+    <button id="ssbmSuccessBtn">Spawn SSBM Success</button>
+    <button id="ssbmFailBtn">Spawn SSBM Fail</button>
+    <button id="headbladeBtn">Spawn Headblade</button>
     <div
       id="log"
       style="
@@ -54,52 +58,93 @@
       const testBtn = document.getElementById("testBtn");
       const statsBtn = document.getElementById("statsBtn");
       const bamSuccessBtn = document.getElementById("bamSuccessBtn");
+      const bamUhOhBtn = document.getElementById("bamUhOhBtn");
+      const ssbmSuccessBtn = document.getElementById("ssbmSuccessBtn");
+      const ssbmFailBtn = document.getElementById("ssbmFailBtn");
+      const headbladeBtn = document.getElementById("headbladeBtn");
+
+      const allButtons = [
+        testBtn,
+        statsBtn,
+        bamSuccessBtn,
+        bamUhOhBtn,
+        ssbmSuccessBtn,
+        ssbmFailBtn,
+        headbladeBtn,
+      ].filter(Boolean);
 
       function log(msg) {
         logEl.textContent += new Date().toLocaleTimeString() + " " + msg + "\n";
         logEl.scrollTop = logEl.scrollHeight;
       }
 
-      const ws = new WebSocket("ws://" + window.location.host + "/overlay-ws");
-      ws.onopen = () => {
-        statusEl.textContent = "Connected";
-        statusEl.style.color = "green";
-        ws.send(JSON.stringify({ type: "hello", role: "dashboard" }));
-        log("WS connected");
-      };
-      ws.onmessage = (e) => {
-        try {
-          const msg = JSON.parse(e.data);
-          log("Received: " + msg.type);
-        } catch (err) {
-          log("Parse error: " + err.message);
+      function setConnected(connected) {
+        statusEl.textContent = connected ? "Connected" : "Disconnected";
+        statusEl.style.color = connected ? "green" : "red";
+        allButtons.forEach((b) => (b.disabled = !connected));
+      }
+
+      let ws = null;
+      let reconnectDelay = 500;
+      const maxDelay = 10000;
+
+      function send(type, payload) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          log("Cannot send; WS not connected");
+          return;
         }
-      };
-      ws.onclose = () => {
-        statusEl.textContent = "Disconnected";
-        statusEl.style.color = "red";
-        log("WS closed");
-      };
-      ws.onerror = (err) => {
-        log("WS error");
-      };
+        const msg = payload
+          ? { type, role: "dashboard", payload }
+          : { type, role: "dashboard" };
+        ws.send(JSON.stringify(msg));
+      }
 
-      testBtn.addEventListener("click", () => {
-        ws.send(JSON.stringify({ type: "ping" }));
-      });
+      function spawn(effectType) {
+        send("spawn-effect", { effectType });
+      }
 
-      statsBtn.addEventListener("click", () => {
-        ws.send(JSON.stringify({ type: "get-stats" }));
-      });
+      function connect() {
+        ws = new WebSocket("ws://" + window.location.host + "/overlay-ws");
+        ws.onopen = () => {
+          setConnected(true);
+          reconnectDelay = 500;
+          send("hello");
+          log("WS connected");
+        };
+        ws.onmessage = (e) => {
+          try {
+            const msg = JSON.parse(e.data);
+            log("Received: " + msg.type);
+          } catch (err) {
+            log("Parse error: " + err.message);
+          }
+        };
+        ws.onclose = () => {
+          setConnected(false);
+          log("WS closed; reconnecting in " + reconnectDelay + "ms");
+          setTimeout(connect, reconnectDelay);
+          reconnectDelay = Math.min(maxDelay, reconnectDelay * 2);
+        };
+        ws.onerror = () => {
+          log("WS error");
+        };
+      }
 
-      bamSuccessBtn.addEventListener("click", () => {
-        ws.send(
-          JSON.stringify({
-            type: "spawn-effect",
-            payload: { effectType: "bamSuccess" },
-          })
-        );
-      });
+      // Hook up buttons via helpers
+      testBtn.addEventListener("click", () => send("ping"));
+      statsBtn.addEventListener("click", () => send("get-stats"));
+      bamSuccessBtn.addEventListener("click", () => spawn("bamSuccess"));
+      bamUhOhBtn.addEventListener("click", () => spawn("bamUhOh"));
+      ssbmSuccessBtn.addEventListener("click", () => spawn("ssbmSuccess"));
+      ssbmFailBtn.addEventListener("click", () => spawn("ssbmFail"));
+      headbladeBtn.addEventListener("click", () => spawn("headblade"));
+
+      // Heartbeat ping
+      setInterval(() => send("ping"), 30000);
+
+      // Start disconnected until first open
+      setConnected(false);
+      connect();
     </script>
   </body>
 </html>

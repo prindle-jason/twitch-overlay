@@ -1,8 +1,8 @@
 import { BaseEffect } from "./BaseEffect.js";
 import { ImageElement } from "../elements/ImageElement.js";
 import { SoundElement } from "../elements/SoundElement.js";
-import { ImageCenteredBehavior } from "../behaviors/ImageCenteredBehavior.js";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior.js";
+import { ImageCenteredBehavior } from "../behaviors/__ImageCenteredBehavior.js";
+import { ImageFadeInOutBehavior } from "../behaviors/__ImageFadeInOutBehavior.js";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior.js";
 
 export class SsbmFailEffect extends BaseEffect {

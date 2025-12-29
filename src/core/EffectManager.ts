@@ -1,14 +1,14 @@
 import { ConfettiEffect } from "../../effects/ConfettiEffect.js";
 import { DvdEffect } from "../../effects/DvdEffect.js";
 import { XJasonEffect } from "../../effects/XJasonEffect.js";
-import { BamUhOhEffect } from "../../effects/BamUhOhEffect.js";
-import { BamSuccessEffect } from "../effects/BamSuccessEffect";
+import { BamUhOhEffect } from "../../effects/__BamUhOhEffect.js";
+import { ConvergingSlideEffect } from "../effects/ConvergingSlideEffect";
+import { CenteredImageEffect } from "../effects/CenteredImageEffect";
+import { HeadbladeEffect } from "../effects/HeadbladeEffect";
 import { Effect } from "../effects/Effect.js";
-import { SsbmFailEffect } from "../../effects/SsbmFailEffect.js";
-import { SsbmSuccessEffect } from "../../effects/SsbmSuccessEffect.js";
 import { TickerEffect } from "../../effects/TickerEffect.js";
 import { WatermarkEffect } from "../../effects/WatermarkEffect.js";
-import { HeadbladeEffect } from "../../effects/HeadbladeEffect.js";
+//import { HeadbladeEffect } from "../../effects/HeadbladeEffect.js";
 import { getCanvasConfig } from "../config";
 
 type Factory = (opts: Record<string, unknown>) => Effect;
@@ -30,9 +30,11 @@ export class EffectManager {
       //xJason: (opts) => new XJasonEffect(opts as any),
       //success: (opts) => this.successFactory(opts),
       //failure: (opts) => this.failureFactory(opts),
-      //ssbmFail: (opts) => new SsbmFailEffect(opts as any),
-      //ssbmSuccess: (opts) => new SsbmSuccessEffect(opts as any),
-      bamSuccess: (opts) => new BamSuccessEffect(opts as any),
+      ssbmFail: () => CenteredImageEffect.createSsbmFail(),
+      ssbmSuccess: () => CenteredImageEffect.createSsbmSuccess(),
+      bamSuccess: () => ConvergingSlideEffect.createBamSuccess(),
+      bamUhOh: () => ConvergingSlideEffect.createBamFailure(),
+      headblade: () => new HeadbladeEffect(),
       //bamUhOh: (opts) => new BamUhOhEffect(opts as any),
       //ticker: (opts) => new TickerEffect(opts as any),
       //watermark: (opts) => new WatermarkEffect(opts as any),

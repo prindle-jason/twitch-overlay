@@ -4,7 +4,7 @@ import type { LifecycleState } from "../types";
 
 export abstract class Effect {
   state: LifecycleState = "NEW";
-  duration: number;
+  duration: number = -1;
   elapsed = 0;
   elements: Element[] = [];
 
@@ -16,9 +16,7 @@ export abstract class Effect {
     return getCanvasConfig().H;
   }
 
-  constructor({ duration = 3000 }: { duration?: number } = {}) {
-    this.duration = duration ?? 3000;
-  }
+  constructor() {}
 
   addElement(element: Element) {
     element.setEffect(this);

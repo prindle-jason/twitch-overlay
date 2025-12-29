@@ -1,23 +1,14 @@
 import { Effect } from "./Effect";
 import { ImageElement } from "../elements/ImageElement";
 import { SoundElement } from "../elements/SoundElement";
-import { ImageScaleBehavior } from "../behaviors/ImageScaleBehavior";
 import { SlideBehavior } from "../behaviors/SlideBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import type { ImageKey, SoundKey } from "../core/resources";
 
-interface SideCfg {
-  imageKey: ImageKey;
-  startX?: number;
-  startY?: number;
-  endX?: number;
-  endY?: number;
-}
-
 interface ConvergingCfg {
   duration?: number;
-  left: SideCfg;
-  right: SideCfg;
+  leftImageKey: ImageKey;
+  rightImageKey: ImageKey;
   soundKey?: SoundKey;
   scale?: number;
   fadeTime?: number;
@@ -27,78 +18,94 @@ export class ConvergingSlideEffect extends Effect {
   private cfg: ConvergingCfg;
   private leftImage: ImageElement | null = null;
   private rightImage: ImageElement | null = null;
+  private soundElement: SoundElement | null = null;
+
+  private scale: number;
+  private fadeTime: number;
+
+  static createBamSuccess(): ConvergingSlideEffect {
+    return new ConvergingSlideEffect({
+      leftImageKey: "bubSuccess",
+      rightImageKey: "bobSuccess",
+      soundKey: "bamHooray",
+      scale: 0.25,
+      fadeTime: 0.2,
+    });
+  }
+
+  static createBamFailure(): ConvergingSlideEffect {
+    return new ConvergingSlideEffect({
+      leftImageKey: "bubFailure",
+      rightImageKey: "bobFailure",
+      soundKey: "bamUhOh",
+      scale: 0.25,
+      fadeTime: 0.2,
+    });
+  }
 
   constructor(cfg: ConvergingCfg) {
-    const { duration = 4000 } = cfg;
-    super({ duration });
+    super();
     this.cfg = cfg;
+    this.scale = cfg.scale ?? 0.25;
+    this.fadeTime = cfg.fadeTime ?? 0.2;
+  }
 
-    const scale = cfg.scale ?? 0.25;
-    const fadeTime = cfg.fadeTime ?? 0.2;
-
-    // Create elements without sizing (images not loaded yet)
-    this.leftImage = new ImageElement(cfg.left.imageKey);
-    this.leftImage.addBehavior(
-      new ImageScaleBehavior({ scaleX: scale, scaleY: scale })
-    );
+  override async init(): Promise<void> {
+    this.leftImage = new ImageElement(this.cfg.leftImageKey);
+    this.leftImage.setScale(this.scale);
     this.addElement(this.leftImage);
 
-    this.rightImage = new ImageElement(cfg.right.imageKey);
-    this.rightImage.addBehavior(
-      new ImageScaleBehavior({ scaleX: scale, scaleY: scale })
-    );
+    this.rightImage = new ImageElement(this.cfg.rightImageKey);
+    this.rightImage.setScale(this.scale);
     this.addElement(this.rightImage);
 
-    if (cfg.soundKey) {
-      const sound = new SoundElement(cfg.soundKey);
-      sound.addBehavior(new SoundOnPlayBehavior());
-      this.addElement(sound);
+    if (this.cfg.soundKey) {
+      this.soundElement = new SoundElement(this.cfg.soundKey);
+      this.soundElement.addBehavior(new SoundOnPlayBehavior());
+      this.addElement(this.soundElement);
     }
+
+    if (this.cfg.duration) {
+      this.duration = this.cfg.duration;
+    }
+
+    await super.init();
   }
 
   override onPlay(): void {
-    super.onPlay();
-    console.log("ConvergingSlideEffect onPlay");
+    if (this.cfg.duration) {
+      this.duration = this.cfg.duration;
+    } else if (this.soundElement?.sound) {
+      this.duration = this.soundElement.sound.duration * 1000;
+    } else {
+      this.duration = 4500;
+    }
+
     this.setSlideBehaviors();
+    super.onPlay();
   }
 
   private setSlideBehaviors(): void {
-    const { W, H } = this;
-    const scale = this.cfg.scale ?? 0.25;
-    const fadeTime = this.cfg.fadeTime ?? 0.2;
-
     if (this.leftImage && this.leftImage.image) {
-      const leftW = this.leftImage.image.naturalWidth * scale;
-      const leftH = this.leftImage.image.naturalHeight * scale;
-      const leftStartX = this.cfg.left.startX ?? 0 - leftW;
-      const leftStartY = this.cfg.left.startY ?? H;
-      const leftEndX = this.cfg.left.endX ?? 0;
-      const leftEndY = this.cfg.left.endY ?? H - leftH;
       this.leftImage.addBehavior(
         new SlideBehavior({
-          startX: leftStartX,
-          startY: leftStartY,
-          endX: leftEndX,
-          endY: leftEndY,
-          fadeTime,
+          startX: 0 - this.leftImage.getWidth(),
+          startY: this.H,
+          endX: 0,
+          endY: this.H - this.leftImage.getHeight(),
+          fadeTime: this.fadeTime,
         })
       );
     }
 
     if (this.rightImage && this.rightImage.image) {
-      const rightW = this.rightImage.image.naturalWidth * scale;
-      const rightH = this.rightImage.image.naturalHeight * scale;
-      const rightStartX = this.cfg.right.startX ?? W;
-      const rightStartY = this.cfg.right.startY ?? H;
-      const rightEndX = this.cfg.right.endX ?? W - rightW;
-      const rightEndY = this.cfg.right.endY ?? H - rightH;
       this.rightImage.addBehavior(
         new SlideBehavior({
-          startX: rightStartX,
-          startY: rightStartY,
-          endX: rightEndX,
-          endY: rightEndY,
-          fadeTime,
+          startX: this.W,
+          startY: this.H,
+          endX: this.W - this.rightImage.getWidth(),
+          endY: this.H - this.rightImage.getHeight(),
+          fadeTime: this.fadeTime,
         })
       );
     }

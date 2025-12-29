@@ -1,19 +1,10 @@
-import { Element } from "./Element";
+import { TransformElement } from "./TransformElement";
 import { getImage, type ImageKey } from "../core/resources";
 
-export class ImageElement extends Element {
+export class ImageElement extends TransformElement {
   imageKey: ImageKey;
   image: HTMLImageElement | null = null;
   private loadPromise: Promise<void> | null = null;
-  x = 0;
-  y = 0;
-  width: number | null = null;
-  height: number | null = null;
-  opacity = 1;
-  scaleX = 1;
-  scaleY = 1;
-  rotation = 0;
-  filter = "none";
 
   constructor(imageKey: ImageKey) {
     super();
@@ -30,17 +21,18 @@ export class ImageElement extends Element {
     if (this.loadPromise) {
       await this.loadPromise;
     }
+    console.log("ImageElement ready:", this.imageKey);
     this.state = "READY";
   }
 
   getWidth(): number {
-    if (this.width !== null) return this.width;
-    return this.image ? this.image.naturalWidth * this.scaleX : 0;
+    //if (this.width !== null) return this.width;
+    return this.image ? this.image.naturalWidth * this.scaleX : -1;
   }
 
   getHeight(): number {
-    if (this.height !== null) return this.height;
-    return this.image ? this.image.naturalHeight * this.scaleY : 0;
+    //if (this.height !== null) return this.height;
+    return this.image ? this.image.naturalHeight * this.scaleY : -1;
   }
 
   draw(ctx: CanvasRenderingContext2D) {

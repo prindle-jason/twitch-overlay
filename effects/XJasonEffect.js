@@ -4,7 +4,7 @@ import { TimedImageElement } from "../elements/TimedImageElement.js";
 import { SoundElement } from "../elements/SoundElement.js";
 import { ImageBlurInOutBehavior } from "../behaviors/ImageBlurInOutBehavior.js";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior.js";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior.js";
+import { ImageFadeInOutBehavior } from "../behaviors/__ImageFadeInOutBehavior.js";
 import { ImageJitterBehavior } from "../behaviors/ImageJitterBehavior.js";
 import { IntervalRangeTimer } from "../utils/IntervalRangeTimer.js";
 

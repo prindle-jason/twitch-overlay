@@ -1,7 +1,7 @@
 // effects/WatermarkEffect.js
 import { BaseEffect } from "./BaseEffect.js";
 import { ImageElement } from "../elements/ImageElement.js";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior.js";
+import { ImageFadeInOutBehavior } from "../behaviors/__ImageFadeInOutBehavior.js";
 
 export class WatermarkEffect extends BaseEffect {
   constructor({ W, H, duration = 300000 }) {

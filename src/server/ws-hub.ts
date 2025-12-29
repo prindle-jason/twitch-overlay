@@ -58,6 +58,8 @@ export class WsHub {
   }
 
   private handleClientMessage(session: ClientSession, msg: WsMessage) {
+    console.log(`[WS] Client #${session.id} message:`, msg);
+
     switch (msg.type) {
       case "hello":
         session.role = msg.role ?? "overlay";
@@ -79,6 +81,9 @@ export class WsHub {
 
       case "get-stats":
         // Route from dashboard to overlay clients
+        console.log(
+          `[WS] Client #${session.id} with role ${session.role} requested stats`
+        );
         if (session.role === "dashboard") {
           console.log(
             `[WS] Client #${session.id} (dashboard) requesting stats`

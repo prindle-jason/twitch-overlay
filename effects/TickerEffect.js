@@ -6,7 +6,7 @@ import { SoundElement } from "../elements/SoundElement.js";
 import { TimedSlideBehavior } from "../behaviors/TimedSlideBehavior.js";
 import { TextScrollBehavior } from "../behaviors/TextScrollBehavior.js";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior.js";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior.js";
+import { ImageFadeInOutBehavior } from "../behaviors/__ImageFadeInOutBehavior.js";
 
 // Ticker effect states
 const TICKER_STATES = {

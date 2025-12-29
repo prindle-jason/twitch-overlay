@@ -1,36 +1,38 @@
 import { Behavior } from "./Behavior";
 import { getEaseInOutProgress } from "../utils/progressUtils";
 
-export class SlideBehavior extends Behavior {
-  startX = 0;
-  startY = 0;
-  endX = 0;
-  endY = 0;
-  fadeTime = 0.2;
+interface SlideConfig {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  fadeTime?: number;
+}
 
-  constructor(
-    config: {
-      startX?: number;
-      startY?: number;
-      endX?: number;
-      endY?: number;
-      fadeTime?: number;
-    } = {}
-  ) {
-    super(config);
-    this.startX = config.startX ?? 0;
-    this.startY = config.startY ?? 0;
-    this.endX = config.endX ?? 0;
-    this.endY = config.endY ?? 0;
+export class SlideBehavior extends Behavior {
+  private startX;
+  private startY;
+  private endX;
+  private endY;
+  private fadeTime;
+
+  constructor(config: SlideConfig) {
+    super();
+    this.startX = config.startX;
+    this.startY = config.startY;
+    this.endX = config.endX;
+    this.endY = config.endY;
     this.fadeTime = config.fadeTime ?? 0.2;
   }
 
   onPlay(element: any) {
+    //console.log("SlideBehavior onPlay", this.startX, this.startY);
     element.x = this.startX;
     element.y = this.startY;
   }
 
   update(element: any, deltaTime: number) {
+    //console.log("SlideBehavior update", element.x, element.y);
     const progress = element.effect.getProgress();
     const slide = 1 - getEaseInOutProgress(progress, this.fadeTime);
     element.x = this.startX + (this.endX - this.startX) * (1 - slide);

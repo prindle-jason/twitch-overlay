@@ -45,6 +45,7 @@ export abstract class Element {
   }
 
   update(deltaTime: number) {
+    //console.log("Element update", this);
     this.behaviors.forEach((behavior) => behavior.update?.(this, deltaTime));
   }
 
