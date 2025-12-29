@@ -95,8 +95,8 @@ function loop() {
   lastFrame = now;
 
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-  ctx.fillStyle = "green";
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  //ctx.fillStyle = "green";
+  //ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   effectManager.update(deltaTime);
   effectManager.draw(ctx);
