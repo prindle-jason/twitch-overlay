@@ -1,6 +1,6 @@
 import { Effect } from "../effects/Effect";
 import { Behavior } from "../behaviors/Behavior";
-import type { LifecycleState } from "../types";
+import type { LifecycleState } from "../utils/types";
 
 export abstract class Element {
   behaviors: Behavior[] = [];

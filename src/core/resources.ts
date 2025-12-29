@@ -14,6 +14,7 @@ const imageMap = {
   ssbmFailure: "ssbmFailure.png",
   ssbmSuccess: "ssbmSuccess.png",
   xJason: "xJason.svg",
+  xHello: "xHello.svg",
   breakingNews: "breakingNews.png",
   hb1: "headblade/hb1.png",
   hb2: "headblade/hb2.png",

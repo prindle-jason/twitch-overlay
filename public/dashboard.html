@@ -31,6 +31,27 @@
     <div class="info">
       <p>Connected: <strong id="status">Connecting...</strong></p>
     </div>
+    <div style="margin-top: 1rem">
+      <label
+        for="tickerInput"
+        style="display: block; margin-bottom: 0.5rem; font-weight: bold"
+      >
+        Ticker Message:
+      </label>
+      <input
+        id="tickerInput"
+        type="text"
+        placeholder="Enter message for ticker effect"
+        style="
+          width: 100%;
+          padding: 0.5rem;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          box-sizing: border-box;
+          font-size: 1rem;
+        "
+      />
+    </div>
     <button id="testBtn">Send Test Event</button>
     <button id="statsBtn">Get Stats</button>
     <button id="bamSuccessBtn">Spawn Bam Success</button>
@@ -38,6 +59,11 @@
     <button id="ssbmSuccessBtn">Spawn SSBM Success</button>
     <button id="ssbmFailBtn">Spawn SSBM Fail</button>
     <button id="headbladeBtn">Spawn Headblade</button>
+    <button id="watermarkBtn">Spawn Watermark</button>
+    <button id="confettiBtn">Spawn Confetti</button>
+    <button id="dvdBounceBtn">Spawn DVD Bounce</button>
+    <button id="xJasonBtn">Spawn X Jason</button>
+    <button id="tickerBtn">Spawn Ticker</button>
     <div
       id="log"
       style="
@@ -52,99 +78,6 @@
         overflow-y: auto;
       "
     ></div>
-    <script>
-      const statusEl = document.getElementById("status");
-      const logEl = document.getElementById("log");
-      const testBtn = document.getElementById("testBtn");
-      const statsBtn = document.getElementById("statsBtn");
-      const bamSuccessBtn = document.getElementById("bamSuccessBtn");
-      const bamUhOhBtn = document.getElementById("bamUhOhBtn");
-      const ssbmSuccessBtn = document.getElementById("ssbmSuccessBtn");
-      const ssbmFailBtn = document.getElementById("ssbmFailBtn");
-      const headbladeBtn = document.getElementById("headbladeBtn");
-
-      const allButtons = [
-        testBtn,
-        statsBtn,
-        bamSuccessBtn,
-        bamUhOhBtn,
-        ssbmSuccessBtn,
-        ssbmFailBtn,
-        headbladeBtn,
-      ].filter(Boolean);
-
-      function log(msg) {
-        logEl.textContent += new Date().toLocaleTimeString() + " " + msg + "\n";
-        logEl.scrollTop = logEl.scrollHeight;
-      }
-
-      function setConnected(connected) {
-        statusEl.textContent = connected ? "Connected" : "Disconnected";
-        statusEl.style.color = connected ? "green" : "red";
-        allButtons.forEach((b) => (b.disabled = !connected));
-      }
-
-      let ws = null;
-      let reconnectDelay = 500;
-      const maxDelay = 10000;
-
-      function send(type, payload) {
-        if (!ws || ws.readyState !== WebSocket.OPEN) {
-          log("Cannot send; WS not connected");
-          return;
-        }
-        const msg = payload
-          ? { type, role: "dashboard", payload }
-          : { type, role: "dashboard" };
-        ws.send(JSON.stringify(msg));
-      }
-
-      function spawn(effectType) {
-        send("spawn-effect", { effectType });
-      }
-
-      function connect() {
-        ws = new WebSocket("ws://" + window.location.host + "/overlay-ws");
-        ws.onopen = () => {
-          setConnected(true);
-          reconnectDelay = 500;
-          send("hello");
-          log("WS connected");
-        };
-        ws.onmessage = (e) => {
-          try {
-            const msg = JSON.parse(e.data);
-            log("Received: " + msg.type);
-          } catch (err) {
-            log("Parse error: " + err.message);
-          }
-        };
-        ws.onclose = () => {
-          setConnected(false);
-          log("WS closed; reconnecting in " + reconnectDelay + "ms");
-          setTimeout(connect, reconnectDelay);
-          reconnectDelay = Math.min(maxDelay, reconnectDelay * 2);
-        };
-        ws.onerror = () => {
-          log("WS error");
-        };
-      }
-
-      // Hook up buttons via helpers
-      testBtn.addEventListener("click", () => send("ping"));
-      statsBtn.addEventListener("click", () => send("get-stats"));
-      bamSuccessBtn.addEventListener("click", () => spawn("bamSuccess"));
-      bamUhOhBtn.addEventListener("click", () => spawn("bamUhOh"));
-      ssbmSuccessBtn.addEventListener("click", () => spawn("ssbmSuccess"));
-      ssbmFailBtn.addEventListener("click", () => spawn("ssbmFail"));
-      headbladeBtn.addEventListener("click", () => spawn("headblade"));
-
-      // Heartbeat ping
-      setInterval(() => send("ping"), 30000);
-
-      // Start disconnected until first open
-      setConnected(false);
-      connect();
-    </script>
+    <script type="module" src="/src/dashboard.ts"></script>
   </body>
 </html>

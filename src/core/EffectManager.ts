@@ -1,14 +1,12 @@
-import { ConfettiEffect } from "../../effects/ConfettiEffect.js";
-import { DvdEffect } from "../../effects/DvdEffect.js";
-import { XJasonEffect } from "../../effects/XJasonEffect.js";
-import { BamUhOhEffect } from "../../effects/__BamUhOhEffect.js";
+import { ConfettiEffect } from "../effects/ConfettiEffect";
+import { DvdEffect } from "../effects/DvdEffect";
+import { XJasonEffect } from "../effects/XJasonEffect";
+import { TickerEffect } from "../effects/TickerEffect";
+import { WatermarkEffect } from "../effects/WatermarkEffect";
 import { ConvergingSlideEffect } from "../effects/ConvergingSlideEffect";
 import { CenteredImageEffect } from "../effects/CenteredImageEffect";
 import { HeadbladeEffect } from "../effects/HeadbladeEffect";
-import { Effect } from "../effects/Effect.js";
-import { TickerEffect } from "../../effects/TickerEffect.js";
-import { WatermarkEffect } from "../../effects/WatermarkEffect.js";
-//import { HeadbladeEffect } from "../../effects/HeadbladeEffect.js";
+import { Effect } from "../effects/Effect";
 import { getCanvasConfig } from "../config";
 
 type Factory = (opts: Record<string, unknown>) => Effect;
@@ -21,13 +19,13 @@ export class EffectManager {
 
   constructor() {
     this.factories = {
-      //confetti: (opts) => new ConfettiEffect(opts as any),
-      //dvdBounce: (opts) =>
-      //  new DvdEffect({
-      //    ...(opts as any),
-      //    spawn: (type: string) => this.spawn(type),
-      //  } as any),
-      //xJason: (opts) => new XJasonEffect(opts as any),
+      confetti: () => new ConfettiEffect(),
+      dvdBounce: () =>
+        new DvdEffect({
+          spawnEffect: (type: string) => this.spawn(type),
+        }),
+      xJason: () => new XJasonEffect(),
+      ticker: (opts) => new TickerEffect(opts as any),
       //success: (opts) => this.successFactory(opts),
       //failure: (opts) => this.failureFactory(opts),
       ssbmFail: () => CenteredImageEffect.createSsbmFail(),
@@ -35,6 +33,7 @@ export class EffectManager {
       bamSuccess: () => ConvergingSlideEffect.createBamSuccess(),
       bamUhOh: () => ConvergingSlideEffect.createBamFailure(),
       headblade: () => new HeadbladeEffect(),
+      watermark: () => new WatermarkEffect(),
       //bamUhOh: (opts) => new BamUhOhEffect(opts as any),
       //ticker: (opts) => new TickerEffect(opts as any),
       //watermark: (opts) => new WatermarkEffect(opts as any),

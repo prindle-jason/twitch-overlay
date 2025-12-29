@@ -1,6 +1,6 @@
 import type { Element } from "../elements/Element";
 import { getCanvasConfig } from "../config";
-import type { LifecycleState } from "../types";
+import type { LifecycleState } from "../utils/types";
 
 export abstract class Effect {
   state: LifecycleState = "NEW";

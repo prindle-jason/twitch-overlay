@@ -21,7 +21,8 @@ export function setupRoutes(app: Express, wsHub: WsHub, distRoot: string) {
   });
 
   app.get("/dashboard", (_req, res) => {
-    res.sendFile(path.join(__dirname, "../../public/dashboard.html"));
+    // Serve built dashboard.html from dist/public
+    res.sendFile(path.join(distRoot, "public/dashboard.html"));
   });
 
   app.post("/event", (req, res) => {
