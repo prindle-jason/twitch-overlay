@@ -1,17 +1,18 @@
 import { UserConfig } from "vite";
-import { resolve } from "path";
 
 export default {
-  publicDir: "resources",
   server: {
     host: "localhost",
+    port: 5173,
     strictPort: true,
   },
   build: {
+    outDir: "dist",
+    emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        dashboard: resolve(__dirname, "public/dashboard.html"),
+        main: "index.html",
+        dashboard: "dashboard.html",
       },
     },
   },

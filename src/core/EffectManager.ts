@@ -8,6 +8,7 @@ import { CenteredImageEffect } from "../effects/CenteredImageEffect";
 import { HeadbladeEffect } from "../effects/HeadbladeEffect";
 import { Effect } from "../effects/Effect";
 import { getCanvasConfig } from "../config";
+import { OverlaySettings } from "./OverlaySettings";
 
 type Factory = (opts: Record<string, unknown>) => Effect;
 
@@ -16,54 +17,36 @@ export class EffectManager {
   private playingEffects: Effect[] = [];
   private effectIdCounter = 0;
   private factories: Record<string, Factory>;
+  private settings = new OverlaySettings();
 
   constructor() {
     this.factories = {
       confetti: () => new ConfettiEffect(),
       dvdBounce: () =>
         new DvdEffect({
-          spawnEffect: (type: string) => this.spawn(type),
+          spawnEffect: (t: string) => this.spawn(t),
         }),
       xJason: () => new XJasonEffect(),
       ticker: (opts) => new TickerEffect(opts as any),
-      //success: (opts) => this.successFactory(opts),
-      //failure: (opts) => this.failureFactory(opts),
       ssbmFail: () => CenteredImageEffect.createSsbmFail(),
       ssbmSuccess: () => CenteredImageEffect.createSsbmSuccess(),
       bamSuccess: () => ConvergingSlideEffect.createBamSuccess(),
       bamUhOh: () => ConvergingSlideEffect.createBamFailure(),
       headblade: () => new HeadbladeEffect(),
       watermark: () => new WatermarkEffect(),
-      //bamUhOh: (opts) => new BamUhOhEffect(opts as any),
-      //ticker: (opts) => new TickerEffect(opts as any),
-      //watermark: (opts) => new WatermarkEffect(opts as any),
-      //headblade: (opts) => new HeadbladeEffect(opts as any),
+
+      success: (opts) => {
+        const effects = ["ssbmSuccess", "bamSuccess"];
+        const choice = effects[Math.floor(Math.random() * effects.length)];
+        return this.factories[choice](opts);
+      },
+      failure: (opts) => {
+        const effects = ["ssbmFail", "bamUhOh"];
+        const choice = effects[Math.floor(Math.random() * effects.length)];
+        return this.factories[choice](opts);
+      },
     };
   }
-
-  // private failureFactory(opts: Record<string, unknown>): EffectLike {
-  //   const { W, H } = getCanvasConfig();
-  //   const effects = [BamUhOhEffect, SsbmFailEffect];
-  //   const EffectClass = effects[Math.floor(Math.random() * effects.length)];
-  //   return new EffectClass({
-  //     ...(opts as any),
-  //     W,
-  //     H,
-  //     id: ++this.effectIdCounter,
-  //   } as any);
-  // }
-
-  // private successFactory(opts: Record<string, unknown>): EffectLike {
-  //   const { W, H } = getCanvasConfig();
-  //   const effects = [BamSuccessEffect, SsbmSuccessEffect];
-  //   const EffectClass = effects[Math.floor(Math.random() * effects.length)];
-  //   return new EffectClass({
-  //     ...(opts as any),
-  //     W,
-  //     H,
-  //     id: ++this.effectIdCounter,
-  //   } as any);
-  // }
 
   spawn(type: string, opts?: Record<string, unknown>) {
     if (!type || !this.factories[type]) return;
@@ -75,7 +58,13 @@ export class EffectManager {
     this.loadingEffects.push(effect);
   }
 
+  applySettings(settings: OverlaySettings) {
+    this.settings.applySettings(settings);
+  }
+
   update(deltaTime: number) {
+    if (this.settings.paused) return;
+
     this.loadingEffects = this.loadingEffects.filter((e) => {
       if (e.getState() === "READY") {
         e.onPlay();
@@ -103,6 +92,27 @@ export class EffectManager {
   }
 
   clear() {
+    this.loadingEffects = [];
+    this.playingEffects = [];
+  }
+
+  getCounts() {
+    return {
+      loading: this.loadingEffects.length,
+      playing: this.playingEffects.length,
+    };
+  }
+
+  togglePause(): boolean {
+    this.settings.paused = !this.settings.paused;
+    return this.settings.paused;
+  }
+
+  isPaused(): boolean {
+    return this.settings.paused;
+  }
+
+  clearAll() {
     this.loadingEffects = [];
     this.playingEffects = [];
   }

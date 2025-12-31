@@ -1,7 +1,9 @@
 //import { EffectManager } from "../core/EffectManager.ts";
 import { connectWS, getWS } from "./utils/wsUtil";
+import { Health } from "./utils/health";
 import { EffectManager } from "./core/EffectManager";
 import { canvasConfig } from "./config";
+import { OverlaySettings } from "./core/OverlaySettings";
 
 const canvasWidth = canvasConfig.W;
 const canvasHeight = canvasConfig.H;
@@ -14,9 +16,8 @@ const ctx = canvas.getContext("2d")!; // Assert non-null 2D context
 canvas.width = canvasConfig.W;
 canvas.height = canvasConfig.H;
 
-// Import and init effect manager
-
 const effectManager = new EffectManager();
+const health = new Health();
 
 function startApp() {
   console.log("[overlay] startApp invoked", {
@@ -44,29 +45,31 @@ function startApp() {
     const custom = ev as CustomEvent<any>;
     const msg = custom.detail;
     if (!msg?.type) return;
-    console.log("[overlay] received WS event:", msg);
+    //console.log("[overlay] received WS event:", msg);
 
     if (msg.type === "get-stats") {
-      console.log("[overlay] responding to get-stats request");
+      //console.log("[overlay] responding to get-stats request");
       const ws = getWS();
-      console.log(
-        "[overlay] ws:",
-        ws,
-        "readyState:",
-        ws?.readyState,
-        "OPEN:",
-        WebSocket.OPEN
-      );
+      // console.log(
+      //   "[overlay] ws:",
+      //   ws,
+      //   "readyState:",
+      //   ws?.readyState,
+      //   "OPEN:",
+      //   WebSocket.OPEN
+      // );
       if (ws && ws.readyState === WebSocket.OPEN) {
-        console.log("[overlay] sending stats-response");
+        //console.log("[overlay] sending stats-response");
+        const counts = effectManager.getCounts();
+        const stats = health.snapshot({
+          effectsLoading: counts.loading,
+          effectsPlaying: counts.playing,
+          wsReadyState: ws.readyState,
+        });
         ws.send(
           JSON.stringify({
             type: "stats-response",
-            payload: {
-              timestamp: Date.now(),
-              effectsRunning: 0,
-              message: "Client received stats request",
-            },
+            payload: stats,
           })
         );
       } else {
@@ -78,6 +81,18 @@ function startApp() {
       const effectType = msg.payload?.effectType as string;
       console.log("[overlay] spawning effect:", effectType, msg.payload);
       effectManager.spawn(effectType, msg.payload);
+    }
+
+    if (msg.type === "set-settings") {
+      effectManager.applySettings((msg.payload || {}) as OverlaySettings);
+      // console.log("[overlay] settings updated", {
+      //   paused: effectManager.isPaused(),
+      // });
+    }
+
+    if (msg.type === "clear-effects") {
+      console.log("[overlay] clearing all effects");
+      effectManager.clearAll();
     }
   });
 
@@ -93,6 +108,8 @@ function loop() {
   const now = performance.now();
   const deltaTime = now - lastFrame;
   lastFrame = now;
+
+  health.recordFrame(deltaTime);
 
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
   //ctx.fillStyle = "green";

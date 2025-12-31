@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Overlay Dashboard</title>
+    <link rel="stylesheet" href="/dashboard.css" />
+  </head>
+  <body>
+    <h1>Overlay Dashboard</h1>
+    <div class="top card">
+      <div class="status-line">
+        <div class="left-col">
+          <div class="compact-actions">
+            <button id="testBtn">Ping Server</button>
+            <button id="pauseBtn">Pause</button>
+            <button id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <div class="right-col">
+          <div class="pill" id="statusPill">
+            <span class="dot"></span>
+            <span id="status">Connecting...</span>
+          </div>
+        </div>
+      </div>
+      <div class="content-row">
+        <div class="sliders-group">
+          <div class="slider-row">
+            <label for="volumeSlider">Volume:</label>
+            <input
+              type="range"
+              id="volumeSlider"
+              min="0"
+              max="100"
+              value="100"
+              step="1"
+            />
+            <span class="value" id="volumeValue">100%</span>
+          </div>
+          <div class="slider-row">
+            <label for="stabilitySlider">Stability:</label>
+            <input
+              type="range"
+              id="stabilitySlider"
+              min="0"
+              max="100"
+              value="100"
+              step="1"
+            />
+            <span class="value" id="stabilityValue">100%</span>
+          </div>
+        </div>
+        <div id="stats" class="stats">No stats yet</div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h2>Effects</h2>
+        <div class="section-label">Highlights</div>
+        <div class="button-grid">
+          <button id="bamSuccessBtn">Bam Success</button>
+          <button id="bamUhOhBtn">Bam UhOh</button>
+          <button id="watermarkBtn">Watermark</button>
+          <button id="headbladeBtn">Headblade</button>
+          <button id="confettiBtn">Confetti</button>
+          <button id="dvdBounceBtn">DVD Bounce</button>
+          <button id="xJasonBtn">X Jason</button>
+          <button id="ssbmSuccessBtn">SSBM Success</button>
+          <button id="ssbmFailBtn">SSBM Fail</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Ticker</h2>
+        <div class="ticker-row">
+          <input
+            id="tickerInput"
+            type="text"
+            placeholder="Enter ticker message"
+          />
+          <button id="tickerBtn">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="log" class="log"></div>
+    <script type="module" src="/src/dashboard.ts"></script>
+  </body>
+</html>

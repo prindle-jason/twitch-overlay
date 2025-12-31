@@ -1,38 +1,54 @@
-import type { WsMessage, ClientRole } from "./ws-types";
+import type { WsMessage, WsMessageType } from "./server/ws-types";
 
 export class DashboardClient {
   private ws: WebSocket | null = null;
   private reconnectDelay = 500;
   private readonly maxDelay = 10000;
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+  private statsInterval: ReturnType<typeof setInterval> | null = null;
+  private readonly statsPollMs = 2000;
 
   private statusEl: HTMLElement;
+  private statusPillEl: HTMLElement;
+  private statsEl: HTMLElement;
   private logEl: HTMLElement;
   private tickerInputEl: HTMLInputElement;
-  private allButtons: HTMLButtonElement[];
+  private volumeSliderEl: HTMLInputElement;
+  private volumeValueEl: HTMLElement;
+  private stabilitySliderEl: HTMLInputElement;
+  private stabilityValueEl: HTMLElement;
+
+  private settingsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private readonly buttonHandlers = {
+    testBtn: () => this.send("ping"),
+    pauseBtn: () => this.togglePause(),
+    clearBtn: () => this.send("clear-effects"),
+    bamSuccessBtn: () => this.spawn("bamSuccess"),
+    bamUhOhBtn: () => this.spawn("bamUhOh"),
+    ssbmSuccessBtn: () => this.spawn("ssbmSuccess"),
+    ssbmFailBtn: () => this.spawn("ssbmFail"),
+    headbladeBtn: () => this.spawn("headblade"),
+    watermarkBtn: () => this.spawn("watermark"),
+    confettiBtn: () => this.spawn("confetti"),
+    dvdBounceBtn: () => this.spawn("dvdBounce"),
+    xJasonBtn: () => this.spawn("xJason"),
+    tickerBtn: () => {
+      const message = this.tickerInputEl.value.trim();
+      this.spawn("ticker", message ? { message } : {});
+    },
+  };
 
   constructor() {
     this.statusEl = this.getEl("status");
+    this.statusPillEl = this.getEl("statusPill");
+    this.statsEl = this.getEl("stats");
     this.logEl = this.getEl("log");
     this.tickerInputEl = this.getEl("tickerInput") as HTMLInputElement;
-
-    const buttonIds = [
-      "testBtn",
-      "statsBtn",
-      "bamSuccessBtn",
-      "bamUhOhBtn",
-      "ssbmSuccessBtn",
-      "ssbmFailBtn",
-      "headbladeBtn",
-      "watermarkBtn",
-      "confettiBtn",
-      "dvdBounceBtn",
-      "xJasonBtn",
-      "tickerBtn",
-    ];
-    this.allButtons = buttonIds
-      .map((id) => this.getEl(id) as HTMLButtonElement)
-      .filter(Boolean);
+    this.volumeSliderEl = this.getEl("volumeSlider") as HTMLInputElement;
+    this.volumeValueEl = this.getEl("volumeValue");
+    this.stabilitySliderEl = this.getEl("stabilitySlider") as HTMLInputElement;
+    this.stabilityValueEl = this.getEl("stabilityValue");
   }
 
   private getEl(id: string): HTMLElement {
@@ -49,11 +65,17 @@ export class DashboardClient {
 
   private setConnected(connected: boolean): void {
     this.statusEl.textContent = connected ? "Connected" : "Disconnected";
-    this.statusEl.style.color = connected ? "green" : "red";
-    this.allButtons.forEach((b) => (b.disabled = !connected));
+    this.statusPillEl.classList.toggle("connected", connected);
+    for (const id of Object.keys(this.buttonHandlers)) {
+      const btn = document.getElementById(id) as HTMLButtonElement | null;
+      if (btn) btn.disabled = !connected;
+    }
+    if (!connected) {
+      this.statsEl.textContent = "No stats (disconnected)";
+    }
   }
 
-  private send(type: string, payload?: Record<string, unknown>): void {
+  private send(type: WsMessageType, payload?: Record<string, unknown>): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       this.log("Cannot send; WS not connected");
       return;
@@ -70,6 +92,43 @@ export class DashboardClient {
     this.send("spawn-effect", { effectType, ...payload });
   }
 
+  private requestStats(): void {
+    this.send("get-stats");
+  }
+
+  private startStatsPolling(): void {
+    if (this.statsInterval) clearInterval(this.statsInterval);
+    this.statsInterval = setInterval(
+      () => this.requestStats(),
+      this.statsPollMs
+    );
+    this.requestStats();
+  }
+
+  private stopStatsPolling(): void {
+    if (this.statsInterval) clearInterval(this.statsInterval);
+    this.statsInterval = null;
+  }
+
+  private updateStats(payload: Record<string, unknown> | undefined): void {
+    const fps = Number((payload?.fps as number) ?? NaN);
+    const frameMs = Number((payload?.frameMsAvg as number) ?? NaN);
+    const loading = payload?.effectsLoading as number | undefined;
+    const playing = payload?.effectsPlaying as number | undefined;
+    const wsState = payload?.wsReadyState as number | undefined;
+    const ts = payload?.timestamp as number | undefined;
+
+    const lines = [
+      `FPS: ${Number.isFinite(fps) ? fps.toFixed(1) : "-"}`,
+      `Frame ms (EMA): ${Number.isFinite(frameMs) ? frameMs.toFixed(2) : "-"}`,
+      `Effects loading/playing: ${loading ?? "-"}/${playing ?? "-"}`,
+      `Overlay WS state: ${wsState ?? "-"}`,
+      `Sampled at: ${ts ? new Date(ts).toLocaleTimeString() : "-"}`,
+    ];
+
+    this.statsEl.textContent = lines.join("\n");
+  }
+
   private connect(): void {
     this.ws = new WebSocket(`ws://${window.location.host}/overlay-ws`);
 
@@ -78,12 +137,16 @@ export class DashboardClient {
       this.reconnectDelay = 500;
       this.send("hello");
       this.log("WS connected");
+      this.startStatsPolling();
     };
 
     this.ws.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data) as WsMessage;
-        this.log(`Received: ${msg.type}`);
+        //this.log(`Received: ${msg.type}`);
+        if (msg.type === "stats-response") {
+          this.updateStats(msg.payload);
+        }
       } catch (err) {
         this.log(
           `Parse error: ${err instanceof Error ? err.message : String(err)}`
@@ -93,6 +156,7 @@ export class DashboardClient {
 
     this.ws.onclose = () => {
       this.setConnected(false);
+      this.stopStatsPolling();
       this.log(`WS closed; reconnecting in ${this.reconnectDelay}ms`);
       setTimeout(() => this.connect(), this.reconnectDelay);
       this.reconnectDelay = Math.min(this.maxDelay, this.reconnectDelay * 2);
@@ -104,56 +168,52 @@ export class DashboardClient {
   }
 
   private hookButtons(): void {
-    const testBtn = this.allButtons[0];
-    const statsBtn = this.allButtons[1];
-    const bamSuccessBtn = this.allButtons[2];
-    const bamUhOhBtn = this.allButtons[3];
-    const ssbmSuccessBtn = this.allButtons[4];
-    const ssbmFailBtn = this.allButtons[5];
-    const headbladeBtn = this.allButtons[6];
-    const watermarkBtn = this.allButtons[7];
-    const confettiBtn = this.allButtons[8];
-    const dvdBounceBtn = this.allButtons[9];
-    const xJasonBtn = this.allButtons[10];
-    const tickerBtn = this.allButtons[11];
+    for (const [id, handler] of Object.entries(this.buttonHandlers)) {
+      const btn = document.getElementById(id) as HTMLButtonElement | null;
+      if (btn) btn.addEventListener("click", handler);
+    }
+  }
 
-    if (testBtn) testBtn.addEventListener("click", () => this.send("ping"));
-    if (statsBtn)
-      statsBtn.addEventListener("click", () => this.send("get-stats"));
-    if (bamSuccessBtn)
-      bamSuccessBtn.addEventListener("click", () => this.spawn("bamSuccess"));
-    if (bamUhOhBtn)
-      bamUhOhBtn.addEventListener("click", () => this.spawn("bamUhOh"));
-    if (ssbmSuccessBtn)
-      ssbmSuccessBtn.addEventListener("click", () => this.spawn("ssbmSuccess"));
-    if (ssbmFailBtn)
-      ssbmFailBtn.addEventListener("click", () => this.spawn("ssbmFail"));
-    if (headbladeBtn)
-      headbladeBtn.addEventListener("click", () => this.spawn("headblade"));
-    if (watermarkBtn)
-      watermarkBtn.addEventListener("click", () => this.spawn("watermark"));
-    if (confettiBtn)
-      confettiBtn.addEventListener("click", () => this.spawn("confetti"));
-    if (dvdBounceBtn)
-      dvdBounceBtn.addEventListener("click", () => this.spawn("dvdBounce"));
-    if (xJasonBtn)
-      xJasonBtn.addEventListener("click", () => this.spawn("xJason"));
-    if (tickerBtn)
-      tickerBtn.addEventListener("click", () => {
-        const message = this.tickerInputEl.value.trim();
-        this.spawn("ticker", message ? { message } : {});
-      });
+  private hookSliders(): void {
+    this.volumeSliderEl.addEventListener("input", () => {
+      const value = Number(this.volumeSliderEl.value);
+      this.volumeValueEl.textContent = `${value}%`;
+      this.debouncedSendSettings();
+    });
+
+    this.stabilitySliderEl.addEventListener("input", () => {
+      const value = Number(this.stabilitySliderEl.value);
+      this.stabilityValueEl.textContent = `${value}%`;
+      this.debouncedSendSettings();
+    });
+  }
+
+  private debouncedSendSettings(): void {
+    if (this.settingsDebounceTimer) {
+      clearTimeout(this.settingsDebounceTimer);
+    }
+    this.settingsDebounceTimer = setTimeout(() => {
+      const masterVolume = Number(this.volumeSliderEl.value) / 100;
+      const stability = Number(this.stabilitySliderEl.value);
+      this.send("set-settings", { masterVolume, stability });
+    }, 200);
+  }
+
+  private togglePause(): void {
+    this.send("set-settings", { togglePause: true });
   }
 
   start(): void {
     this.setConnected(false);
     this.hookButtons();
+    this.hookSliders();
     this.connect();
     this.heartbeatInterval = setInterval(() => this.send("ping"), 30000);
   }
 
   stop(): void {
     if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    this.stopStatsPolling();
     if (this.ws) this.ws.close();
   }
 }

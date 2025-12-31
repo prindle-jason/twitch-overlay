@@ -2,6 +2,7 @@ import express, { Express } from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { WsHub } from "./ws-hub.js";
+import { WsMessage } from "./ws-types.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,12 +22,12 @@ export function setupRoutes(app: Express, wsHub: WsHub, distRoot: string) {
   });
 
   app.get("/dashboard", (_req, res) => {
-    // Serve built dashboard.html from dist/public
-    res.sendFile(path.join(distRoot, "public/dashboard.html"));
+    // Serve built dashboard.html from dist
+    res.sendFile(path.join(distRoot, "dashboard.html"));
   });
 
   app.post("/event", (req, res) => {
-    const body = (req.body ?? {}) as any;
+    const body = (req.body ?? {}) as WsMessage;
     if (!body.type) {
       return res.status(400).json({ error: "Missing 'type' field" });
     }
