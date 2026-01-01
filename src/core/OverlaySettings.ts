@@ -13,6 +13,7 @@ export class OverlaySettings {
   }
 
   applySettings(settings: OverlaySettings) {
+    console.log("Applying overlay settings:", settings);
     if (typeof settings.masterVolume === "number") {
       this.masterVolume = settings.masterVolume;
     }

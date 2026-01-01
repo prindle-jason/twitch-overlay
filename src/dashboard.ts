@@ -24,18 +24,18 @@ export class DashboardClient {
     testBtn: () => this.send("ping"),
     pauseBtn: () => this.togglePause(),
     clearBtn: () => this.send("clear-effects"),
-    bamSuccessBtn: () => this.spawn("bamSuccess"),
-    bamUhOhBtn: () => this.spawn("bamUhOh"),
-    ssbmSuccessBtn: () => this.spawn("ssbmSuccess"),
-    ssbmFailBtn: () => this.spawn("ssbmFail"),
-    headbladeBtn: () => this.spawn("headblade"),
-    watermarkBtn: () => this.spawn("watermark"),
-    confettiBtn: () => this.spawn("confetti"),
-    dvdBounceBtn: () => this.spawn("dvdBounce"),
-    xJasonBtn: () => this.spawn("xJason"),
+    bamSuccessBtn: () => this.dispatchEffect("bamSuccess"),
+    bamUhOhBtn: () => this.dispatchEffect("bamUhOh"),
+    ssbmSuccessBtn: () => this.dispatchEffect("ssbmSuccess"),
+    ssbmFailBtn: () => this.dispatchEffect("ssbmFail"),
+    headbladeBtn: () => this.dispatchEffect("headblade"),
+    watermarkBtn: () => this.dispatchEffect("watermark"),
+    confettiBtn: () => this.dispatchEffect("confetti"),
+    dvdBounceBtn: () => this.dispatchEffect("dvdBounce"),
+    xJasonBtn: () => this.dispatchEffect("xJason"),
     tickerBtn: () => {
       const message = this.tickerInputEl.value.trim();
-      this.spawn("ticker", message ? { message } : {});
+      this.dispatchEffect("ticker", message ? { message } : {});
     },
   };
 
@@ -88,8 +88,11 @@ export class DashboardClient {
     this.ws.send(JSON.stringify(msg));
   }
 
-  private spawn(effectType: string, payload?: Record<string, unknown>): void {
-    this.send("spawn-effect", { effectType, ...payload });
+  private dispatchEffect(
+    effectType: string,
+    payload?: Record<string, unknown>
+  ): void {
+    this.send("effect-event", { effectType, ...payload });
   }
 
   private requestStats(): void {

@@ -1,14 +1,41 @@
 import { Effect } from "../effects/Effect";
 import { Behavior } from "../behaviors/Behavior";
 import type { LifecycleState } from "../utils/types";
+import { OverlaySettings } from "../core/OverlaySettings";
 
 export abstract class Element {
   behaviors: Behavior[] = [];
   effect: Effect | null = null;
   state: LifecycleState = "NEW";
+  protected eventTarget = new EventTarget();
 
   constructor(config: Record<string, unknown> = {}) {
     Object.assign(this, config);
+  }
+
+  // Event API methods
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ): void {
+    this.eventTarget.addEventListener(type, listener, options);
+  }
+
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions
+  ): void {
+    this.eventTarget.removeEventListener(type, listener, options);
+  }
+
+  protected dispatchEvent(event: Event): boolean {
+    return this.eventTarget.dispatchEvent(event);
+  }
+
+  getState(): LifecycleState {
+    return this.state;
   }
 
   setState(newState: LifecycleState) {
@@ -59,5 +86,9 @@ export abstract class Element {
 
   onFinish() {
     this.behaviors.forEach((behavior) => behavior.onFinish?.(this));
+  }
+
+  onSettingsChanged(settings: OverlaySettings): void {
+    // Override in subclasses if they need to respond to settings changes
   }
 }

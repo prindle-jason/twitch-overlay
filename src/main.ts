@@ -2,6 +2,7 @@
 import { connectWS, getWS } from "./utils/wsUtil";
 import { Health } from "./utils/health";
 import { EffectManager } from "./core/EffectManager";
+import { EffectFactory } from "./core/EffectFactory";
 import { canvasConfig } from "./config";
 import { OverlaySettings } from "./core/OverlaySettings";
 
@@ -17,6 +18,7 @@ canvas.width = canvasConfig.W;
 canvas.height = canvasConfig.H;
 
 const effectManager = new EffectManager();
+const effectFactory = new EffectFactory();
 const health = new Health();
 
 function startApp() {
@@ -48,18 +50,9 @@ function startApp() {
     //console.log("[overlay] received WS event:", msg);
 
     if (msg.type === "get-stats") {
-      //console.log("[overlay] responding to get-stats request");
       const ws = getWS();
-      // console.log(
-      //   "[overlay] ws:",
-      //   ws,
-      //   "readyState:",
-      //   ws?.readyState,
-      //   "OPEN:",
-      //   WebSocket.OPEN
-      // );
+
       if (ws && ws.readyState === WebSocket.OPEN) {
-        //console.log("[overlay] sending stats-response");
         const counts = effectManager.getCounts();
         const stats = health.snapshot({
           effectsLoading: counts.loading,
@@ -77,10 +70,20 @@ function startApp() {
       }
     }
 
-    if (msg.type === "spawn-effect") {
+    if (msg.type === "effect-event") {
       const effectType = msg.payload?.effectType as string;
-      console.log("[overlay] spawning effect:", effectType, msg.payload);
-      effectManager.spawn(effectType, msg.payload);
+      console.log("[overlay] handling effect event:", effectType, msg.payload);
+
+      // Handle persistent effects separately
+      if (effectType === "dvdBounce") {
+        effectManager.handleEvent(effectType, msg.payload);
+      } else {
+        // Create and add other effects through factory
+        const effect = effectFactory.create(effectType, msg.payload);
+        if (effect) {
+          effectManager.addEffect(effect);
+        }
+      }
     }
 
     if (msg.type === "set-settings") {
@@ -115,9 +118,7 @@ function loop() {
   //ctx.fillStyle = "green";
   //ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-  effectManager.update(deltaTime);
-  effectManager.draw(ctx);
-  //effectManager.draw(ctx);
+  effectManager.update(ctx, deltaTime);
 
   requestAnimationFrame(loop);
 }

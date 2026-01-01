@@ -1,119 +1,90 @@
-import { ConfettiEffect } from "../effects/ConfettiEffect";
-import { DvdEffect } from "../effects/DvdEffect";
-import { XJasonEffect } from "../effects/XJasonEffect";
-import { TickerEffect } from "../effects/TickerEffect";
-import { WatermarkEffect } from "../effects/WatermarkEffect";
-import { ConvergingSlideEffect } from "../effects/ConvergingSlideEffect";
-import { CenteredImageEffect } from "../effects/CenteredImageEffect";
-import { HeadbladeEffect } from "../effects/HeadbladeEffect";
+import { PooledDvdEffect } from "../effects/PooledDvdEffect";
 import { Effect } from "../effects/Effect";
-import { getCanvasConfig } from "../config";
 import { OverlaySettings } from "./OverlaySettings";
 
-type Factory = (opts: Record<string, unknown>) => Effect;
-
 export class EffectManager {
-  private loadingEffects: Effect[] = [];
-  private playingEffects: Effect[] = [];
-  private effectIdCounter = 0;
-  private factories: Record<string, Factory>;
+  private effects: Effect[] = [];
+  private pooledDvdEffect!: PooledDvdEffect;
   private settings = new OverlaySettings();
 
   constructor() {
-    this.factories = {
-      confetti: () => new ConfettiEffect(),
-      dvdBounce: () =>
-        new DvdEffect({
-          spawnEffect: (t: string) => this.spawn(t),
-        }),
-      xJason: () => new XJasonEffect(),
-      ticker: (opts) => new TickerEffect(opts as any),
-      ssbmFail: () => CenteredImageEffect.createSsbmFail(),
-      ssbmSuccess: () => CenteredImageEffect.createSsbmSuccess(),
-      bamSuccess: () => ConvergingSlideEffect.createBamSuccess(),
-      bamUhOh: () => ConvergingSlideEffect.createBamFailure(),
-      headblade: () => new HeadbladeEffect(),
-      watermark: () => new WatermarkEffect(),
-
-      success: (opts) => {
-        const effects = ["ssbmSuccess", "bamSuccess"];
-        const choice = effects[Math.floor(Math.random() * effects.length)];
-        return this.factories[choice](opts);
-      },
-      failure: (opts) => {
-        const effects = ["ssbmFail", "bamUhOh"];
-        const choice = effects[Math.floor(Math.random() * effects.length)];
-        return this.factories[choice](opts);
-      },
-    };
+    // Create the pooled DVD effect that will always exist
+    this.pooledDvdEffect = new PooledDvdEffect();
+    this.pooledDvdEffect.init();
+    this.effects.push(this.pooledDvdEffect);
   }
 
-  spawn(type: string, opts?: Record<string, unknown>) {
-    if (!type || !this.factories[type]) return;
-    const effect = this.factories[type]({
-      ...(opts as any),
-      id: ++this.effectIdCounter,
-    });
+  handleEvent(type: string, opts?: Record<string, unknown>) {
+    // Handle dvdBounce specially - add to pool instead of creating new effect
+    if (type === "dvdBounce") {
+      this.pooledDvdEffect.addDvd(opts);
+    }
+  }
+
+  /**
+   * Add an effect to the manager and initialize it.
+   * The effect should already be created; this just adds it to the active list.
+   */
+  addEffect(effect: Effect) {
     effect.init();
-    this.loadingEffects.push(effect);
+    effect.onSettingsChanged(this.settings);
+    this.effects.push(effect);
   }
 
   applySettings(settings: OverlaySettings) {
     this.settings.applySettings(settings);
+
+    // Notify all active effects of the settings change
+    this.effects.forEach((effect) => effect.onSettingsChanged(this.settings));
   }
 
-  update(deltaTime: number) {
-    if (this.settings.paused) return;
+  update(ctx: CanvasRenderingContext2D, deltaTime: number) {
+    this.effects = this.effects.filter((e) => {
+      const state = e.getState();
 
-    this.loadingEffects = this.loadingEffects.filter((e) => {
-      if (e.getState() === "READY") {
+      if (state === "READY") {
         e.onPlay();
-        this.playingEffects.push(e);
-        return false;
       }
-      return true;
-    });
 
-    this.playingEffects = this.playingEffects.filter((e) => {
-      if (e.getState() === "FINISHED") {
+      if (state === "PLAYING") {
+        if (!this.settings.paused) {
+          e.update(deltaTime);
+        }
+        e.draw(ctx);
+      }
+
+      if (state === "FINISHED") {
         e.onFinish();
         return false;
       }
-      e.update(deltaTime);
+
       return true;
     });
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
-    for (let i = 0; i < this.playingEffects.length; i++) {
-      const e = this.playingEffects[i];
-      e.draw(ctx);
-    }
-  }
-
-  clear() {
-    this.loadingEffects = [];
-    this.playingEffects = [];
-  }
-
   getCounts() {
+    const loading = this.effects.filter(
+      (e) => e.getState() === "LOADING" || e.getState() === "READY"
+    ).length;
+    const playing = this.effects.filter(
+      (e) => e.getState() === "PLAYING"
+    ).length;
     return {
-      loading: this.loadingEffects.length,
-      playing: this.playingEffects.length,
+      loading,
+      playing,
     };
   }
 
-  togglePause(): boolean {
-    this.settings.paused = !this.settings.paused;
-    return this.settings.paused;
-  }
-
-  isPaused(): boolean {
-    return this.settings.paused;
-  }
-
   clearAll() {
-    this.loadingEffects = [];
-    this.playingEffects = [];
+    // Clear contents of pooled effect but keep it alive
+    this.pooledDvdEffect.clear();
+
+    // Clear all other effects
+    this.effects
+      .filter((e) => e !== this.pooledDvdEffect)
+      .forEach((e) => e.onFinish());
+
+    // Keep only the pooled effect
+    this.effects = [this.pooledDvdEffect];
   }
 }

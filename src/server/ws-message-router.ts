@@ -48,9 +48,9 @@ export class WsMessageRouter {
       }
     },
 
-    "spawn-effect": (session, msg, broadcast, sendToClient) => {
+    "effect-event": (session, msg, broadcast, sendToClient) => {
       console.log(`[WS] Client #${session.id} spawning effect:`, msg.payload);
-      broadcast({ type: "spawn-effect", payload: msg.payload }, "overlay");
+      broadcast({ type: "effect-event", payload: msg.payload }, "overlay");
     },
 
     "set-settings": (session, msg, broadcast, sendToClient) => {

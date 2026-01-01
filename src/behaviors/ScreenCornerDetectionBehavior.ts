@@ -5,12 +5,14 @@ interface CornerDetectionConfig {
   screenWidth: number;
   screenHeight: number;
   epsilon?: number;
+  onCornerReached?: () => void;
 }
 
 export class ScreenCornerDetectionBehavior extends Behavior {
   private screenWidth: number;
   private screenHeight: number;
   private epsilon: number;
+  private onCornerReached?: () => void;
   cornerReached = false;
 
   constructor(config: CornerDetectionConfig) {
@@ -18,6 +20,7 @@ export class ScreenCornerDetectionBehavior extends Behavior {
     this.screenWidth = config.screenWidth;
     this.screenHeight = config.screenHeight;
     this.epsilon = config.epsilon ?? 2;
+    this.onCornerReached = config.onCornerReached;
   }
 
   update(element: TransformElement, deltaTime: number): void {
@@ -41,6 +44,7 @@ export class ScreenCornerDetectionBehavior extends Behavior {
 
     if (isInCorner) {
       this.cornerReached = true;
+      this.onCornerReached?.();
     }
   }
 }

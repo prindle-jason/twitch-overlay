@@ -15,7 +15,7 @@ export type WsMessageType =
   | "pong"
   | "get-stats"
   | "stats-response"
-  | "spawn-effect"
+  | "effect-event"
   | "set-settings"
   | "clear-effects";
 

@@ -1,6 +1,7 @@
 import type { Element } from "../elements/Element";
 import { getCanvasConfig } from "../config";
 import type { LifecycleState } from "../utils/types";
+import { OverlaySettings } from "../core/OverlaySettings";
 
 export abstract class Effect {
   state: LifecycleState = "NEW";
@@ -74,5 +75,11 @@ export abstract class Effect {
 
   getProgress(): number {
     return this.duration > 0 ? Math.min(1, this.elapsed / this.duration) : 0;
+  }
+
+  onSettingsChanged(settings: OverlaySettings): void {
+    this.elements.forEach((element) => {
+      element.onSettingsChanged(settings);
+    });
   }
 }
