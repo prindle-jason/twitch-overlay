@@ -1,8 +1,8 @@
-import { Effect } from "./Effect";
-import { ImageElement } from "../elements/ImageElement";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
-import type { ImageKey } from "../core/resources";
-import { pickRandom } from "../utils/random";
+import { SceneElement } from "./SceneElement";
+import { ImageElement } from "../ImageElement";
+import { ImageFadeInOutBehavior } from "../../behaviors/ImageFadeInOutBehavior";
+import type { ImageKey } from "../../core/resources";
+import { pickRandom } from "../../utils/random";
 
 const WATERMARK_KEYS: ImageKey[] = [
   "activateWindows",
@@ -21,7 +21,7 @@ interface WatermarkCfg {
   imageKey?: ImageKey;
 }
 
-export class WatermarkEffect extends Effect {
+export class WatermarkScene extends SceneElement {
   private fadeTime: number;
   private watermarkKey: ImageKey;
   private image!: ImageElement;
@@ -36,17 +36,17 @@ export class WatermarkEffect extends Effect {
   override async init(): Promise<void> {
     this.image = new ImageElement(this.watermarkKey);
     this.image.addBehavior(new ImageFadeInOutBehavior(this.fadeTime));
-    this.addElement(this.image);
+    this.addChild(this.image);
     await super.init();
   }
 
-  override onPlay(): void {
+  override play(): void {
     // Scale to cover the full canvas area
     this.image.scaleX = this.W / this.image.getWidth();
     this.image.scaleY = this.H / this.image.getHeight();
     this.image.x = 0;
     this.image.y = 0;
 
-    super.onPlay();
+    super.play();
   }
 }

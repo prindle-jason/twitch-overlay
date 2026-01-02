@@ -4,25 +4,17 @@ import { getImage, type ImageKey } from "../core/resources";
 export class ImageElement extends TransformElement {
   imageKey: ImageKey;
   image: HTMLImageElement | null = null;
-  private loadPromise: Promise<void> | null = null;
 
   constructor(imageKey: ImageKey) {
     super();
     this.imageKey = imageKey;
   }
 
-  init(): void {
-    this.loadPromise = getImage(this.imageKey).then((img) => {
-      this.image = img;
-    });
-  }
-
-  async ready(): Promise<void> {
-    if (this.loadPromise) {
-      await this.loadPromise;
-    }
-    console.log("ImageElement ready:", this.imageKey);
-    this.state = "READY";
+  async init(): Promise<void> {
+    //console.log("ImageElement init:", this.imageKey);
+    const img = await getImage(this.imageKey);
+    this.image = img;
+    await super.init();
   }
 
   getWidth(): number {
@@ -35,7 +27,13 @@ export class ImageElement extends TransformElement {
     return this.image ? this.image.naturalHeight * this.scaleY : -1;
   }
 
+  update(deltaTime: number): void {
+    //console.log("ImageElement update:", this.imageKey, deltaTime);
+    super.update(deltaTime);
+  }
+
   draw(ctx: CanvasRenderingContext2D) {
+    //console.log("ImageElement draw:", this.imageKey, this.image, this.opacity);
     if (!this.image || this.opacity <= 0) return;
     ctx.save();
     ctx.globalAlpha = this.opacity;

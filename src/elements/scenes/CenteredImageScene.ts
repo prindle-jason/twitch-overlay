@@ -1,40 +1,40 @@
-import { Effect } from "./Effect";
-import { ImageElement } from "../elements/ImageElement";
-import { SoundElement } from "../elements/SoundElement";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
-import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import type { ImageKey, SoundKey } from "../core/resources";
+import { SceneElement } from "./SceneElement";
+import { ImageElement } from "../ImageElement";
+import { SoundElement } from "../SoundElement";
+import { ImageFadeInOutBehavior } from "../../behaviors/ImageFadeInOutBehavior";
+import { SoundOnPlayBehavior } from "../../behaviors/SoundOnPlayBehavior";
+import type { ImageKey, SoundKey } from "../../core/resources";
 
-interface CenteredImageCfg {
+interface CenteredImageSceneCfg {
   imageKey: ImageKey;
   soundKey?: SoundKey;
   duration?: number;
   fadeTime?: number;
 }
 
-export class CenteredImageEffect extends Effect {
-  private cfg: CenteredImageCfg;
+export class CenteredImageScene extends SceneElement {
+  private cfg: CenteredImageSceneCfg;
   private image: ImageElement | null = null;
   private soundElement: SoundElement | null = null;
   private fadeTime: number;
 
-  static createSsbmSuccess(): CenteredImageEffect {
-    return new CenteredImageEffect({
+  static createSsbmSuccess(): CenteredImageScene {
+    return new CenteredImageScene({
       imageKey: "ssbmSuccess",
       soundKey: "ssbmSuccess",
       fadeTime: 0.25,
     });
   }
 
-  static createSsbmFail(): CenteredImageEffect {
-    return new CenteredImageEffect({
+  static createSsbmFail(): CenteredImageScene {
+    return new CenteredImageScene({
       imageKey: "ssbmFailure",
       soundKey: "ssbmFail",
       fadeTime: 0.25,
     });
   }
 
-  constructor(cfg: CenteredImageCfg) {
+  constructor(cfg: CenteredImageSceneCfg) {
     super();
     this.cfg = cfg;
     this.fadeTime = cfg.fadeTime ?? 0.25;
@@ -43,12 +43,12 @@ export class CenteredImageEffect extends Effect {
   override async init(): Promise<void> {
     this.image = new ImageElement(this.cfg.imageKey);
     this.image.addBehavior(new ImageFadeInOutBehavior(this.fadeTime));
-    this.addElement(this.image);
+    this.addChild(this.image);
 
     if (this.cfg.soundKey) {
       this.soundElement = new SoundElement(this.cfg.soundKey);
       this.soundElement.addBehavior(new SoundOnPlayBehavior());
-      this.addElement(this.soundElement);
+      this.addChild(this.soundElement);
     }
 
     if (this.cfg.duration) {
@@ -58,7 +58,7 @@ export class CenteredImageEffect extends Effect {
     await super.init();
   }
 
-  override onPlay(): void {
+  override play(): void {
     this.image!.x = (this.W - this.image!.getWidth()) / 2;
     this.image!.y = (this.H - this.image!.getHeight()) / 2;
 
@@ -70,6 +70,6 @@ export class CenteredImageEffect extends Effect {
       this.duration = 5000;
     }
 
-    super.onPlay();
+    super.play();
   }
 }

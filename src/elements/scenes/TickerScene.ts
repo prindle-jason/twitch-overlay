@@ -1,11 +1,11 @@
-import { Effect } from "./Effect";
-import { ImageElement } from "../elements/ImageElement";
-import { RichTextElement } from "../elements/RichTextElement";
-import { SoundElement } from "../elements/SoundElement";
-import { TimedSlideBehavior } from "../behaviors/TimedSlideBehavior";
-import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
-import type { Range } from "../utils/random";
+import { SceneElement } from "./SceneElement";
+import { ImageElement } from "../ImageElement";
+import { RichTextElement } from "../RichTextElement";
+import { SoundElement } from "../SoundElement";
+import { TimedSlideBehavior } from "../../behaviors/TimedSlideBehavior";
+import { SoundOnPlayBehavior } from "../../behaviors/SoundOnPlayBehavior";
+import { ImageFadeInOutBehavior } from "../../behaviors/ImageFadeInOutBehavior";
+import type { Range } from "../../utils/random";
 
 interface EmoteData {
   name: string;
@@ -22,15 +22,13 @@ interface TickerConfig {
 
 type TickerState = "FADE_IN" | "TEXT_SCROLLING" | "FADE_OUT" | "FINISHED";
 
-export class TickerEffect extends Effect {
+export class TickerScene extends SceneElement {
   private message: string;
   private emotes: EmoteData[];
   private tickerState: TickerState = "FADE_IN";
-  //private isInitialized = false;
 
   private readonly fadeTimeMs = 1000;
   private readonly textScrollSpeed = 300;
-  //private readonly tickerHeight = 80;
 
   private tickerText!: RichTextElement;
   private tickerBackground!: ImageElement;
@@ -80,18 +78,17 @@ export class TickerEffect extends Effect {
     this.tickerText.y = this.H - 100;
     this.tickerText.visible = false;
 
-    this.addElement(this.tickerBackground);
-    this.addElement(this.tickerText);
+    this.addChild(this.tickerBackground);
+    this.addChild(this.tickerText);
 
     const tickerSound = new SoundElement("tickerSound");
     tickerSound.addBehavior(new SoundOnPlayBehavior());
-    this.addElement(tickerSound);
+    this.addChild(tickerSound);
   }
 
-  override onPlay(): void {
-    super.onPlay();
+  override play(): void {
+    super.play();
     this.tickerState = "FADE_IN";
-    //this.isInitialized = true;
   }
 
   private startTextScrolling(): void {
@@ -106,12 +103,10 @@ export class TickerEffect extends Effect {
     });
 
     this.tickerText.addBehavior(scrollBehavior);
-    scrollBehavior.onPlay(this.tickerText);
+    scrollBehavior.play(this.tickerText);
   }
 
   override update(deltaTime: number): void {
-    //if (!this.isInitialized) return;
-
     super.update(deltaTime);
 
     switch (this.tickerState) {
@@ -133,6 +128,8 @@ export class TickerEffect extends Effect {
       case "FADE_OUT":
         if (this.elapsed >= this.duration) {
           this.tickerState = "FINISHED";
+          this.finish();
+          //this.setState("FINISHED");
         }
         break;
 

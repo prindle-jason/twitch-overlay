@@ -15,7 +15,7 @@ export class ImageFadeInOutBehavior extends Behavior {
     element.opacity = getEaseInOutProgress(progress, this.fadeTime);
   }
 
-  onPlay(element: ImageElement): void {
+  play(element: ImageElement): void {
     this.apply(element);
   }
 

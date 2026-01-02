@@ -15,7 +15,7 @@ export class HueCycleBehavior extends Behavior {
     this.hue = Math.random() * 360;
   }
 
-  onPlay(element: TransformElement): void {
+  play(element: TransformElement): void {
     this.hue = Math.random() * 360;
   }
 

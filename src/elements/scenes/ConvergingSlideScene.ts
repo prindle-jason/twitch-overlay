@@ -1,9 +1,9 @@
-import { Effect } from "./Effect";
-import { ImageElement } from "../elements/ImageElement";
-import { SoundElement } from "../elements/SoundElement";
-import { SlideBehavior } from "../behaviors/SlideBehavior";
-import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import type { ImageKey, SoundKey } from "../core/resources";
+import { SceneElement } from "./SceneElement";
+import { ImageElement } from "../ImageElement";
+import { SoundElement } from "../SoundElement";
+import { SlideBehavior } from "../../behaviors/SlideBehavior";
+import { SoundOnPlayBehavior } from "../../behaviors/SoundOnPlayBehavior";
+import type { ImageKey, SoundKey } from "../../core/resources";
 
 interface ConvergingCfg {
   duration?: number;
@@ -14,7 +14,7 @@ interface ConvergingCfg {
   fadeTime?: number;
 }
 
-export class ConvergingSlideEffect extends Effect {
+export class ConvergingSlideScene extends SceneElement {
   private cfg: ConvergingCfg;
   private leftImage: ImageElement | null = null;
   private rightImage: ImageElement | null = null;
@@ -23,8 +23,8 @@ export class ConvergingSlideEffect extends Effect {
   private scale: number;
   private fadeTime: number;
 
-  static createBamSuccess(): ConvergingSlideEffect {
-    return new ConvergingSlideEffect({
+  static createBamSuccess(): ConvergingSlideScene {
+    return new ConvergingSlideScene({
       leftImageKey: "bubSuccess",
       rightImageKey: "bobSuccess",
       soundKey: "bamHooray",
@@ -33,8 +33,8 @@ export class ConvergingSlideEffect extends Effect {
     });
   }
 
-  static createBamFailure(): ConvergingSlideEffect {
-    return new ConvergingSlideEffect({
+  static createBamFailure(): ConvergingSlideScene {
+    return new ConvergingSlideScene({
       leftImageKey: "bubFailure",
       rightImageKey: "bobFailure",
       soundKey: "bamUhOh",
@@ -53,16 +53,16 @@ export class ConvergingSlideEffect extends Effect {
   override async init(): Promise<void> {
     this.leftImage = new ImageElement(this.cfg.leftImageKey);
     this.leftImage.setScale(this.scale);
-    this.addElement(this.leftImage);
+    this.addChild(this.leftImage);
 
     this.rightImage = new ImageElement(this.cfg.rightImageKey);
     this.rightImage.setScale(this.scale);
-    this.addElement(this.rightImage);
+    this.addChild(this.rightImage);
 
     if (this.cfg.soundKey) {
       this.soundElement = new SoundElement(this.cfg.soundKey);
       this.soundElement.addBehavior(new SoundOnPlayBehavior());
-      this.addElement(this.soundElement);
+      this.addChild(this.soundElement);
     }
 
     if (this.cfg.duration) {
@@ -72,7 +72,7 @@ export class ConvergingSlideEffect extends Effect {
     await super.init();
   }
 
-  override onPlay(): void {
+  override play(): void {
     if (this.cfg.duration) {
       this.duration = this.cfg.duration;
     } else if (this.soundElement?.sound) {
@@ -82,7 +82,7 @@ export class ConvergingSlideEffect extends Effect {
     }
 
     this.setSlideBehaviors();
-    super.onPlay();
+    super.play();
   }
 
   private setSlideBehaviors(): void {

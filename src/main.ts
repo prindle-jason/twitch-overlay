@@ -1,8 +1,7 @@
-//import { EffectManager } from "../core/EffectManager.ts";
 import { connectWS, getWS } from "./utils/wsUtil";
 import { Health } from "./utils/health";
-import { EffectManager } from "./core/EffectManager";
-import { EffectFactory } from "./core/EffectFactory";
+import { SceneManager } from "./core/SceneManager";
+import { SceneFactory } from "./core/SceneFactory";
 import { canvasConfig } from "./config";
 import { OverlaySettings } from "./core/OverlaySettings";
 
@@ -17,8 +16,8 @@ const ctx = canvas.getContext("2d")!; // Assert non-null 2D context
 canvas.width = canvasConfig.W;
 canvas.height = canvasConfig.H;
 
-const effectManager = new EffectManager();
-const effectFactory = new EffectFactory();
+const sceneManager = new SceneManager();
+const sceneFactory = new SceneFactory();
 const health = new Health();
 
 function startApp() {
@@ -53,7 +52,7 @@ function startApp() {
       const ws = getWS();
 
       if (ws && ws.readyState === WebSocket.OPEN) {
-        const counts = effectManager.getCounts();
+        const counts = sceneManager.getCounts();
         const stats = health.snapshot({
           effectsLoading: counts.loading,
           effectsPlaying: counts.playing,
@@ -76,35 +75,28 @@ function startApp() {
 
       // Handle persistent effects separately
       if (effectType === "dvdBounce") {
-        effectManager.handleEvent(effectType, msg.payload);
+        sceneManager.handleEvent(effectType, msg.payload);
       } else {
         // Create and add other effects through factory
-        const effect = effectFactory.create(effectType, msg.payload);
-        if (effect) {
-          effectManager.addEffect(effect);
+        const scene = sceneFactory.create(effectType, msg.payload);
+        if (scene) {
+          sceneManager.addScene(scene);
         }
       }
     }
 
     if (msg.type === "set-settings") {
-      effectManager.applySettings((msg.payload || {}) as OverlaySettings);
-      // console.log("[overlay] settings updated", {
-      //   paused: effectManager.isPaused(),
-      // });
+      sceneManager.applySettings((msg.payload || {}) as OverlaySettings);
     }
 
     if (msg.type === "clear-effects") {
       console.log("[overlay] clearing all effects");
-      effectManager.clearAll();
+      sceneManager.clearAll();
     }
   });
 
   requestAnimationFrame(loop);
 }
-
-// function spawn(type: string, opts: unknown) {
-//   effectManager.spawn(type, opts as any);
-// }
 
 let lastFrame = performance.now();
 function loop() {
@@ -118,7 +110,7 @@ function loop() {
   //ctx.fillStyle = "green";
   //ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-  effectManager.update(ctx, deltaTime);
+  sceneManager.update(ctx, deltaTime);
 
   requestAnimationFrame(loop);
 }

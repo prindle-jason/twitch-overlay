@@ -26,15 +26,15 @@ export class SlideBehavior extends Behavior {
     this.fadeTime = config.fadeTime ?? 0.2;
   }
 
-  onPlay(element: TransformElement) {
-    //console.log("SlideBehavior onPlay", this.startX, this.startY);
+  play(element: TransformElement) {
+    //console.log("SlideBehavior play", this.startX, this.startY);
     element.x = this.startX;
     element.y = this.startY;
   }
 
   update(element: TransformElement, deltaTime: number) {
     //console.log("SlideBehavior update", element.x, element.y);
-    const progress = element.effect!.getProgress();
+    const progress = element.parent!.getProgress();
     const slide = 1 - getEaseInOutProgress(progress, this.fadeTime);
     element.x = this.startX + (this.endX - this.startX) * (1 - slide);
     element.y = this.startY + (this.endY - this.startY) * (1 - slide);

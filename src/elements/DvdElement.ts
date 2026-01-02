@@ -7,7 +7,7 @@ import { pickRandomByWeight } from "../utils/random";
 import { getCanvasConfig } from "../config";
 import type { ImageKey, SoundKey } from "../core/resources";
 import type { LifecycleState } from "../utils/types";
-import { ElementWithChildren } from "./ElementWithChildren";
+import { Element } from "./Element";
 import { OverlaySettings } from "../core/OverlaySettings";
 
 interface DvdOption {
@@ -25,7 +25,7 @@ const DVD_OPTIONS: readonly DvdOption[] = [
  * DvdElement represents a single DVD logo bouncing around the screen.
  * It contains both the image and sound, and manages its own lifecycle.
  */
-export class DvdElement extends ElementWithChildren {
+export class DvdElement extends Element {
   private sizeX = 128;
   private sizeY = 56;
 
@@ -34,8 +34,6 @@ export class DvdElement extends ElementWithChildren {
   }
 
   async init(): Promise<void> {
-    const { W, H } = getCanvasConfig();
-
     // Pick a random DVD option
     const option = pickRandomByWeight(
       DVD_OPTIONS.map((opt) => ({
@@ -44,9 +42,29 @@ export class DvdElement extends ElementWithChildren {
       }))
     );
 
-    const image = new ImageElement(option.imageKey);
+    this.createImage(option);
+
     const sound = new SoundElement(option.soundKey);
     sound.baseVolume = 0.4;
+    this.addChild(sound);
+    await super.init();
+  }
+
+  play(): void {
+    const { W, H } = getCanvasConfig();
+    this.getChildrenOfType(ImageElement).forEach((image) => {
+      image.scaleX = this.sizeX / image.getWidth();
+      image.scaleY = this.sizeY / image.getHeight();
+      image.x = Math.random() * (W - image.getWidth());
+      image.y = Math.random() * (H - image.getHeight());
+
+      super.play();
+    });
+  }
+
+  private createImage(option: DvdOption): void {
+    const { W, H } = getCanvasConfig();
+    const image = new ImageElement(option.imageKey);
 
     const velocity = Math.random() + 2;
     const bounceBehavior = new ScreenBounceBehavior({
@@ -71,63 +89,23 @@ export class DvdElement extends ElementWithChildren {
     image.addBehavior(cornerDetector);
     image.addBehavior(hueCycleBehavior);
 
-    this.children.push(image, sound);
-    this.children.forEach((child) => child.init());
-    await Promise.all([...this.children.map((c) => c.ready())]);
-    this.state = "READY";
-  }
-
-  override onPlay(): void {
-    const { W, H } = getCanvasConfig();
-
-    this.state = "PLAYING";
-
-    // Scale and position the DVD
-    this.getChildrenOfType(ImageElement).forEach((image) => {
-      image.scaleX = this.sizeX / image.getWidth();
-      image.scaleY = this.sizeY / image.getHeight();
-      image.x = Math.random() * (W - image.getWidth());
-      image.y = Math.random() * (H - image.getHeight());
-      image.onPlay();
-      image.setState("PLAYING");
-    });
-
-    this.getChildrenOfType(SoundElement).forEach((sound) => {
-      sound.setState("PLAYING");
-      sound.onPlay();
-    });
-  }
-
-  override update(deltaTime: number): void {
-    if (this.state !== "PLAYING") return;
-    super.update(deltaTime);
-  }
-
-  override draw(ctx: CanvasRenderingContext2D): void {
-    if (this.state !== "PLAYING") return;
-    super.draw(ctx);
-  }
-
-  override onFinish(): void {
-    this.state = "FINISHED";
-    super.onFinish();
+    this.addChild(image);
   }
 
   private onCornerReached(): void {
-    // Don't set FINISHED yet - wait for sound to complete
+    this.getChildrenOfType(ImageElement).forEach((image) => {
+      image.finish();
+    });
+
     this.getChildrenOfType(SoundElement).forEach((sound) => {
       sound.addEventListener(
         "ended",
         () => {
-          this.state = "FINISHED";
+          this.finish();
         },
         { once: true }
       );
-      sound.play();
+      sound.playSound();
     });
-  }
-
-  override onSettingsChanged(settings: OverlaySettings): void {
-    super.onSettingsChanged(settings);
   }
 }

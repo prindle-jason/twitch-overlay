@@ -27,7 +27,7 @@ export class TimedSlideBehavior extends Behavior {
     this.duration = config.duration ?? 1000;
   }
 
-  onPlay(element: TransformElement): void {
+  play(element: TransformElement): void {
     element.x = this.startX;
     element.y = this.startY;
     this.elapsedTime = 0;

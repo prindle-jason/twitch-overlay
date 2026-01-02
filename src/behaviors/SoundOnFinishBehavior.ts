@@ -13,7 +13,7 @@ export class SoundOnFinishBehavior extends Behavior {
     this.volume = config.volume ?? 1.0;
   }
 
-  onFinish(element: SoundElement): void {
+  finish(element: SoundElement): void {
     if (element.sound) {
       element.sound.volume = this.volume;
       element.sound.play();

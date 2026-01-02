@@ -15,9 +15,10 @@ export class ImageJitterBehavior extends Behavior {
     this.jitterAmount = config.jitterAmount ?? 6;
   }
 
-  onPlay(element: TransformElement): void {
+  play(element: TransformElement): void {
     this.baseX = element.x;
     this.baseY = element.y;
+    console.log("ImageJitterBehavior play ", this.baseX, this.baseY);
   }
 
   update(element: TransformElement, deltaTime: number): void {

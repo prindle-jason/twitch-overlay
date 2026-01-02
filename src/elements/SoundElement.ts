@@ -5,7 +5,6 @@ import type { OverlaySettings } from "../core/OverlaySettings";
 export class SoundElement extends Element {
   soundKey: SoundKey;
   sound: HTMLAudioElement | null = null;
-  private loadPromise: Promise<void> | null = null;
   baseVolume = 1;
   masterVolume = 1;
   loop = false;
@@ -16,23 +15,16 @@ export class SoundElement extends Element {
     this.soundKey = soundKey;
   }
 
-  init() {
-    // Load asynchronously; ready() will await it
-    console.log("SoundElement init:", this.soundKey);
-    this.loadPromise = getSound(this.soundKey).then((audio) => {
-      this.sound = audio;
-    });
+  async init() {
+    // Load asynchronously
+    //console.log("SoundElement init:", this.soundKey);
+    const sound = await getSound(this.soundKey);
+    this.sound = sound;
+    await super.init();
   }
 
-  async ready(): Promise<void> {
-    if (this.loadPromise) {
-      await this.loadPromise;
-    }
-    console.log("SoundElement ready:", this.soundKey);
-    this.state = "READY";
-  }
-
-  play() {
+  playSound() {
+    //console.log("SoundElement play:", this.soundKey, this.sound);
     if (this.sound) {
       this.sound.volume = this.baseVolume * this.masterVolume;
       this.sound.loop = this.loop;
@@ -48,7 +40,7 @@ export class SoundElement extends Element {
     }
   }
 
-  stop() {
+  stopSound() {
     if (this.sound) {
       this.sound.pause();
       this.sound.currentTime = 0;
@@ -59,9 +51,9 @@ export class SoundElement extends Element {
     // No-op for sound
   }
 
-  onFinish(): void {
-    this.stop();
-    super.onFinish();
+  finish(): void {
+    this.stopSound();
+    super.finish();
   }
 
   onSettingsChanged(settings: OverlaySettings): void {

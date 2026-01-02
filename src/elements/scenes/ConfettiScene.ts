@@ -1,15 +1,15 @@
-import { Effect } from "./Effect";
-import { EllipseElement } from "../elements/EllipseElement";
-import { FallingBehavior } from "../behaviors/FallingBehavior";
-import { TiltBehavior } from "../behaviors/TiltBehavior";
-import { IntervalTimer } from "../utils/IntervalTimer";
+import { SceneElement } from "./SceneElement";
+import { EllipseElement } from "../EllipseElement";
+import { FallingBehavior } from "../../behaviors/FallingBehavior";
+import { TiltBehavior } from "../../behaviors/TiltBehavior";
+import { IntervalTimer } from "../../utils/IntervalTimer";
 
 interface ConfettiConfig {
   count?: number;
   duration?: number;
 }
 
-export class ConfettiEffect extends Effect {
+export class ConfettiScene extends SceneElement {
   private readonly particleCount: number;
   private readonly spawnDurationMs: number;
   private readonly bufferMs = 3000;
@@ -56,7 +56,7 @@ export class ConfettiEffect extends Effect {
       })
     );
 
-    this.addElement(particle);
+    this.addChild(particle);
   }
 
   override update(deltaTime: number): void {
@@ -64,16 +64,21 @@ export class ConfettiEffect extends Effect {
 
     super.update(deltaTime);
 
-    this.elements = this.elements.filter((element) => {
-      if (element instanceof EllipseElement) {
-        return !element.isOffScreen(this.W, this.H);
+    // Remove particles that have left the screen
+    this.children = this.children.filter((child) => {
+      if (
+        child instanceof EllipseElement &&
+        child.isOffScreen(this.W, this.H)
+      ) {
+        child.setParent(null);
+        return false;
       }
       return true;
     });
 
-    if (this.spawner.isFinished() && this.elements.length === 0) {
-      this.state = "FINISHED";
-      this.elements.forEach((element) => element.setState("FINISHED"));
+    // Finish early if all particles are gone after spawning completes
+    if (this.spawner.isFinished() && this.children.length === 0) {
+      this.finish();
     }
   }
 }

@@ -1,14 +1,14 @@
-import { Effect } from "./Effect";
-import { TimedImageElement } from "../elements/TimedImageElement";
-import { SoundElement } from "../elements/SoundElement";
-import { ImageBlurInOutBehavior } from "../behaviors/ImageBlurInOutBehavior";
-import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
-import { ImageJitterBehavior } from "../behaviors/ImageJitterBehavior";
-import { IntervalRangeTimer } from "../utils/IntervalRangeTimer";
-import { getRandomInRange, pickRandomByWeight } from "../utils/random";
-import type { Range } from "../utils/random";
-import { ImageKey } from "../core/resources";
+import { SceneElement } from "./SceneElement";
+import { TimedImageElement } from "../TimedImageElement";
+import { SoundElement } from "../SoundElement";
+import { ImageBlurInOutBehavior } from "../../behaviors/ImageBlurInOutBehavior";
+import { SoundOnPlayBehavior } from "../../behaviors/SoundOnPlayBehavior";
+import { ImageFadeInOutBehavior } from "../../behaviors/ImageFadeInOutBehavior";
+import { ImageJitterBehavior } from "../../behaviors/ImageJitterBehavior";
+import { IntervalRangeTimer } from "../../utils/IntervalRangeTimer";
+import { getRandomInRange, pickRandomByWeight } from "../../utils/random";
+import type { Range } from "../../utils/random";
+import { ImageKey } from "../../core/resources";
 
 interface ImageOption {
   weight: number;
@@ -20,8 +20,8 @@ const IMAGE_OPTIONS: readonly ImageOption[] = [
   { weight: 3, imageKey: "xHello" },
 ];
 
-/* Plays an audio file while spawning images around the screen */
-export class XJasonEffect extends Effect {
+/** Plays an audio file while spawning images around the screen */
+export class XJasonScene extends SceneElement {
   private readonly imageIntervalRange: Range = { min: 500, max: 900 };
   private readonly imageDurationRange: Range = { min: 1200, max: 1600 };
   private readonly imageWidth = 560;
@@ -43,7 +43,7 @@ export class XJasonEffect extends Effect {
   override async init(): Promise<void> {
     const sound = new SoundElement("heavyRainJason");
     sound.addBehavior(new SoundOnPlayBehavior());
-    this.addElement(sound);
+    this.addChild(sound);
 
     await super.init();
   }
@@ -69,6 +69,8 @@ export class XJasonEffect extends Effect {
 
     const popup = new TimedImageElement(option.imageKey, duration);
 
+    popup.init();
+
     popup.x = Math.random() * (this.W - this.imageWidth);
     popup.y = Math.random() * (this.H - this.imageHeight);
 
@@ -77,8 +79,9 @@ export class XJasonEffect extends Effect {
     popup.addBehavior(new ImageFadeInOutBehavior(0.4));
     popup.addBehavior(new ImageBlurInOutBehavior(imageBlurConfig));
 
-    this.addElement(popup);
-    popup.onPlay();
+    this.addChild(popup);
+    // Manually trigger play for dynamically spawned children
+    popup.play();
   }
 
   override update(deltaTime: number): void {
@@ -86,9 +89,11 @@ export class XJasonEffect extends Effect {
 
     this.spawner.update(deltaTime);
 
-    this.elements = this.elements.filter((element) => {
-      if (element instanceof TimedImageElement) {
-        return !element.expired;
+    // Remove expired popups
+    this.children = this.children.filter((child) => {
+      if (child instanceof TimedImageElement && child.expired) {
+        child.setParent(null);
+        return false;
       }
       return true;
     });

@@ -1,20 +1,19 @@
-import { Effect } from "./Effect";
-import { ImageElement } from "../elements/ImageElement";
-import { SoundElement } from "../elements/SoundElement";
-import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import { FallingBehavior } from "../behaviors/FallingBehavior";
-import { TiltBehavior } from "../behaviors/TiltBehavior";
-import { IntervalTimer } from "../utils/IntervalTimer";
-import type { ImageKey } from "../core/resources";
+import { SceneElement } from "./SceneElement";
+import { ImageElement } from "../ImageElement";
+import { SoundElement } from "../SoundElement";
+import { SoundOnPlayBehavior } from "../../behaviors/SoundOnPlayBehavior";
+import { FallingBehavior } from "../../behaviors/FallingBehavior";
+import { TiltBehavior } from "../../behaviors/TiltBehavior";
+import { IntervalTimer } from "../../utils/IntervalTimer";
+import type { ImageKey } from "../../core/resources";
 
 interface HeadbladeCfg {
   count?: number;
   duration?: number; // ms
 }
 
-export class HeadbladeEffect extends Effect {
+export class HeadbladeScene extends SceneElement {
   private totalCount: number;
-  //private spawnDuration: number;
   private imageList: ImageKey[] = ["hb1", "hb2", "hb3", "hb4", "hb5"];
   private imageSpawner!: IntervalTimer;
 
@@ -33,7 +32,7 @@ export class HeadbladeEffect extends Effect {
 
     const sound = new SoundElement("headblade");
     sound.addBehavior(new SoundOnPlayBehavior());
-    this.addElement(sound);
+    this.addChild(sound);
 
     await super.init();
   }
@@ -51,8 +50,8 @@ export class HeadbladeEffect extends Effect {
 
     img.addBehavior(
       new FallingBehavior({
-        velocityY: Math.random() * 80 + 90,
-        velocityX: (Math.random() - 0.5) * 120,
+        velocityY: Math.random() * 100 + 100,
+        velocityX: Math.random() * 80 - 40,
         gravity: 400 + Math.random() * 200,
         drag: 0.01,
       })
@@ -66,7 +65,9 @@ export class HeadbladeEffect extends Effect {
       })
     );
 
-    this.addElement(img);
+    img.init();
+
+    this.addChild(img);
   }
 
   override update(deltaTime: number): void {

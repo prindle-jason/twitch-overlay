@@ -24,7 +24,7 @@ export class ImageBlurInOutBehavior extends Behavior {
     element.filter = `blur(${blurPx}px)`;
   }
 
-  onPlay(element: ImageElement): void {
+  play(element: ImageElement): void {
     this.apply(element);
   }
 
