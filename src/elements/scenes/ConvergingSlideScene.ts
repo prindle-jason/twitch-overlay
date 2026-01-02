@@ -1,8 +1,8 @@
 import { SceneElement } from "./SceneElement";
 import { ImageElement } from "../ImageElement";
 import { SoundElement } from "../SoundElement";
-import { SlideBehavior } from "../../behaviors/SlideBehavior";
-import { SoundOnPlayBehavior } from "../../behaviors/SoundOnPlayBehavior";
+import { TranslateBehavior } from "../behaviors/TranslateBehavior";
+import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import type { ImageKey, SoundKey } from "../../core/resources";
 
 interface ConvergingCfg {
@@ -61,7 +61,7 @@ export class ConvergingSlideScene extends SceneElement {
 
     if (this.cfg.soundKey) {
       this.soundElement = new SoundElement(this.cfg.soundKey);
-      this.soundElement.addBehavior(new SoundOnPlayBehavior());
+      this.soundElement.addChild(new SoundOnPlayBehavior());
       this.addChild(this.soundElement);
     }
 
@@ -87,8 +87,8 @@ export class ConvergingSlideScene extends SceneElement {
 
   private setSlideBehaviors(): void {
     if (this.leftImage && this.leftImage.image) {
-      this.leftImage.addBehavior(
-        new SlideBehavior({
+      this.leftImage.addChild(
+        new TranslateBehavior({
           startX: 0 - this.leftImage.getWidth(),
           startY: this.H,
           endX: 0,
@@ -99,8 +99,8 @@ export class ConvergingSlideScene extends SceneElement {
     }
 
     if (this.rightImage && this.rightImage.image) {
-      this.rightImage.addBehavior(
-        new SlideBehavior({
+      this.rightImage.addChild(
+        new TranslateBehavior({
           startX: this.W,
           startY: this.H,
           endX: this.W - this.rightImage.getWidth(),

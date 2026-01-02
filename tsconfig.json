@@ -6,6 +6,6 @@
     "noEmit": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*.ts", "src/effects/__PooledDvdEffect.ts__"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

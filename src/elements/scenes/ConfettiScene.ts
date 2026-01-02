@@ -1,7 +1,7 @@
 import { SceneElement } from "./SceneElement";
 import { EllipseElement } from "../EllipseElement";
-import { FallingBehavior } from "../../behaviors/FallingBehavior";
-import { TiltBehavior } from "../../behaviors/TiltBehavior";
+import { FallingBehavior } from "../behaviors/FallingBehavior";
+import { TiltBehavior } from "../behaviors/TiltBehavior";
 import { IntervalTimer } from "../../utils/IntervalTimer";
 
 interface ConfettiConfig {
@@ -39,7 +39,7 @@ export class ConfettiScene extends SceneElement {
       rotation: Math.random() * Math.PI * 2,
     });
 
-    particle.addBehavior(
+    particle.addChild(
       new FallingBehavior({
         velocityY: Math.random() * 50 + 25,
         velocityX: (Math.random() - 0.5) * 100,
@@ -48,7 +48,7 @@ export class ConfettiScene extends SceneElement {
       })
     );
 
-    particle.addBehavior(
+    particle.addChild(
       new TiltBehavior({
         rotationSpeed: (Math.random() - 0.5) * 6,
         wobbleAmount: Math.random() * 0.5,

@@ -1,5 +1,5 @@
-import { Behavior } from "./Behavior";
-import { TransformElement } from "../elements/TransformElement";
+import { Element } from "../Element";
+import { TransformElement } from "../TransformElement";
 
 interface TiltConfig {
   rotationSpeed?: number; // radians per second
@@ -7,7 +7,7 @@ interface TiltConfig {
   wobbleSpeed?: number;
 }
 
-export class TiltBehavior extends Behavior {
+export class TiltBehavior extends Element {
   private rotationSpeed: number;
   private wobbleAmount: number;
   private wobbleSpeed: number;
@@ -21,20 +21,31 @@ export class TiltBehavior extends Behavior {
     this.wobbleOffset = Math.random() * Math.PI * 2;
   }
 
-  update(element: TransformElement, deltaTime: number): void {
+  private get target(): TransformElement | null {
+    return this.parent instanceof TransformElement ? this.parent : null;
+  }
+
+  override update(deltaTime: number): void {
+    super.update(deltaTime);
+
+    const target = this.target;
+    if (!target) {
+      return;
+    }
+
     const dt = deltaTime / 1000;
 
-    element.rotation += this.rotationSpeed * dt;
+    target.rotation += this.rotationSpeed * dt;
 
     if (this.wobbleAmount > 0) {
       const wobble =
         Math.sin((Date.now() / 1000) * this.wobbleSpeed + this.wobbleOffset) *
         this.wobbleAmount;
-      element.rotation += wobble * dt;
+      target.rotation += wobble * dt;
     }
 
     const twoPi = Math.PI * 2;
-    while (element.rotation > twoPi) element.rotation -= twoPi;
-    while (element.rotation < 0) element.rotation += twoPi;
+    while (target.rotation > twoPi) target.rotation -= twoPi;
+    while (target.rotation < 0) target.rotation += twoPi;
   }
 }

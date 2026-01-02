@@ -22,9 +22,9 @@ export class PooledDvdScene extends SceneElement {
   }
 
   override update(deltaTime: number): void {
-    // Check for finished DVDs and spawn confetti before they are removed
+    // Check for finished DVDs that have hit a corner and spawn confetti before they are removed
     this.getChildrenOfType(DvdElement).forEach((dvd) => {
-      if (dvd.getState() === "FINISHED") {
+      if (dvd.getState() === "FINISHED" && dvd.getHasHitCorner()) {
         this.spawnConfetti();
       }
     });

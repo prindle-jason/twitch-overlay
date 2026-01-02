@@ -1,4 +1,3 @@
-import { Behavior } from "../behaviors/Behavior";
 import type { LifecycleState } from "../utils/types";
 import { OverlaySettings } from "../core/OverlaySettings";
 
@@ -11,7 +10,6 @@ export abstract class Element {
   // ---------------------------------------------------------------------------------
   // State management
   // ---------------------------------------------------------------------------------
-  protected behaviors: Behavior[] = [];
   protected parent: Element | null = null;
   protected children: Element[] = [];
   protected duration: number = -1;
@@ -26,13 +24,13 @@ export abstract class Element {
   // ---------------------------------------------------------------------------------
   // Child management
   // ---------------------------------------------------------------------------------
-  protected addChild(child: Element): void {
+  addChild(child: Element): void {
     //console.log(`Adding child to ${this.constructor.name}:`, child);
     child.setParent(this);
     this.children.push(child);
   }
 
-  protected removeChild(child: Element): void {
+  removeChild(child: Element): void {
     const index = this.children.indexOf(child);
     if (index !== -1) {
       this.children.splice(index, 1);
@@ -40,24 +38,18 @@ export abstract class Element {
     }
   }
 
+  /* Returns first child of given type, or null if none found */
+  getChildOfType<T extends Element>(ctor: new (...args: any[]) => T): T | null {
+    for (const child of this.children) {
+      if (child instanceof ctor) {
+        return child;
+      }
+    }
+    return null;
+  }
+
   getChildrenOfType<T extends Element>(ctor: new (...args: any[]) => T): T[] {
     return this.children.filter((c) => c instanceof ctor) as T[];
-  }
-
-  // ---------------------------------------------------------------------------------
-  // Behavior management
-  // ---------------------------------------------------------------------------------
-  addBehavior(behavior: Behavior) {
-    this.behaviors.push(behavior);
-    return this;
-  }
-
-  removeBehavior(behavior: Behavior) {
-    const index = this.behaviors.indexOf(behavior);
-    if (index !== -1) {
-      this.behaviors.splice(index, 1);
-    }
-    return this;
   }
 
   // ---------------------------------------------------------------------------------
@@ -108,7 +100,9 @@ export abstract class Element {
     }
 
     this.state = "PLAYING";
-    this.behaviors.forEach((behavior) => behavior.play?.(this));
+
+    // Start any children that were added before play (play() will no-op if child isn't READY)
+    this.children.forEach((child) => child.play());
   }
 
   // Advance timers and children each frame while PLAYING.
@@ -123,6 +117,58 @@ export abstract class Element {
       return;
     }
 
+    this.updateChildren(deltaTime);
+  }
+
+  // Transition to FINISHED state (cascading to all children), cleaning up resources.
+  // Any final work can be done here.
+  finish() {
+    if (this.state === "FINISHED") {
+      return;
+    }
+
+    this.state = "FINISHED";
+    this.children.forEach((child) => {
+      child.finish();
+    });
+  }
+
+  // ---------------------------------------------------------------------------------
+  // Getters/Setters
+  // ---------------------------------------------------------------------------------
+  getState(): LifecycleState {
+    return this.state;
+  }
+
+  setParent(parent: Element | null) {
+    this.parent = parent;
+  }
+
+  getDuration(): number {
+    return this.duration;
+  }
+
+  setDuration(duration: number): void {
+    this.duration = duration;
+  }
+
+  getProgress(): number {
+    if (this.duration > 0) {
+      return Math.min(1, this.elapsed / this.duration);
+    }
+    return this.parent ? this.parent.getProgress() : 0;
+  }
+
+  // Settings hooks
+  onSettingsChanged(settings: OverlaySettings): void {
+    this.children.forEach((child) => child.onSettingsChanged(settings));
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    this.children.forEach((child) => child.draw(ctx));
+  }
+
+  private updateChildren(deltaTime: number): void {
     this.children.forEach((child) => {
       const childState = child.getState();
       switch (childState) {
@@ -143,53 +189,5 @@ export abstract class Element {
     });
 
     this.children = this.children.filter((c) => c.getState() !== "FINISHED");
-
-    this.behaviors.forEach((behavior) => behavior.update?.(this, deltaTime));
-  }
-
-  // Transition to FINISHED state (cascading to all children), cleaning up resources.
-  // Any final work can be done here.
-  finish() {
-    if (this.state === "FINISHED") {
-      return;
-    }
-
-    this.state = "FINISHED";
-    this.children.forEach((child) => {
-      child.finish();
-    });
-
-    this.behaviors.forEach((behavior) => behavior.finish?.(this));
-  }
-
-  // ---------------------------------------------------------------------------------
-  // Getters/Setters
-  // ---------------------------------------------------------------------------------
-  getState(): LifecycleState {
-    return this.state;
-  }
-
-  setParent(parent: Element | null) {
-    this.parent = parent;
-  }
-
-  getDuration(): number {
-    return this.duration;
-  }
-
-  getProgress(): number {
-    if (this.duration > 0) {
-      return Math.min(1, this.elapsed / this.duration);
-    }
-    return this.parent ? this.parent.getProgress() : 0;
-  }
-
-  // Settings hooks
-  onSettingsChanged(settings: OverlaySettings): void {
-    this.children.forEach((child) => child.onSettingsChanged(settings));
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    this.children.forEach((child) => child.draw(ctx));
   }
 }

@@ -1,14 +1,14 @@
 import { SceneElement } from "./SceneElement";
-import { TimedImageElement } from "../TimedImageElement";
 import { SoundElement } from "../SoundElement";
-import { ImageBlurInOutBehavior } from "../../behaviors/ImageBlurInOutBehavior";
-import { SoundOnPlayBehavior } from "../../behaviors/SoundOnPlayBehavior";
-import { ImageFadeInOutBehavior } from "../../behaviors/ImageFadeInOutBehavior";
-import { ImageJitterBehavior } from "../../behaviors/ImageJitterBehavior";
+import { ImageBlurInOutBehavior } from "../behaviors/ImageBlurInOutBehavior";
+import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
+import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
+import { ImageJitterBehavior } from "../behaviors/ImageJitterBehavior";
 import { IntervalRangeTimer } from "../../utils/IntervalRangeTimer";
 import { getRandomInRange, pickRandomByWeight } from "../../utils/random";
 import type { Range } from "../../utils/random";
 import { ImageKey } from "../../core/resources";
+import { ImageElement } from "../ImageElement";
 
 interface ImageOption {
   weight: number;
@@ -42,7 +42,7 @@ export class XJasonScene extends SceneElement {
 
   override async init(): Promise<void> {
     const sound = new SoundElement("heavyRainJason");
-    sound.addBehavior(new SoundOnPlayBehavior());
+    sound.addChild(new SoundOnPlayBehavior());
     this.addChild(sound);
 
     await super.init();
@@ -67,7 +67,9 @@ export class XJasonScene extends SceneElement {
       }))
     );
 
-    const popup = new TimedImageElement(option.imageKey, duration);
+    //const popup = new TimedImageElement(option.imageKey, duration);
+    const popup = new ImageElement(option.imageKey);
+    popup.setDuration(duration);
 
     popup.init();
 
@@ -75,9 +77,9 @@ export class XJasonScene extends SceneElement {
     popup.y = Math.random() * (this.H - this.imageHeight);
 
     const imageBlurConfig = { fadeTime: 0.4, maxBlur: 16 };
-    popup.addBehavior(new ImageJitterBehavior({ jitterAmount: 6 }));
-    popup.addBehavior(new ImageFadeInOutBehavior(0.4));
-    popup.addBehavior(new ImageBlurInOutBehavior(imageBlurConfig));
+    popup.addChild(new ImageJitterBehavior({ jitterAmount: 6 }));
+    popup.addChild(new ImageFadeInOutBehavior(0.4));
+    popup.addChild(new ImageBlurInOutBehavior(imageBlurConfig));
 
     this.addChild(popup);
     // Manually trigger play for dynamically spawned children
@@ -88,14 +90,5 @@ export class XJasonScene extends SceneElement {
     super.update(deltaTime);
 
     this.spawner.update(deltaTime);
-
-    // Remove expired popups
-    this.children = this.children.filter((child) => {
-      if (child instanceof TimedImageElement && child.expired) {
-        child.setParent(null);
-        return false;
-      }
-      return true;
-    });
   }
 }

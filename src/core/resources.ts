@@ -9,8 +9,7 @@ const imageMap = {
   bobFailure: "bobFailure.png",
   bubSuccess: "bubSuccess.png",
   bobSuccess: "bobSuccess.png",
-  dvdLogo: "dvdLogo.png",
-  bluRayLogo: "bluRayLogo.png",
+
   ssbmFailure: "ssbmFailure.png",
   ssbmSuccess: "ssbmSuccess.png",
   xJason: "xJason.svg",
@@ -29,6 +28,12 @@ const imageMap = {
   stockImage: "watermarks/stockImage.png",
   toBeContinued: "watermarks/toBeContinued.png",
   viewerDiscretion: "watermarks/viewerDiscretionWatermark.png",
+
+  // DvdScene
+  dvdLogo: "dvdLogo.png",
+  bluRayLogo: "bluRayLogo.png",
+  netflixLogo: "netflix-logo.png",
+  thxLogo: "thx-logo.svg",
 } as const;
 
 export type ImageKey = keyof typeof imageMap;
@@ -39,11 +44,16 @@ const soundMap = {
   breakingNews: "breakingNews.mp3",
   headblade: "headblade.mp3",
   heavyRainJason: "heavyrain-jason.mp3",
-  partyHorn: "partyHorn.mp3",
+
   ssbmFail: "ssbm-failure.mp3",
   ssbmSuccess: "ssbm-success.mp3",
   tickerSound: "ticker-sound.mp3",
+
+  // DVD Scene
+  partyHorn: "partyHorn.mp3",
   yippee: "yippee.mp3",
+  netflixSound: "netflix-sound.mp3",
+  thxSound: "thx-sound.mp3",
 } as const;
 
 export type SoundKey = keyof typeof soundMap;

@@ -2,10 +2,10 @@ import { SceneElement } from "./SceneElement";
 import { ImageElement } from "../ImageElement";
 import { RichTextElement } from "../RichTextElement";
 import { SoundElement } from "../SoundElement";
-import { TimedSlideBehavior } from "../../behaviors/TimedSlideBehavior";
-import { SoundOnPlayBehavior } from "../../behaviors/SoundOnPlayBehavior";
-import { ImageFadeInOutBehavior } from "../../behaviors/ImageFadeInOutBehavior";
+import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
+import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
 import type { Range } from "../../utils/random";
+import { TranslateBehavior } from "../behaviors/TranslateBehavior";
 
 interface EmoteData {
   name: string;
@@ -70,9 +70,7 @@ export class TickerScene extends SceneElement {
     this.tickerBackground.opacity = 0;
 
     const fadeTimePercent = (this.fadeTimeMs * 2) / this.duration;
-    this.tickerBackground.addBehavior(
-      new ImageFadeInOutBehavior(fadeTimePercent)
-    );
+    this.tickerBackground.addChild(new ImageFadeInOutBehavior(fadeTimePercent));
 
     this.tickerText.x = this.W;
     this.tickerText.y = this.H - 100;
@@ -82,7 +80,7 @@ export class TickerScene extends SceneElement {
     this.addChild(this.tickerText);
 
     const tickerSound = new SoundElement("tickerSound");
-    tickerSound.addBehavior(new SoundOnPlayBehavior());
+    tickerSound.addChild(new SoundOnPlayBehavior());
     this.addChild(tickerSound);
   }
 
@@ -94,7 +92,7 @@ export class TickerScene extends SceneElement {
   private startTextScrolling(): void {
     const textWidth = this.tickerText.getTextWidth();
 
-    const scrollBehavior = new TimedSlideBehavior({
+    const translateBehavior = new TranslateBehavior({
       startX: this.W,
       startY: this.tickerText.y,
       endX: -textWidth,
@@ -102,8 +100,7 @@ export class TickerScene extends SceneElement {
       duration: this.textScrollDuration,
     });
 
-    this.tickerText.addBehavior(scrollBehavior);
-    scrollBehavior.play(this.tickerText);
+    this.tickerText.addChild(translateBehavior);
   }
 
   override update(deltaTime: number): void {

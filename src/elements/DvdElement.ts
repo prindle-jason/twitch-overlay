@@ -1,14 +1,13 @@
 import { ImageElement } from "./ImageElement";
 import { SoundElement } from "./SoundElement";
-import { ScreenBounceBehavior } from "../behaviors/ScreenBounceBehavior";
-import { ScreenCornerDetectionBehavior } from "../behaviors/ScreenCornerDetectionBehavior";
-import { HueCycleBehavior } from "../behaviors/HueCycleBehavior";
+import { ScreenBounceBehavior } from "./behaviors/ScreenBounceBehavior";
+import { ScreenCornerDetectionBehavior } from "./behaviors/ScreenCornerDetectionBehavior";
+import { HueCycleBehavior } from "./behaviors/HueCycleBehavior";
 import { pickRandomByWeight } from "../utils/random";
+import { calculateScaleForMax } from "../utils/dimensionUtils";
 import { getCanvasConfig } from "../config";
 import type { ImageKey, SoundKey } from "../core/resources";
-import type { LifecycleState } from "../utils/types";
 import { Element } from "./Element";
-import { OverlaySettings } from "../core/OverlaySettings";
 
 interface DvdOption {
   weight: number;
@@ -17,17 +16,22 @@ interface DvdOption {
 }
 
 const DVD_OPTIONS: readonly DvdOption[] = [
-  { weight: 9, imageKey: "dvdLogo", soundKey: "partyHorn" },
-  { weight: 1, imageKey: "bluRayLogo", soundKey: "yippee" },
+  { weight: 175, imageKey: "dvdLogo", soundKey: "partyHorn" },
+  { weight: 19, imageKey: "bluRayLogo", soundKey: "yippee" },
+  { weight: 5, imageKey: "netflixLogo", soundKey: "netflixSound" },
+  { weight: 1, imageKey: "thxLogo", soundKey: "thxSound" },
 ];
 
 /**
- * DvdElement represents a single DVD logo bouncing around the screen.
+ * DvdElement represents a single logo bouncing around the screen.
  * It contains both the image and sound, and manages its own lifecycle.
  */
 export class DvdElement extends Element {
-  private sizeX = 128;
-  private sizeY = 56;
+  // Limits the maximum width/height of the logo while maintaining aspect ratio
+  private maxSize = 128;
+  private imageElement!: ImageElement;
+  private soundElement!: SoundElement;
+  private hasHitCorner = false;
 
   constructor() {
     super();
@@ -44,27 +48,43 @@ export class DvdElement extends Element {
 
     this.createImage(option);
 
-    const sound = new SoundElement(option.soundKey);
-    sound.baseVolume = 0.4;
-    this.addChild(sound);
+    this.soundElement = new SoundElement(option.soundKey);
+    this.soundElement.baseVolume = 0.4;
+    this.addChild(this.soundElement);
     await super.init();
+  }
+
+  getHasHitCorner(): boolean {
+    return this.hasHitCorner;
+  }
+
+  setMaxSize(newMaxSize: number): void {
+    this.maxSize = newMaxSize;
+    this.updateDimensions();
+  }
+
+  private updateDimensions(): void {
+    const scale = calculateScaleForMax(
+      this.imageElement.getWidth(),
+      this.imageElement.getHeight(),
+      this.maxSize
+    );
+    this.imageElement.setScale(scale);
   }
 
   play(): void {
     const { W, H } = getCanvasConfig();
-    this.getChildrenOfType(ImageElement).forEach((image) => {
-      image.scaleX = this.sizeX / image.getWidth();
-      image.scaleY = this.sizeY / image.getHeight();
-      image.x = Math.random() * (W - image.getWidth());
-      image.y = Math.random() * (H - image.getHeight());
 
-      super.play();
-    });
+    this.updateDimensions();
+    this.imageElement.x = Math.random() * (W - this.imageElement.getWidth());
+    this.imageElement.y = Math.random() * (H - this.imageElement.getHeight());
+
+    super.play();
   }
 
   private createImage(option: DvdOption): void {
     const { W, H } = getCanvasConfig();
-    const image = new ImageElement(option.imageKey);
+    this.imageElement = new ImageElement(option.imageKey);
 
     const velocity = Math.random() + 2;
     const bounceBehavior = new ScreenBounceBehavior({
@@ -85,27 +105,28 @@ export class DvdElement extends Element {
       hueIncrement: 0.5,
     });
 
-    image.addBehavior(bounceBehavior);
-    image.addBehavior(cornerDetector);
-    image.addBehavior(hueCycleBehavior);
+    this.imageElement.addChild(bounceBehavior);
+    this.imageElement.addChild(cornerDetector);
+    this.imageElement.addChild(hueCycleBehavior);
 
-    this.addChild(image);
+    this.addChild(this.imageElement);
   }
 
   private onCornerReached(): void {
-    this.getChildrenOfType(ImageElement).forEach((image) => {
-      image.finish();
-    });
+    if (this.hasHitCorner) {
+      return;
+    }
 
-    this.getChildrenOfType(SoundElement).forEach((sound) => {
-      sound.addEventListener(
-        "ended",
-        () => {
-          this.finish();
-        },
-        { once: true }
-      );
-      sound.playSound();
-    });
+    this.hasHitCorner = true;
+    this.imageElement.finish();
+
+    this.soundElement.addEventListener(
+      "ended",
+      () => {
+        this.finish();
+      },
+      { once: true }
+    );
+    this.soundElement.playSound();
   }
 }

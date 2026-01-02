@@ -1,6 +1,6 @@
 import { SceneElement } from "./SceneElement";
 import { ImageElement } from "../ImageElement";
-import { ImageFadeInOutBehavior } from "../../behaviors/ImageFadeInOutBehavior";
+import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
 import type { ImageKey } from "../../core/resources";
 import { pickRandom } from "../../utils/random";
 
@@ -35,7 +35,7 @@ export class WatermarkScene extends SceneElement {
 
   override async init(): Promise<void> {
     this.image = new ImageElement(this.watermarkKey);
-    this.image.addBehavior(new ImageFadeInOutBehavior(this.fadeTime));
+    this.image.addChild(new ImageFadeInOutBehavior(this.fadeTime));
     this.addChild(this.image);
     await super.init();
   }
