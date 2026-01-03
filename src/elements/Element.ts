@@ -159,6 +159,25 @@ export abstract class Element {
     return this.parent ? this.parent.getProgress() : 0;
   }
 
+  /**
+   * Calculate absolute position by accumulating parent transforms.
+   * Returns {x, y} in scene/overlay coordinates.
+   * Works by checking if parents have x/y properties (TransformElement).
+   */
+  getAbsolutePosition(): { x: number; y: number } {
+    let x = (this as any).x || 0;
+    let y = (this as any).y || 0;
+
+    let current = this.parent;
+    while (current) {
+      x += (current as any).x || 0;
+      y += (current as any).y || 0;
+      current = current.parent;
+    }
+
+    return { x, y };
+  }
+
   // Settings hooks
   onSettingsChanged(settings: OverlaySettings): void {
     this.children.forEach((child) => child.onSettingsChanged(settings));

@@ -1,9 +1,9 @@
 import { SceneElement } from "./SceneElement";
 import { SoundElement } from "../SoundElement";
-import { ImageBlurInOutBehavior } from "../behaviors/ImageBlurInOutBehavior";
+import { BlurInOutBehavior } from "../behaviors/BlurInOutBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
-import { ImageJitterBehavior } from "../behaviors/ImageJitterBehavior";
+import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
+import { JitterBehavior } from "../behaviors/JitterBehavior";
 import { IntervalRangeTimer } from "../../utils/IntervalRangeTimer";
 import { getRandomInRange, pickRandomByWeight } from "../../utils/random";
 import type { Range } from "../../utils/random";
@@ -68,7 +68,7 @@ export class XJasonScene extends SceneElement {
     );
 
     //const popup = new TimedImageElement(option.imageKey, duration);
-    const popup = new ImageElement(option.imageKey);
+    const popup = new ImageElement({ imageKey: option.imageKey });
     popup.setDuration(duration);
 
     popup.init();
@@ -77,9 +77,9 @@ export class XJasonScene extends SceneElement {
     popup.y = Math.random() * (this.H - this.imageHeight);
 
     const imageBlurConfig = { fadeTime: 0.4, maxBlur: 16 };
-    popup.addChild(new ImageJitterBehavior({ jitterAmount: 6 }));
-    popup.addChild(new ImageFadeInOutBehavior(0.4));
-    popup.addChild(new ImageBlurInOutBehavior(imageBlurConfig));
+    popup.addChild(new JitterBehavior({ jitterAmount: 6 }));
+    popup.addChild(new FadeInOutBehavior({ fadeTime: 0.4 }));
+    popup.addChild(new BlurInOutBehavior(imageBlurConfig));
 
     this.addChild(popup);
     // Manually trigger play for dynamically spawned children

@@ -59,17 +59,34 @@ const soundMap = {
 export type SoundKey = keyof typeof soundMap;
 
 /**
+ * Loads an external image from a URL via server proxy for CORS support.
+ * The proxy endpoint handles CORS headers and caching.
+ */
+export function loadExternalImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    // Route through server proxy to handle CORS
+    const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(url)}`;
+    img.src = proxyUrl;
+    img.onload = () => resolve(img);
+    img.onerror = () =>
+      reject(new Error(`Failed to load external image: ${url}`));
+  });
+}
+
+/**
  * Get a loaded Image element for the specified key (cached, resolves when loaded)
  */
 export function getImage(key: ImageKey): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const filename = imageMap[key];
     const img = new Image();
+    img.src = IMAGE_BASE_PATH + filename;
     img.onload = () => {
       resolve(img);
     };
     img.onerror = () => reject(new Error(`Failed to load image: ${key}`));
-    img.src = IMAGE_BASE_PATH + filename;
   });
 }
 

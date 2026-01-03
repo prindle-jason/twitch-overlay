@@ -11,7 +11,7 @@ export class HueCycleBehavior extends Element {
 
   constructor(config: HueCycleConfig = {}) {
     super();
-    this.hueIncrement = config.hueIncrement ?? 0.5;
+    this.hueIncrement = config.hueIncrement ?? 0.03;
     this.hue = Math.random() * 360;
   }
 
@@ -19,21 +19,13 @@ export class HueCycleBehavior extends Element {
     return this.parent instanceof TransformElement ? this.parent : null;
   }
 
-  override play(): void {
-    super.play();
-    this.hue = Math.random() * 360;
-  }
-
   override update(deltaTime: number): void {
     super.update(deltaTime);
 
-    const target = this.target;
-    if (!target) {
-      return;
+    if (this.target) {
+      this.hue = this.hue + this.hueIncrement * deltaTime;
+      this.hue = this.hue % 360;
+      this.target.filter = `hue-rotate(${this.hue}deg)`;
     }
-
-    const speedScale = deltaTime / 16.67;
-    this.hue = (this.hue + this.hueIncrement * speedScale) % 360;
-    target.filter = `hue-rotate(${this.hue}deg)`;
   }
 }

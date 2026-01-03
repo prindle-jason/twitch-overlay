@@ -1,7 +1,7 @@
 import { SceneElement } from "./SceneElement";
 import { ImageElement } from "../ImageElement";
 import { SoundElement } from "../SoundElement";
-import { FallingBehavior } from "../behaviors/FallingBehavior";
+import { TransformGravityBehavior } from "../behaviors/FallingBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { TiltBehavior } from "../behaviors/TiltBehavior";
 import { IntervalTimer } from "../../utils/IntervalTimer";
@@ -40,7 +40,7 @@ export class HeadbladeScene extends SceneElement {
   private spawnHeadblade() {
     const key =
       this.imageList[Math.floor(Math.random() * this.imageList.length)];
-    const img = new ImageElement(key);
+    const img = new ImageElement({ imageKey: key });
     img.x = Math.random() * this.W;
     img.y = -50;
     const scale = 0.5 * Math.random() + 0.25;
@@ -49,7 +49,7 @@ export class HeadbladeScene extends SceneElement {
     img.rotation = Math.random() * Math.PI * 2;
 
     img.addChild(
-      new FallingBehavior({
+      new TransformGravityBehavior({
         velocityY: Math.random() * 100 + 100,
         velocityX: Math.random() * 80 - 40,
         gravity: 400 + Math.random() * 200,

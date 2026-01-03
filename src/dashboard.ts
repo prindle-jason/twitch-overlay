@@ -35,6 +35,7 @@ export class DashboardClient {
     confettiBtn: () => this.dispatchEffect("confetti"),
     dvdBounceBtn: () => this.dispatchEffect("dvdBounce"),
     xJasonBtn: () => this.dispatchEffect("xJason"),
+    richTextTestBtn: () => this.dispatchEffect("richTextTest"),
     tickerBtn: () => {
       const message = this.tickerInputEl.value.trim();
       this.dispatchEffect("ticker", message ? { message } : {});

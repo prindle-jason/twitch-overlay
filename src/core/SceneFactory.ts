@@ -6,6 +6,7 @@ import { ConvergingSlideScene } from "../elements/scenes/ConvergingSlideScene";
 import { HeadbladeScene } from "../elements/scenes/HeadbladeScene";
 import { TickerScene } from "../elements/scenes/TickerScene";
 import { XJasonScene } from "../elements/scenes/XJasonScene";
+import { RichTextTestScene } from "../elements/scenes/RichTextTestScene";
 import { pickRandom } from "../utils/random";
 
 type SceneFactoryFn = (opts: Record<string, unknown>) => SceneElement;
@@ -27,6 +28,7 @@ export class SceneFactory {
       xJason: () => new XJasonScene(),
       bamSuccess: () => ConvergingSlideScene.createBamSuccess(),
       bamUhOh: () => ConvergingSlideScene.createBamFailure(),
+      richTextTest: () => new RichTextTestScene(),
 
       success: (opts) => {
         const scenes = ["ssbmSuccess", "bamSuccess"];

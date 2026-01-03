@@ -1,19 +1,27 @@
 import { TransformElement } from "./TransformElement";
-import { getImage, type ImageKey } from "../core/resources";
+import { getImage, loadExternalImage, type ImageKey } from "../core/resources";
 
 export class ImageElement extends TransformElement {
-  imageKey: ImageKey;
+  imageKey?: ImageKey;
+  imageUrl?: string;
   image: HTMLImageElement | null = null;
 
-  constructor(imageKey: ImageKey) {
+  constructor(config: { imageKey?: ImageKey; imageUrl?: string }) {
     super();
-    this.imageKey = imageKey;
+    this.imageKey = config.imageKey;
+    this.imageUrl = config.imageUrl;
+
+    if (!this.imageKey && !this.imageUrl) {
+      throw new Error("ImageElement requires either imageKey or imageUrl");
+    }
   }
 
   async init(): Promise<void> {
-    //console.log("ImageElement init:", this.imageKey);
-    const img = await getImage(this.imageKey);
-    this.image = img;
+    if (this.imageKey) {
+      this.image = await getImage(this.imageKey);
+    } else if (this.imageUrl) {
+      this.image = await loadExternalImage(this.imageUrl);
+    }
     await super.init();
   }
 

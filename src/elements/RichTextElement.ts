@@ -1,7 +1,8 @@
 import { TransformElement } from "./TransformElement";
-import { sanitizeText } from "../utils/textSanitizer";
+import { TextElement } from "./TextElement";
+import { AnimatedImageElement } from "./AnimatedImageElement";
 
-interface EmoteData {
+export interface EmoteData {
   name: string;
   url: string;
   start: number;
@@ -15,19 +16,11 @@ interface RichTextConfig {
   fontWeight?: string;
   textBaseline?: CanvasTextBaseline;
   textAlign?: CanvasTextAlign;
-  strokeColor?: string;
-  strokeWidth?: number;
+  // strokeColor?: string;
+  // strokeWidth?: number;
   emoteHeight?: number;
   emotePadding?: number;
-  visible?: boolean;
   opacity?: number;
-}
-
-interface TextSegment {
-  type: "text" | "emote";
-  content: string;
-  width: number;
-  image?: HTMLImageElement;
 }
 
 export class RichTextElement extends TransformElement {
@@ -41,9 +34,7 @@ export class RichTextElement extends TransformElement {
   textBaseline: CanvasTextBaseline;
   emoteHeight: number;
   emotePadding: number;
-  visible: boolean;
 
-  private segments: TextSegment[] = [];
   private width: number = 0;
   private height: number = 0;
 
@@ -53,7 +44,7 @@ export class RichTextElement extends TransformElement {
     config: RichTextConfig = {}
   ) {
     super();
-    this.text = sanitizeText(text || "");
+    this.text = text || "";
     this.emoteData = emoteData || [];
     this.font = config.font ?? "Arial";
     this.fontSize = config.fontSize ?? 24;
@@ -63,138 +54,147 @@ export class RichTextElement extends TransformElement {
     this.textBaseline = config.textBaseline ?? "middle";
     this.emoteHeight = config.emoteHeight ?? this.fontSize;
     this.emotePadding = config.emotePadding ?? 2;
-    this.visible = config.visible ?? true;
+
     this.opacity = config.opacity ?? 1;
-
-    this.segments = this.parseTextWithEmotes();
-    this.width = this.calculateWidth();
-    this.height = Math.max(this.fontSize, this.emoteHeight);
   }
 
-  private parseTextWithEmotes(): TextSegment[] {
-    if (!this.emoteData || this.emoteData.length === 0) {
-      return [{ type: "text", content: this.text, width: 0 }];
-    }
+  async init(): Promise<void> {
+    console.log(
+      `[RichTextElement] init() - text: "${this.text}", emotes: ${this.emoteData.length}`
+    );
+    this.createChildElements();
+    console.log(`[RichTextElement] Created ${this.children.length} children`);
+    await super.init();
+    this.calculateLayout();
+    console.log(
+      `[RichTextElement] Layout complete - width: ${this.width}, height: ${this.height}, position: (${this.x}, ${this.y})`
+    );
+  }
 
-    const sortedEmotes = [...this.emoteData].sort((a, b) => a.start - b.start);
-    const segments: TextSegment[] = [];
+  private createChildElements(): void {
+    const sortedEmotes = [...(this.emoteData || [])].sort(
+      (a, b) => a.start - b.start
+    );
+
     let currentPos = 0;
-
-    for (const emote of sortedEmotes) {
-      if (currentPos < emote.start) {
-        const textContent = this.text.substring(currentPos, emote.start);
-        if (textContent) {
-          segments.push({ type: "text", content: textContent, width: 0 });
-        }
+    let nextEmote: EmoteData | undefined;
+    while ((nextEmote = sortedEmotes.shift())) {
+      // Text before next emote
+      if (currentPos < nextEmote.start) {
+        this.createTextElement(
+          this.text.substring(currentPos, nextEmote.start)
+        );
+        currentPos = nextEmote.start;
       }
-
-      const emoteImage = new Image();
-      emoteImage.crossOrigin = "anonymous";
-      emoteImage.src = emote.url;
-
-      segments.push({
-        type: "emote",
-        content: emote.name,
-        width: this.emoteHeight,
-        image: emoteImage,
-      });
-
-      currentPos = emote.end + 1;
+      this.addChild(new AnimatedImageElement(nextEmote.url));
+      currentPos = nextEmote.end + 1;
     }
 
-    if (currentPos < this.text.length) {
-      const textContent = this.text.substring(currentPos);
-      if (textContent) {
-        segments.push({ type: "text", content: textContent, width: 0 });
-      }
-    }
-
-    return segments;
+    // Text after all emotes (or no emotes at all)
+    this.createTextElement(this.text.substring(currentPos));
+    currentPos = this.text.length;
   }
 
-  private calculateWidth(): number {
-    const ctx = this.createTempContext();
-    ctx.save();
-    ctx.font = this.getFontString();
+  private createTextElement(textContent: string): void {
+    console.log(
+      `[RichTextElement] Creating TextElement with content: "${textContent}"`
+    );
+    this.addChild(
+      new TextElement({
+        text: textContent,
+        font: this.font,
+        fontSize: this.fontSize,
+        fontWeight: this.fontWeight,
+        color: this.color,
+        textBaseline: this.textBaseline,
+      })
+    );
+  }
 
+  private calculateLayout(): void {
     let totalWidth = 0;
+    let maxHeight = this.fontSize;
 
-    for (const segment of this.segments) {
-      if (segment.type === "text") {
-        segment.width = ctx.measureText(segment.content).width;
-        totalWidth += segment.width;
-      } else if (segment.type === "emote") {
-        totalWidth += this.emoteHeight + this.emotePadding * 2;
+    let currentX = 0;
+    for (const child of this.children) {
+      const transformChild = child as TransformElement;
+      const childWidth = transformChild.getWidth();
+      const childHeight = transformChild.getHeight();
+
+      transformChild.x = currentX;
+
+      if (child instanceof TextElement) {
+        transformChild.y = 0;
+        currentX += childWidth;
+        console.log(
+          `[RichTextElement] TextElement - width: ${childWidth}, x: ${transformChild.x}`
+        );
+      } else if (child instanceof AnimatedImageElement) {
+        const scaledEmoteHeight = Math.min(this.emoteHeight, childHeight);
+        transformChild.setScale(this.emoteHeight / Math.max(childHeight, 1));
+        transformChild.y =
+          this.textBaseline === "middle"
+            ? this.emoteHeight / 2 - scaledEmoteHeight / 2
+            : 0;
+        currentX += this.emotePadding + this.emoteHeight + this.emotePadding;
+        maxHeight = Math.max(maxHeight, this.emoteHeight);
+        console.log(
+          `[RichTextElement] AnimatedImageElement - height: ${childHeight}, scaled: ${scaledEmoteHeight}, x: ${transformChild.x}, y: ${transformChild.y}`
+        );
       }
     }
 
-    ctx.restore();
-    return totalWidth;
+    this.width = currentX;
+    this.height = maxHeight;
+
+    console.log(
+      `[RichTextElement] Before alignment - width: ${this.width}, textAlign: ${this.textAlign}`
+    );
+
+    // Apply text alignment by adjusting all children
+    if (this.textAlign === "center" && this.width > 0) {
+      const offset = -this.width / 2;
+      console.log(`[RichTextElement] Applying center offset: ${offset}`);
+      for (const child of this.children) {
+        const transformChild = child as TransformElement;
+        transformChild.x += offset;
+      }
+    } else if (this.textAlign === "right" && this.width > 0) {
+      const offset = -this.width;
+      console.log(`[RichTextElement] Applying right offset: ${offset}`);
+      for (const child of this.children) {
+        const transformChild = child as TransformElement;
+        transformChild.x += offset;
+      }
+    }
   }
 
-  private getFontString(): string {
-    return `${this.fontWeight} ${this.fontSize}px ${this.font}`;
-  }
-
-  private createTempContext(): CanvasRenderingContext2D {
-    const canvas = document.createElement("canvas");
-    return canvas.getContext("2d")!;
-  }
-
-  getTextWidth(): number {
+  override getWidth(): number {
     return this.width;
   }
 
-  getTextHeight(): number {
+  override getHeight(): number {
     return this.height;
   }
 
-  draw(ctx: CanvasRenderingContext2D): void {
-    if (!this.visible || this.opacity <= 0) return;
+  override draw(ctx: CanvasRenderingContext2D): void {
+    if (this.opacity <= 0) return;
 
     ctx.save();
     ctx.globalAlpha = this.opacity;
-    ctx.font = this.getFontString();
-    ctx.fillStyle = this.color;
-    ctx.textBaseline = this.textBaseline;
-
-    let startX = this.x;
-    if (this.textAlign === "center") {
-      startX = this.x - this.getTextWidth() / 2;
-    } else if (this.textAlign === "right") {
-      startX = this.x - this.getTextWidth();
+    ctx.filter = this.filter;
+    ctx.translate(this.x, this.y);
+    if (this.rotation !== 0) {
+      ctx.rotate(this.rotation);
+    }
+    if (this.scaleX !== 1 || this.scaleY !== 1) {
+      ctx.scale(this.scaleX, this.scaleY);
     }
 
-    let currentX = startX;
-
-    for (const segment of this.segments) {
-      if (segment.type === "text") {
-        ctx.fillText(segment.content, currentX, this.y);
-        currentX += segment.width;
-      } else if (segment.type === "emote" && segment.image) {
-        currentX += this.emotePadding;
-
-        if (segment.image.complete && segment.image.naturalWidth > 0) {
-          const emoteY =
-            this.textBaseline === "middle"
-              ? this.y - this.emoteHeight / 2
-              : this.y;
-
-          ctx.drawImage(
-            segment.image,
-            currentX,
-            emoteY,
-            this.emoteHeight,
-            this.emoteHeight
-          );
-        } else {
-          ctx.save();
-          ctx.fillStyle = "#ff69b4";
-          ctx.fillText(segment.content, currentX, this.y);
-          ctx.restore();
-        }
-
-        currentX += this.emoteHeight + this.emotePadding;
+    // Draw canvas-based children (TextElement); skip DOM-rendered children (AnimatedImageElement)
+    for (const child of this.children) {
+      if (!(child instanceof AnimatedImageElement)) {
+        child.draw(ctx);
       }
     }
 

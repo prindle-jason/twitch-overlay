@@ -2,12 +2,16 @@ import { Element } from "../Element";
 import { ImageElement } from "../ImageElement";
 import { applyTiming, TimingCurve } from "../../utils/timing";
 
-export class ImageFadeInOutBehavior extends Element {
+interface FadeInOutConfig {
+  fadeTime?: number;
+}
+
+export class FadeInOutBehavior extends Element {
   private fadeTime: number;
 
-  constructor(fadeTime: number = 0.25) {
+  constructor(config: FadeInOutConfig = {}) {
     super();
-    this.fadeTime = fadeTime;
+    this.fadeTime = config.fadeTime ?? 0.25;
   }
 
   private get target(): ImageElement | null {

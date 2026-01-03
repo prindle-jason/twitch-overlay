@@ -51,11 +51,11 @@ export class ConvergingSlideScene extends SceneElement {
   }
 
   override async init(): Promise<void> {
-    this.leftImage = new ImageElement(this.cfg.leftImageKey);
+    this.leftImage = new ImageElement({ imageKey: this.cfg.leftImageKey });
     this.leftImage.setScale(this.scale);
     this.addChild(this.leftImage);
 
-    this.rightImage = new ImageElement(this.cfg.rightImageKey);
+    this.rightImage = new ImageElement({ imageKey: this.cfg.rightImageKey });
     this.rightImage.setScale(this.scale);
     this.addChild(this.rightImage);
 

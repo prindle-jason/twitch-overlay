@@ -4,6 +4,7 @@ import { SceneManager } from "./core/SceneManager";
 import { SceneFactory } from "./core/SceneFactory";
 import { canvasConfig } from "./config";
 import { OverlaySettings } from "./core/OverlaySettings";
+import { setOverlayContainer } from "./utils/overlayContainer";
 
 const canvasWidth = canvasConfig.W;
 const canvasHeight = canvasConfig.H;
@@ -12,6 +13,12 @@ const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
 if (!canvas) {
   throw new Error("Canvas element not found");
 }
+const overlayContainer = document.getElementById("overlay-container") as HTMLElement | null;
+if (!overlayContainer) {
+  throw new Error("Overlay container not found");
+}
+setOverlayContainer(overlayContainer);
+
 const ctx = canvas.getContext("2d")!; // Assert non-null 2D context
 canvas.width = canvasConfig.W;
 canvas.height = canvasConfig.H;
@@ -107,8 +114,8 @@ function loop() {
   health.recordFrame(deltaTime);
 
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-  //ctx.fillStyle = "green";
-  //ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  ctx.fillStyle = "green";
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   sceneManager.update(ctx, deltaTime);
 

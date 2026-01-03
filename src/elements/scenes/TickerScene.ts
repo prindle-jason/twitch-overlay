@@ -3,7 +3,7 @@ import { ImageElement } from "../ImageElement";
 import { RichTextElement } from "../RichTextElement";
 import { SoundElement } from "../SoundElement";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
+import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
 import type { Range } from "../../utils/random";
 import { TranslateBehavior } from "../behaviors/TranslateBehavior";
 
@@ -51,30 +51,32 @@ export class TickerScene extends SceneElement {
       fontWeight: "bold",
       textBaseline: "middle",
       textAlign: "left",
-      strokeColor: "#000000",
-      strokeWidth: 2,
+      //strokeColor: "#000000",
+      //strokeWidth: 2,
       emoteHeight: 90,
       emotePadding: 4,
     });
 
-    const textWidth = this.tickerText.getTextWidth();
+    const textWidth = this.tickerText.getWidth();
     const scrollDistance = this.W + textWidth;
     this.textScrollDuration = (scrollDistance / this.textScrollSpeed) * 1000;
 
     this.duration = this.fadeTimeMs + this.textScrollDuration + this.fadeTimeMs;
     this.fadeOutStart = this.fadeTimeMs + this.textScrollDuration;
 
-    this.tickerBackground = new ImageElement("breakingNews");
+    this.tickerBackground = new ImageElement({ imageKey: "breakingNews" });
     this.tickerBackground.x = 0;
     this.tickerBackground.y = 0;
     this.tickerBackground.opacity = 0;
 
     const fadeTimePercent = (this.fadeTimeMs * 2) / this.duration;
-    this.tickerBackground.addChild(new ImageFadeInOutBehavior(fadeTimePercent));
+    this.tickerBackground.addChild(
+      new FadeInOutBehavior({ fadeTime: fadeTimePercent })
+    );
 
     this.tickerText.x = this.W;
     this.tickerText.y = this.H - 100;
-    this.tickerText.visible = false;
+    //this.tickerText.visible = false;
 
     this.addChild(this.tickerBackground);
     this.addChild(this.tickerText);
@@ -90,17 +92,20 @@ export class TickerScene extends SceneElement {
   }
 
   private startTextScrolling(): void {
-    const textWidth = this.tickerText.getTextWidth();
+    const textWidth = this.tickerText.getWidth();
 
-    const translateBehavior = new TranslateBehavior({
-      startX: this.W,
-      startY: this.tickerText.y,
-      endX: -textWidth,
-      endY: this.tickerText.y,
-      duration: this.textScrollDuration,
-    });
+    this.tickerText.x = 200;
+    this.tickerText.y = 200;
 
-    this.tickerText.addChild(translateBehavior);
+    // const translateBehavior = new TranslateBehavior({
+    //   startX: this.W,
+    //   startY: this.tickerText.y,
+    //   endX: -textWidth,
+    //   endY: this.tickerText.y,
+    //   duration: this.textScrollDuration,
+    // });
+
+    //this.tickerText.addChild(translateBehavior);
   }
 
   override update(deltaTime: number): void {
@@ -110,7 +115,7 @@ export class TickerScene extends SceneElement {
       case "FADE_IN":
         if (this.elapsed >= this.fadeTimeMs) {
           this.tickerState = "TEXT_SCROLLING";
-          this.tickerText.visible = true;
+          //this.tickerText.visible = true;
           this.startTextScrolling();
         }
         break;
@@ -118,7 +123,7 @@ export class TickerScene extends SceneElement {
       case "TEXT_SCROLLING":
         if (this.elapsed >= this.fadeOutStart) {
           this.tickerState = "FADE_OUT";
-          this.tickerText.visible = false;
+          //this.tickerText.visible = false;
         }
         break;
 

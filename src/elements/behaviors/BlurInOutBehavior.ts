@@ -2,16 +2,16 @@ import { Element } from "../Element";
 import { ImageElement } from "../ImageElement";
 import { applyTiming, TimingCurve } from "../../utils/timing";
 
-interface ImageBlurInOutConfig {
+interface BlurInOutConfig {
   maxBlur?: number;
   fadeTime?: number;
 }
 
-export class ImageBlurInOutBehavior extends Element {
+export class BlurInOutBehavior extends Element {
   private maxBlur: number;
   private fadeTime: number;
 
-  constructor(config: ImageBlurInOutConfig = {}) {
+  constructor(config: BlurInOutConfig = {}) {
     super();
     this.maxBlur = config.maxBlur ?? 16;
     this.fadeTime = config.fadeTime ?? 0.4;
@@ -21,27 +21,24 @@ export class ImageBlurInOutBehavior extends Element {
     return this.parent instanceof ImageElement ? this.parent : null;
   }
 
-  private apply(image: ImageElement): void {
-    const progress = image.getProgress();
-    const alpha = applyTiming(progress, TimingCurve.FADE_IN_OUT, this.fadeTime);
-    const blurPx = this.maxBlur * (1 - alpha);
-    image.filter = `blur(${blurPx}px)`;
+  private apply(): void {
+    if (this.target) {
+      const alpha = applyTiming(
+        this.target.getProgress(),
+        TimingCurve.EASE_IN_OUT_QUAD
+      );
+      const blurPx = this.maxBlur * (1 - alpha);
+      this.target.filter = `blur(${blurPx}px)`;
+    }
   }
 
   override play(): void {
     super.play();
-    const target = this.target;
-    if (target) {
-      this.apply(target);
-    }
+    this.apply();
   }
 
   override update(deltaTime: number): void {
     super.update(deltaTime);
-
-    const target = this.target;
-    if (target) {
-      this.apply(target);
-    }
+    this.apply();
   }
 }

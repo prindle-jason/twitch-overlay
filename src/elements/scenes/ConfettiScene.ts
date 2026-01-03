@@ -1,6 +1,6 @@
 import { SceneElement } from "./SceneElement";
 import { EllipseElement } from "../EllipseElement";
-import { FallingBehavior } from "../behaviors/FallingBehavior";
+import { TransformGravityBehavior } from "../behaviors/FallingBehavior";
 import { TiltBehavior } from "../behaviors/TiltBehavior";
 import { IntervalTimer } from "../../utils/IntervalTimer";
 
@@ -40,7 +40,7 @@ export class ConfettiScene extends SceneElement {
     });
 
     particle.addChild(
-      new FallingBehavior({
+      new TransformGravityBehavior({
         velocityY: Math.random() * 50 + 25,
         velocityX: (Math.random() - 0.5) * 100,
         gravity: 300 + Math.random() * 200,

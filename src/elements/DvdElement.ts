@@ -84,7 +84,7 @@ export class DvdElement extends Element {
 
   private createImage(option: DvdOption): void {
     const { W, H } = getCanvasConfig();
-    this.imageElement = new ImageElement(option.imageKey);
+    this.imageElement = new ImageElement({ imageKey: option.imageKey });
 
     const velocity = Math.random() + 2;
     const bounceBehavior = new ScreenBounceBehavior({
@@ -101,9 +101,7 @@ export class DvdElement extends Element {
       onCornerReached: () => this.onCornerReached(),
     });
 
-    const hueCycleBehavior = new HueCycleBehavior({
-      hueIncrement: 0.5,
-    });
+    const hueCycleBehavior = new HueCycleBehavior();
 
     this.imageElement.addChild(bounceBehavior);
     this.imageElement.addChild(cornerDetector);

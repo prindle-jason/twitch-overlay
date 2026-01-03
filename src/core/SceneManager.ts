@@ -25,7 +25,9 @@ export class SceneManager {
    * The item should already be created; this just adds it to the active list.
    */
   async addScene(scene: SceneElement) {
+    console.log(`Adding scene of type ${scene.constructor.name}`);
     await scene.init();
+    console.log(`Initialized scene of type ${scene.constructor.name}`);
     scene.onSettingsChanged(this.settings);
     this.scenes.push(scene);
   }

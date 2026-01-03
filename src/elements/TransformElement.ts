@@ -10,11 +10,11 @@ export abstract class TransformElement extends Element {
   filter = "none";
 
   getWidth(): number {
-    return -1;
+    return -1; // Why???
   }
 
   getHeight(): number {
-    return -1;
+    return -1; // Why???
   }
 
   setScale(scale: number) {

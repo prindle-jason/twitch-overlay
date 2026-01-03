@@ -2,27 +2,28 @@ import { Element } from "../Element";
 import { TransformElement } from "../TransformElement";
 
 interface FallingConfig {
-  velocityY?: number;
   gravity?: number;
+  velocityY?: number;
   velocityX?: number;
   drag?: number; // 0-1
 }
 
-export class FallingBehavior extends Element {
-  private velocityY: number;
+export class TransformGravityBehavior extends Element {
   private gravity: number;
+  private velocityY: number;
   private velocityX: number;
   private drag: number;
 
   constructor(config: FallingConfig = {}) {
     super();
-    this.velocityY = config.velocityY ?? 0;
     this.gravity = config.gravity ?? 200;
+    this.velocityY = config.velocityY ?? 0;
     this.velocityX = config.velocityX ?? 0;
     this.drag = config.drag ?? 0;
   }
 
   override update(deltaTime: number): void {
+    super.update(deltaTime);
     if (!(this.parent instanceof TransformElement)) {
       return;
     }
@@ -39,7 +40,5 @@ export class FallingBehavior extends Element {
 
     this.parent.x += this.velocityX * dt;
     this.parent.y += this.velocityY * dt;
-
-    super.update(deltaTime);
   }
 }

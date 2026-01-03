@@ -1,7 +1,7 @@
 import { SceneElement } from "./SceneElement";
 import { ImageElement } from "../ImageElement";
 import { SoundElement } from "../SoundElement";
-import { ImageFadeInOutBehavior } from "../behaviors/ImageFadeInOutBehavior";
+import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import type { ImageKey, SoundKey } from "../../core/resources";
 
@@ -41,8 +41,8 @@ export class CenteredImageScene extends SceneElement {
   }
 
   override async init(): Promise<void> {
-    this.image = new ImageElement(this.cfg.imageKey);
-    this.image.addChild(new ImageFadeInOutBehavior(this.fadeTime));
+    this.image = new ImageElement({ imageKey: this.cfg.imageKey });
+    this.image.addChild(new FadeInOutBehavior({ fadeTime: this.fadeTime }));
     this.addChild(this.image);
 
     if (this.cfg.soundKey) {

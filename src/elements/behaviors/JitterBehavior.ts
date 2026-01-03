@@ -1,16 +1,17 @@
 import { Element } from "../Element";
 import { TransformElement } from "../TransformElement";
 
-interface ImageJitterConfig {
+interface JitterConfig {
   jitterAmount?: number;
 }
 
-export class ImageJitterBehavior extends Element {
+/* Jitter around a fixed position */
+export class JitterBehavior extends Element {
   private jitterAmount: number;
   private baseX = 0;
   private baseY = 0;
 
-  constructor(config: ImageJitterConfig = {}) {
+  constructor(config: JitterConfig = {}) {
     super();
     this.jitterAmount = config.jitterAmount ?? 6;
   }
@@ -21,24 +22,21 @@ export class ImageJitterBehavior extends Element {
 
   override play(): void {
     super.play();
-    const target = this.target;
-    if (!target) {
-      return;
-    }
 
-    this.baseX = target.x;
-    this.baseY = target.y;
+    if (this.target) {
+      this.baseX = this.target.x;
+      this.baseY = this.target.y;
+    }
   }
 
   override update(deltaTime: number): void {
     super.update(deltaTime);
 
-    const target = this.target;
-    if (!target) {
-      return;
+    if (this.target) {
+      this.target.x =
+        this.baseX + (Math.random() - 0.5) * this.jitterAmount * 2;
+      this.target.y =
+        this.baseY + (Math.random() - 0.5) * this.jitterAmount * 2;
     }
-
-    target.x = this.baseX + (Math.random() - 0.5) * this.jitterAmount * 2;
-    target.y = this.baseY + (Math.random() - 0.5) * this.jitterAmount * 2;
   }
 }
