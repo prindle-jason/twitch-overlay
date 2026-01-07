@@ -38,6 +38,16 @@ const imageMap = {
 
 export type ImageKey = keyof typeof imageMap;
 
+// URL strings for local images (legacy consumers still use ImageKey). Prefer these
+// constants for new code (e.g., NewImageElement) and pass as imageUrl.
+export const localImages: Record<ImageKey, string> = Object.fromEntries(
+  Object.entries(imageMap).map(([key, filename]) => [
+    key,
+    `${IMAGE_BASE_PATH}${filename}`,
+  ])
+) as Record<ImageKey, string>;
+export type LocalImageKey = ImageKey;
+
 const soundMap = {
   bamHooray: "bustamove-hooray.mp3",
   bamUhOh: "bustamove-uhoh.mp3",

@@ -7,6 +7,9 @@ import { HeadbladeScene } from "../elements/scenes/HeadbladeScene";
 import { TickerScene } from "../elements/scenes/TickerScene";
 import { XJasonScene } from "../elements/scenes/XJasonScene";
 import { RichTextTestScene } from "../elements/scenes/RichTextTestScene";
+import { HypeChatScene } from "../elements/scenes/HypeChatScene";
+import { ChatMessageTestScene } from "../elements/scenes/ChatMessageTestScene";
+import { ImageTestScene } from "../elements/scenes/ImageTestScene";
 import { pickRandom } from "../utils/random";
 
 type SceneFactoryFn = (opts: Record<string, unknown>) => SceneElement;
@@ -26,9 +29,12 @@ export class SceneFactory {
       headblade: () => new HeadbladeScene(),
       ticker: (opts) => new TickerScene(opts as any),
       xJason: () => new XJasonScene(),
+      hypeChat: () => new HypeChatScene(),
+      chatMessageText: () => new ChatMessageTestScene(),
       bamSuccess: () => ConvergingSlideScene.createBamSuccess(),
       bamUhOh: () => ConvergingSlideScene.createBamFailure(),
       richTextTest: () => new RichTextTestScene(),
+      newImageTest: () => new ImageTestScene(),
 
       success: (opts) => {
         const scenes = ["ssbmSuccess", "bamSuccess"];

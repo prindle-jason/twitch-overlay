@@ -9,6 +9,16 @@ export default {
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    minify: "terser",
+    terserOptions: {
+      compress: true,
+      mangle: {
+        keep_classnames: true,
+      },
+      format: {
+        comments: false,
+      },
+    },
     rollupOptions: {
       input: {
         main: "index.html",

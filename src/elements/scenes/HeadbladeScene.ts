@@ -1,11 +1,15 @@
 import { SceneElement } from "./SceneElement";
 import { ImageElement } from "../ImageElement";
 import { SoundElement } from "../SoundElement";
-import { TransformGravityBehavior } from "../behaviors/FallingBehavior";
+import { GravityBehavior } from "../behaviors/GravityBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { TiltBehavior } from "../behaviors/TiltBehavior";
-import { IntervalTimer } from "../../utils/IntervalTimer";
-import type { ImageKey } from "../../core/resources";
+import { SchedulerElement } from "../SchedulerElement";
+import {
+  localImages,
+  type ImageKey,
+  type LocalImageKey,
+} from "../../core/resources";
 
 interface HeadbladeCfg {
   count?: number;
@@ -14,8 +18,13 @@ interface HeadbladeCfg {
 
 export class HeadbladeScene extends SceneElement {
   private totalCount: number;
-  private imageList: ImageKey[] = ["hb1", "hb2", "hb3", "hb4", "hb5"];
-  private imageSpawner!: IntervalTimer;
+  private imageUrls: string[] = [
+    localImages.hb1,
+    localImages.hb2,
+    localImages.hb3,
+    localImages.hb4,
+    localImages.hb5,
+  ];
 
   constructor(config: HeadbladeCfg = {}) {
     super();
@@ -24,10 +33,12 @@ export class HeadbladeScene extends SceneElement {
   }
 
   override async init(): Promise<void> {
-    this.imageSpawner = new IntervalTimer(
-      this.duration / this.totalCount,
-      () => this.spawnHeadblade(),
-      this.totalCount
+    this.addChild(
+      new SchedulerElement({
+        interval: this.duration / this.totalCount,
+        onTick: () => this.spawnHeadblade(),
+        count: this.totalCount,
+      })
     );
 
     const sound = new SoundElement("headblade");
@@ -39,8 +50,9 @@ export class HeadbladeScene extends SceneElement {
 
   private spawnHeadblade() {
     const key =
-      this.imageList[Math.floor(Math.random() * this.imageList.length)];
-    const img = new ImageElement({ imageKey: key });
+      this.imageUrls[Math.floor(Math.random() * this.imageUrls.length)];
+    //const img = new ImageElement({ imageKey: key });
+    const img = new ImageElement({ imageUrl: key });
     img.x = Math.random() * this.W;
     img.y = -50;
     const scale = 0.5 * Math.random() + 0.25;
@@ -49,7 +61,7 @@ export class HeadbladeScene extends SceneElement {
     img.rotation = Math.random() * Math.PI * 2;
 
     img.addChild(
-      new TransformGravityBehavior({
+      new GravityBehavior({
         velocityY: Math.random() * 100 + 100,
         velocityX: Math.random() * 80 - 40,
         gravity: 400 + Math.random() * 200,
@@ -71,7 +83,6 @@ export class HeadbladeScene extends SceneElement {
   }
 
   override update(deltaTime: number): void {
-    this.imageSpawner.update(deltaTime);
     super.update(deltaTime);
   }
 }

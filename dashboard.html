@@ -77,6 +77,9 @@
         <div class="section-label">Testing</div>
         <div class="button-grid">
           <button id="richTextTestBtn">RichText Test</button>
+          <button id="hypeChatBtn">HypeChat</button>
+          <button id="chatMessageTextBtn">Chat Text</button>
+          <button id="newImageTestBtn">NewImage Test</button>
         </div>
       </div>
 
@@ -89,6 +92,21 @@
             placeholder="Enter ticker message"
           />
           <button id="tickerBtn">Send</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Developer</h2>
+        <div class="section-label">Logging</div>
+        <div class="setting-row">
+          <label for="logLevelSelect">Log Level:</label>
+          <select id="logLevelSelect">
+            <option value="0">DEBUG</option>
+            <option value="1" selected>INFO</option>
+            <option value="2">WARN</option>
+            <option value="3">ERROR</option>
+            <option value="4">NONE</option>
+          </select>
         </div>
       </div>
     </div>

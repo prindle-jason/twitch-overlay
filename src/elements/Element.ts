@@ -1,5 +1,6 @@
 import type { LifecycleState } from "../utils/types";
 import { OverlaySettings } from "../core/OverlaySettings";
+import { logger } from "../utils/logger";
 
 /**
  * Base node for overlay scenes. Orchestrates parent/child links, behavior
@@ -25,7 +26,7 @@ export abstract class Element {
   // Child management
   // ---------------------------------------------------------------------------------
   addChild(child: Element): void {
-    //console.log(`Adding child to ${this.constructor.name}:`, child);
+    logger.debug(this.constructor.name, "adding child", child.constructor.name);
     child.setParent(this);
     this.children.push(child);
   }
@@ -48,7 +49,9 @@ export abstract class Element {
     return null;
   }
 
-  getChildrenOfType<T extends Element>(ctor: new (...args: any[]) => T): T[] {
+  getChildrenOfType<T extends Element>(
+    ctor: abstract new (...args: any[]) => T
+  ): T[] {
     return this.children.filter((c) => c instanceof ctor) as T[];
   }
 
@@ -157,25 +160,6 @@ export abstract class Element {
       return Math.min(1, this.elapsed / this.duration);
     }
     return this.parent ? this.parent.getProgress() : 0;
-  }
-
-  /**
-   * Calculate absolute position by accumulating parent transforms.
-   * Returns {x, y} in scene/overlay coordinates.
-   * Works by checking if parents have x/y properties (TransformElement).
-   */
-  getAbsolutePosition(): { x: number; y: number } {
-    let x = (this as any).x || 0;
-    let y = (this as any).y || 0;
-
-    let current = this.parent;
-    while (current) {
-      x += (current as any).x || 0;
-      y += (current as any).y || 0;
-      current = current.parent;
-    }
-
-    return { x, y };
   }
 
   // Settings hooks

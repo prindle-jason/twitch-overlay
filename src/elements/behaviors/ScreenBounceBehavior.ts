@@ -39,8 +39,8 @@ export class ScreenBounceBehavior extends Element {
     target.x += this.velocityX * speedScale;
     target.y += this.velocityY * speedScale;
 
-    const width = target.getWidth();
-    const height = target.getHeight();
+    const width = target.getWidth() ?? 0;
+    const height = target.getHeight() ?? 0;
 
     if (target.x < 0) {
       target.x = 0;

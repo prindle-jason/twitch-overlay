@@ -5,6 +5,7 @@ import { SceneFactory } from "./core/SceneFactory";
 import { canvasConfig } from "./config";
 import { OverlaySettings } from "./core/OverlaySettings";
 import { setOverlayContainer } from "./utils/overlayContainer";
+import { logger } from "./utils/logger";
 
 const canvasWidth = canvasConfig.W;
 const canvasHeight = canvasConfig.H;
@@ -13,7 +14,9 @@ const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
 if (!canvas) {
   throw new Error("Canvas element not found");
 }
-const overlayContainer = document.getElementById("overlay-container") as HTMLElement | null;
+const overlayContainer = document.getElementById(
+  "overlay-container"
+) as HTMLElement | null;
 if (!overlayContainer) {
   throw new Error("Overlay container not found");
 }
@@ -28,7 +31,7 @@ const sceneFactory = new SceneFactory();
 const health = new Health();
 
 function startApp() {
-  console.log("[overlay] startApp invoked", {
+  logger.info("[overlay] startApp invoked", {
     time: new Date().toISOString(),
     url: window.location.href,
   });
@@ -36,15 +39,15 @@ function startApp() {
   connectWS();
 
   window.addEventListener("beforeunload", () => {
-    console.log("[overlay] beforeunload fired");
+    logger.debug("[overlay] beforeunload fired");
   });
 
   window.addEventListener("visibilitychange", () => {
-    console.log("[overlay] visibilitychange", document.visibilityState);
+    logger.debug("[overlay] visibilitychange", document.visibilityState);
   });
 
   window.addEventListener("pagehide", (ev) => {
-    console.log("[overlay] pagehide", {
+    logger.debug("[overlay] pagehide", {
       persisted: (ev as PageTransitionEvent).persisted,
     });
   });
@@ -53,7 +56,6 @@ function startApp() {
     const custom = ev as CustomEvent<any>;
     const msg = custom.detail;
     if (!msg?.type) return;
-    //console.log("[overlay] received WS event:", msg);
 
     if (msg.type === "get-stats") {
       const ws = getWS();
@@ -72,13 +74,13 @@ function startApp() {
           })
         );
       } else {
-        console.log("[overlay] ws not ready or not open");
+        logger.warn("[overlay] ws not ready or not open");
       }
     }
 
     if (msg.type === "effect-event") {
       const effectType = msg.payload?.effectType as string;
-      console.log("[overlay] handling effect event:", effectType, msg.payload);
+      logger.info("[overlay] handling effect event:", effectType, msg.payload);
 
       // Handle persistent effects separately
       if (effectType === "dvdBounce") {
@@ -97,7 +99,7 @@ function startApp() {
     }
 
     if (msg.type === "clear-effects") {
-      console.log("[overlay] clearing all effects");
+      logger.info("[overlay] clearing all effects");
       sceneManager.clearAll();
     }
   });
@@ -114,8 +116,8 @@ function loop() {
   health.recordFrame(deltaTime);
 
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-  ctx.fillStyle = "green";
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  //ctx.fillStyle = "green";
+  //ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   sceneManager.update(ctx, deltaTime);
 

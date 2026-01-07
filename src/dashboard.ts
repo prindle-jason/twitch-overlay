@@ -1,4 +1,5 @@
 import type { WsMessage, WsMessageType } from "./server/ws-types";
+import { logger, LogLevel } from "./utils/logger";
 
 export class DashboardClient {
   private ws: WebSocket | null = null;
@@ -17,6 +18,7 @@ export class DashboardClient {
   private volumeValueEl: HTMLElement;
   private stabilitySliderEl: HTMLInputElement;
   private stabilityValueEl: HTMLElement;
+  private logLevelSelectEl: HTMLSelectElement;
 
   private settingsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -36,6 +38,9 @@ export class DashboardClient {
     dvdBounceBtn: () => this.dispatchEffect("dvdBounce"),
     xJasonBtn: () => this.dispatchEffect("xJason"),
     richTextTestBtn: () => this.dispatchEffect("richTextTest"),
+    hypeChatBtn: () => this.dispatchEffect("hypeChat"),
+    chatMessageTextBtn: () => this.dispatchEffect("chatMessageText"),
+    newImageTestBtn: () => this.dispatchEffect("newImageTest"),
     tickerBtn: () => {
       const message = this.tickerInputEl.value.trim();
       this.dispatchEffect("ticker", message ? { message } : {});
@@ -52,6 +57,7 @@ export class DashboardClient {
     this.volumeValueEl = this.getEl("volumeValue");
     this.stabilitySliderEl = this.getEl("stabilitySlider") as HTMLInputElement;
     this.stabilityValueEl = this.getEl("stabilityValue");
+    this.logLevelSelectEl = this.getEl("logLevelSelect") as HTMLSelectElement;
   }
 
   private getEl(id: string): HTMLElement {
@@ -194,6 +200,14 @@ export class DashboardClient {
     });
   }
 
+  private hookLogLevel(): void {
+    // TODO: Implement server log level syncing
+    // For now, disabled - client and server have separate logger instances
+    this.logLevelSelectEl.disabled = true;
+    this.logLevelSelectEl.title =
+      "Log level control disabled - client and server loggers are separate";
+  }
+
   private debouncedSendSettings(): void {
     if (this.settingsDebounceTimer) {
       clearTimeout(this.settingsDebounceTimer);
@@ -213,6 +227,7 @@ export class DashboardClient {
     this.setConnected(false);
     this.hookButtons();
     this.hookSliders();
+    this.hookLogLevel();
     this.connect();
     this.heartbeatInterval = setInterval(() => this.send("ping"), 30000);
   }

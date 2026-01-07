@@ -6,6 +6,6 @@
     "noEmit": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/core/ImageElementFactory.ts"],
   "exclude": ["node_modules", "dist"]
 }

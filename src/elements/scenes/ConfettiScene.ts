@@ -1,8 +1,8 @@
 import { SceneElement } from "./SceneElement";
 import { EllipseElement } from "../EllipseElement";
-import { TransformGravityBehavior } from "../behaviors/FallingBehavior";
+import { GravityBehavior } from "../behaviors/GravityBehavior";
 import { TiltBehavior } from "../behaviors/TiltBehavior";
-import { IntervalTimer } from "../../utils/IntervalTimer";
+import { SchedulerElement } from "../SchedulerElement";
 
 interface ConfettiConfig {
   count?: number;
@@ -13,7 +13,6 @@ export class ConfettiScene extends SceneElement {
   private readonly particleCount: number;
   private readonly spawnDurationMs: number;
   private readonly bufferMs = 3000;
-  private readonly spawner: IntervalTimer;
 
   constructor(cfg: ConfettiConfig = {}) {
     super();
@@ -22,10 +21,12 @@ export class ConfettiScene extends SceneElement {
     this.duration = this.spawnDurationMs + this.bufferMs;
 
     const interval = this.spawnDurationMs / this.particleCount;
-    this.spawner = new IntervalTimer(
-      interval,
-      () => this.spawnParticle(),
-      this.particleCount
+    this.addChild(
+      new SchedulerElement({
+        interval,
+        onTick: () => this.spawnParticle(),
+        count: this.particleCount,
+      })
     );
   }
 
@@ -40,7 +41,7 @@ export class ConfettiScene extends SceneElement {
     });
 
     particle.addChild(
-      new TransformGravityBehavior({
+      new GravityBehavior({
         velocityY: Math.random() * 50 + 25,
         velocityX: (Math.random() - 0.5) * 100,
         gravity: 300 + Math.random() * 200,
@@ -60,8 +61,6 @@ export class ConfettiScene extends SceneElement {
   }
 
   override update(deltaTime: number): void {
-    this.spawner.update(deltaTime);
-
     super.update(deltaTime);
 
     // Remove particles that have left the screen
@@ -77,7 +76,7 @@ export class ConfettiScene extends SceneElement {
     });
 
     // Finish early if all particles are gone after spawning completes
-    if (this.spawner.isFinished() && this.children.length === 0) {
+    if (this.children.length === 0) {
       this.finish();
     }
   }

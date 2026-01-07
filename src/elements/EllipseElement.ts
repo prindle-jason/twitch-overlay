@@ -26,24 +26,11 @@ export class EllipseElement extends TransformElement {
     this.opacity = config.opacity ?? 1;
   }
 
-  draw(ctx: CanvasRenderingContext2D): void {
-    if (this.opacity <= 0) return;
-
-    ctx.save();
-    ctx.globalAlpha = this.opacity;
+  protected override drawSelf(ctx: CanvasRenderingContext2D): void {
     ctx.beginPath();
     ctx.fillStyle = this.color;
-    ctx.ellipse(
-      this.x,
-      this.y,
-      this.radiusX,
-      this.radiusY,
-      this.rotation,
-      0,
-      Math.PI * 2
-    );
+    ctx.ellipse(0, 0, this.radiusX, this.radiusY, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
 
   isOffScreen(screenWidth: number, screenHeight: number): boolean {

@@ -92,9 +92,24 @@ export class FakeChatProvider extends ChatDataProvider {
   ];
 
   private badgePool = [
-    { name: "moderator", version: 1 },
-    { name: "subscriber", version: 0 },
-    { name: "vip", version: 1 },
+    {
+      name: "broadcaster",
+      version: 1,
+      imageUrl:
+        "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/3",
+    },
+    {
+      name: "moderator",
+      version: 1,
+      imageUrl:
+        "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
+    },
+    {
+      name: "subscriber",
+      version: 0,
+      imageUrl:
+        "https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/3",
+    },
   ];
 
   /**
@@ -149,8 +164,8 @@ export class FakeChatProvider extends ChatDataProvider {
           name: emote.name,
           type: emote.type,
           imageUrl: emote.imageUrl,
-          startIndex,
-          endIndex,
+          startIndex: startIndex,
+          endIndex: endIndex,
           id: emote.id,
         });
       }
@@ -170,7 +185,7 @@ export class FakeChatProvider extends ChatDataProvider {
         badges.push({
           name: badge.name,
           version: badge.version,
-          imageUrl: `https://static-cdn.jtvnw.net/badges/v1/${badge.name}/3`,
+          imageUrl: badge.imageUrl,
         });
       }
     });

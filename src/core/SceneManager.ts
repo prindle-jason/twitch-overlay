@@ -1,6 +1,7 @@
 import { OverlaySettings } from "./OverlaySettings";
 import { SceneElement } from "../elements/scenes/SceneElement";
 import { PooledDvdScene } from "../elements/scenes/PooledDvdScene";
+import { logger } from "../utils/logger";
 
 export class SceneManager {
   private scenes: SceneElement[] = [];
@@ -25,9 +26,9 @@ export class SceneManager {
    * The item should already be created; this just adds it to the active list.
    */
   async addScene(scene: SceneElement) {
-    console.log(`Adding scene of type ${scene.constructor.name}`);
+    logger.debug(`Adding scene of type ${scene.constructor.name}`);
     await scene.init();
-    console.log(`Initialized scene of type ${scene.constructor.name}`);
+    logger.debug(`Initialized scene of type ${scene.constructor.name}`);
     scene.onSettingsChanged(this.settings);
     this.scenes.push(scene);
   }

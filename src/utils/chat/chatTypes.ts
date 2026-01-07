@@ -14,7 +14,7 @@ export interface Badge {
  */
 export interface Emote {
   name: string; // e.g., 'KappaPride', 'DededeLUL'
-  type: string; // 'Twitch', 'BTTVChannel', 'BTTVGlobal', '7TV', 'FFZ', etc.
+  type?: string; // 'Twitch', 'BTTVChannel', 'BTTVGlobal', '7TV', 'FFZ', etc.
   startIndex: number; // Character position where emote starts in the message
   endIndex: number; // Character position where emote ends
   imageUrl: string; // URL to emote image

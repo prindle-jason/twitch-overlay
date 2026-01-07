@@ -16,15 +16,12 @@ export class SoundElement extends Element {
   }
 
   async init() {
-    // Load asynchronously
-    //console.log("SoundElement init:", this.soundKey);
     const sound = await getSound(this.soundKey);
     this.sound = sound;
     await super.init();
   }
 
   playSound() {
-    //console.log("SoundElement play:", this.soundKey, this.sound);
     if (this.sound) {
       this.sound.volume = this.baseVolume * this.masterVolume;
       this.sound.loop = this.loop;

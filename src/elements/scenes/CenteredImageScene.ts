@@ -1,12 +1,12 @@
 import { SceneElement } from "./SceneElement";
-import { ImageElement } from "../ImageElement";
 import { SoundElement } from "../SoundElement";
 import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import type { ImageKey, SoundKey } from "../../core/resources";
+import { type SoundKey, localImages } from "../../core/resources";
+import { ImageElement } from "../ImageElement";
 
 interface CenteredImageSceneCfg {
-  imageKey: ImageKey;
+  imageUrl: string;
   soundKey?: SoundKey;
   duration?: number;
   fadeTime?: number;
@@ -20,7 +20,7 @@ export class CenteredImageScene extends SceneElement {
 
   static createSsbmSuccess(): CenteredImageScene {
     return new CenteredImageScene({
-      imageKey: "ssbmSuccess",
+      imageUrl: localImages.ssbmSuccess,
       soundKey: "ssbmSuccess",
       fadeTime: 0.25,
     });
@@ -28,7 +28,7 @@ export class CenteredImageScene extends SceneElement {
 
   static createSsbmFail(): CenteredImageScene {
     return new CenteredImageScene({
-      imageKey: "ssbmFailure",
+      imageUrl: localImages.ssbmFailure,
       soundKey: "ssbmFail",
       fadeTime: 0.25,
     });
@@ -41,7 +41,8 @@ export class CenteredImageScene extends SceneElement {
   }
 
   override async init(): Promise<void> {
-    this.image = new ImageElement({ imageKey: this.cfg.imageKey });
+    this.image = new ImageElement({ imageUrl: this.cfg.imageUrl });
+    //this.image = new ImageElement({ imageKey: this.cfg.imageUrl });
     this.image.addChild(new FadeInOutBehavior({ fadeTime: this.fadeTime }));
     this.addChild(this.image);
 

@@ -48,25 +48,10 @@ export class TextElement extends TransformElement {
     return this.fontSize * this.scaleY;
   }
 
-  draw(ctx: CanvasRenderingContext2D): void {
-    if (this.opacity <= 0) return;
-
-    ctx.save();
-    ctx.globalAlpha = this.opacity;
-    ctx.filter = this.filter;
-    ctx.translate(this.x, this.y);
-    if (this.rotation !== 0) {
-      ctx.rotate(this.rotation);
-    }
-    if (this.scaleX !== 1 || this.scaleY !== 1) {
-      ctx.scale(this.scaleX, this.scaleY);
-    }
-
+  protected override drawSelf(ctx: CanvasRenderingContext2D): void {
     ctx.font = this.getFontString();
     ctx.fillStyle = this.color;
     ctx.textBaseline = this.textBaseline;
     ctx.fillText(this.text, 0, 0);
-
-    ctx.restore();
   }
 }

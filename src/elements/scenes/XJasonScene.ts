@@ -4,39 +4,39 @@ import { BlurInOutBehavior } from "../behaviors/BlurInOutBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
 import { JitterBehavior } from "../behaviors/JitterBehavior";
-import { IntervalRangeTimer } from "../../utils/IntervalRangeTimer";
+import { SchedulerElement } from "../SchedulerElement";
 import { getRandomInRange, pickRandomByWeight } from "../../utils/random";
 import type { Range } from "../../utils/random";
-import { ImageKey } from "../../core/resources";
+import { localImages } from "../../core/resources";
 import { ImageElement } from "../ImageElement";
 
 interface ImageOption {
   weight: number;
-  imageKey: ImageKey;
+  imageUrl: string;
 }
 
 const IMAGE_OPTIONS: readonly ImageOption[] = [
-  { weight: 97, imageKey: "xJason" },
-  { weight: 3, imageKey: "xHello" },
+  { weight: 97, imageUrl: localImages.xJason },
+  { weight: 3, imageUrl: localImages.xHello },
 ];
 
 /** Plays an audio file while spawning images around the screen */
 export class XJasonScene extends SceneElement {
-  private readonly imageIntervalRange: Range = { min: 500, max: 900 };
+  private readonly imageIntervalRange: Range = { min: 300, max: 1000 };
   private readonly imageDurationRange: Range = { min: 1200, max: 1600 };
-  private readonly imageWidth = 560;
-  private readonly imageHeight = 120;
-
-  private spawner: IntervalRangeTimer;
+  private readonly imageWidthRange: Range = { min: 250, max: 1500 };
+  //private readonly imageWidth = 560;
+  //private readonly imageHeight = 120;
 
   constructor() {
     super();
     this.duration = 70000; // heavyrain-jason.mp3 is ~70 seconds
 
-    this.spawner = new IntervalRangeTimer(
-      this.imageIntervalRange.min,
-      this.imageIntervalRange.max,
-      () => this.trySpawnPopup()
+    this.addChild(
+      new SchedulerElement({
+        interval: this.imageIntervalRange,
+        onTick: () => this.trySpawnPopup(),
+      })
     );
   }
 
@@ -57,7 +57,7 @@ export class XJasonScene extends SceneElement {
     }
   }
 
-  private spawnPopup(): void {
+  private async spawnPopup(): Promise<void> {
     const duration = getRandomInRange(this.imageDurationRange);
 
     const option = pickRandomByWeight(
@@ -68,13 +68,16 @@ export class XJasonScene extends SceneElement {
     );
 
     //const popup = new TimedImageElement(option.imageKey, duration);
-    const popup = new ImageElement({ imageKey: option.imageKey });
+    const popup = new ImageElement({ imageUrl: option.imageUrl });
     popup.setDuration(duration);
 
-    popup.init();
+    await popup.init();
 
-    popup.x = Math.random() * (this.W - this.imageWidth);
-    popup.y = Math.random() * (this.H - this.imageHeight);
+    const width = getRandomInRange(this.imageWidthRange);
+    popup.setScale(width / popup.getWidth());
+    //popup.setScale(this.imageHeight / (popup.getHeight() ?? 1));
+    popup.x = Math.random() * (this.W - popup.getWidth());
+    popup.y = Math.random() * (this.H - popup.getHeight());
 
     const imageBlurConfig = { fadeTime: 0.4, maxBlur: 16 };
     popup.addChild(new JitterBehavior({ jitterAmount: 6 }));
@@ -83,12 +86,10 @@ export class XJasonScene extends SceneElement {
 
     this.addChild(popup);
     // Manually trigger play for dynamically spawned children
-    popup.play();
+    //popup.play();
   }
 
   override update(deltaTime: number): void {
     super.update(deltaTime);
-
-    this.spawner.update(deltaTime);
   }
 }

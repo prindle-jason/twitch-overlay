@@ -1,14 +1,18 @@
 import { SceneElement } from "./SceneElement";
-import { ImageElement } from "../ImageElement";
 import { SoundElement } from "../SoundElement";
 import { TranslateBehavior } from "../behaviors/TranslateBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import type { ImageKey, SoundKey } from "../../core/resources";
+import {
+  localImages,
+  type ImageKey,
+  type SoundKey,
+} from "../../core/resources";
+import { ImageElement } from "../ImageElement";
 
 interface ConvergingCfg {
   duration?: number;
-  leftImageKey: ImageKey;
-  rightImageKey: ImageKey;
+  bottomLeftImageUrl: string;
+  bottomRightImageUrl: string;
   soundKey?: SoundKey;
   scale?: number;
   fadeTime?: number;
@@ -16,8 +20,8 @@ interface ConvergingCfg {
 
 export class ConvergingSlideScene extends SceneElement {
   private cfg: ConvergingCfg;
-  private leftImage: ImageElement | null = null;
-  private rightImage: ImageElement | null = null;
+  private bottomLeftImage: ImageElement | null = null;
+  private bottomRightImage: ImageElement | null = null;
   private soundElement: SoundElement | null = null;
 
   private scale: number;
@@ -25,8 +29,8 @@ export class ConvergingSlideScene extends SceneElement {
 
   static createBamSuccess(): ConvergingSlideScene {
     return new ConvergingSlideScene({
-      leftImageKey: "bubSuccess",
-      rightImageKey: "bobSuccess",
+      bottomLeftImageUrl: localImages.bubSuccess,
+      bottomRightImageUrl: localImages.bobSuccess,
       soundKey: "bamHooray",
       scale: 0.25,
       fadeTime: 0.2,
@@ -35,8 +39,8 @@ export class ConvergingSlideScene extends SceneElement {
 
   static createBamFailure(): ConvergingSlideScene {
     return new ConvergingSlideScene({
-      leftImageKey: "bubFailure",
-      rightImageKey: "bobFailure",
+      bottomLeftImageUrl: localImages.bubFailure,
+      bottomRightImageUrl: localImages.bobFailure,
       soundKey: "bamUhOh",
       scale: 0.25,
       fadeTime: 0.2,
@@ -51,13 +55,25 @@ export class ConvergingSlideScene extends SceneElement {
   }
 
   override async init(): Promise<void> {
-    this.leftImage = new ImageElement({ imageKey: this.cfg.leftImageKey });
-    this.leftImage.setScale(this.scale);
-    this.addChild(this.leftImage);
+    this.bottomLeftImage = new ImageElement({
+      imageUrl: this.cfg.bottomLeftImageUrl,
+      scale: this.scale,
+    });
+    // this.bottomLeftImage = new ImageElement({
+    //   imageKey: this.cfg.bottomLeftImageUrl,
+    //   scale: this.scale,
+    // });
+    this.addChild(this.bottomLeftImage);
 
-    this.rightImage = new ImageElement({ imageKey: this.cfg.rightImageKey });
-    this.rightImage.setScale(this.scale);
-    this.addChild(this.rightImage);
+    // this.bottomRightUrl = new ImageElement({
+    //   imageKey: this.cfg.rightImageKey,
+    //   scale: this.scale,
+    // });
+    this.bottomRightImage = new ImageElement({
+      imageUrl: this.cfg.bottomRightImageUrl,
+      scale: this.scale,
+    });
+    this.addChild(this.bottomRightImage);
 
     if (this.cfg.soundKey) {
       this.soundElement = new SoundElement(this.cfg.soundKey);
@@ -86,25 +102,25 @@ export class ConvergingSlideScene extends SceneElement {
   }
 
   private setSlideBehaviors(): void {
-    if (this.leftImage && this.leftImage.image) {
-      this.leftImage.addChild(
+    if (this.bottomLeftImage) {
+      this.bottomLeftImage.addChild(
         new TranslateBehavior({
-          startX: 0 - this.leftImage.getWidth(),
+          startX: 0 - this.bottomLeftImage.getWidth(),
           startY: this.H,
           endX: 0,
-          endY: this.H - this.leftImage.getHeight(),
+          endY: this.H - this.bottomLeftImage.getHeight(),
           fadeTime: this.fadeTime,
         })
       );
     }
 
-    if (this.rightImage && this.rightImage.image) {
-      this.rightImage.addChild(
+    if (this.bottomRightImage) {
+      this.bottomRightImage.addChild(
         new TranslateBehavior({
           startX: this.W,
           startY: this.H,
-          endX: this.W - this.rightImage.getWidth(),
-          endY: this.H - this.rightImage.getHeight(),
+          endX: this.W - this.bottomRightImage.getWidth(),
+          endY: this.H - this.bottomRightImage.getHeight(),
           fadeTime: this.fadeTime,
         })
       );

@@ -200,6 +200,39 @@ button:disabled {
   font-size: 1rem;
 }
 
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-row label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  min-width: 80px;
+}
+
+.setting-row select {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #1a1f2a;
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+
+.setting-row select:hover {
+  border-color: var(--accent);
+}
+
+.setting-row select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .log {
   margin-top: 16px;
   white-space: pre-wrap;

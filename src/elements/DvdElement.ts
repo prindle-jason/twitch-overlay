@@ -6,20 +6,20 @@ import { HueCycleBehavior } from "./behaviors/HueCycleBehavior";
 import { pickRandomByWeight } from "../utils/random";
 import { calculateScaleForMax } from "../utils/dimensionUtils";
 import { getCanvasConfig } from "../config";
-import type { ImageKey, SoundKey } from "../core/resources";
+import { localImages, type ImageKey, type SoundKey } from "../core/resources";
 import { Element } from "./Element";
 
 interface DvdOption {
   weight: number;
-  imageKey: ImageKey;
+  imageUrl: string;
   soundKey: SoundKey;
 }
 
 const DVD_OPTIONS: readonly DvdOption[] = [
-  { weight: 175, imageKey: "dvdLogo", soundKey: "partyHorn" },
-  { weight: 19, imageKey: "bluRayLogo", soundKey: "yippee" },
-  { weight: 5, imageKey: "netflixLogo", soundKey: "netflixSound" },
-  { weight: 1, imageKey: "thxLogo", soundKey: "thxSound" },
+  { weight: 175, imageUrl: localImages.dvdLogo, soundKey: "partyHorn" },
+  { weight: 19, imageUrl: localImages.bluRayLogo, soundKey: "yippee" },
+  { weight: 5, imageUrl: localImages.netflixLogo, soundKey: "netflixSound" },
+  { weight: 1, imageUrl: localImages.thxLogo, soundKey: "thxSound" },
 ];
 
 /**
@@ -84,7 +84,7 @@ export class DvdElement extends Element {
 
   private createImage(option: DvdOption): void {
     const { W, H } = getCanvasConfig();
-    this.imageElement = new ImageElement({ imageKey: option.imageKey });
+    this.imageElement = new ImageElement({ imageUrl: option.imageUrl });
 
     const velocity = Math.random() + 2;
     const bounceBehavior = new ScreenBounceBehavior({

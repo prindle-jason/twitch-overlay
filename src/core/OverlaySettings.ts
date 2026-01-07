@@ -1,3 +1,5 @@
+import { logger } from "../utils/logger";
+
 export class OverlaySettings {
   masterVolume: number = 1.0;
   stability: number = 100.0;
@@ -13,7 +15,7 @@ export class OverlaySettings {
   }
 
   applySettings(settings: OverlaySettings) {
-    console.log("Applying overlay settings:", settings);
+    logger.info("Applying overlay settings:", settings);
     if (typeof settings.masterVolume === "number") {
       this.masterVolume = settings.masterVolume;
     }

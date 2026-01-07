@@ -35,8 +35,8 @@ export class ScreenCornerDetectionBehavior extends Element {
     if (target && !this.cornerReached) {
       const x = target.x;
       const y = target.y;
-      const width = target.getWidth();
-      const height = target.getHeight();
+      const width = target.getWidth() ?? 0;
+      const height = target.getHeight() ?? 0;
 
       const atLeft = x <= this.epsilon;
       const atRight = x + width >= this.screenWidth - this.epsilon;

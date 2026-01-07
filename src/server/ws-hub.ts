@@ -2,6 +2,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import http, { IncomingMessage } from "http";
 import type { ClientRole, ClientSession, WsMessage } from "./ws-types.js";
 import { WsMessageRouter } from "./ws-message-router.js";
+import { logger } from "../utils/logger.js";
 
 export class WsHub {
   private wss: WebSocketServer;
@@ -18,7 +19,7 @@ export class WsHub {
   private handleConnection(ws: WebSocket, req: IncomingMessage) {
     const id = ++this.clientIdSeq;
     const session: ClientSession = { id, ws };
-    console.log(
+    logger.info(
       `[WS] Client #${id} connected from ${req.socket.remoteAddress}`
     );
 
@@ -33,20 +34,20 @@ export class WsHub {
           () => this.addClientToRole(session)
         );
       } catch (err) {
-        console.error(`[WS] Client #${id} message parse error:`, err);
+        logger.error(`[WS] Client #${id} message parse error:`, err);
       }
     });
 
     ws.on("close", (code: number, reason: Buffer) => {
       const roleLabel = session.role ? ` (${session.role})` : "";
-      console.log(
+      logger.info(
         `[WS] Client #${id}${roleLabel} disconnected: code=${code} reason="${reason.toString()}"`
       );
       this.removeClientFromRole(session);
     });
 
     ws.on("error", (err: Error) => {
-      console.error(`[WS] Client #${id} error:`, err.message);
+      logger.error(`[WS] Client #${id} error:`, err.message);
     });
   }
 
@@ -108,7 +109,7 @@ export class WsHub {
 
     const targetLabel = targetRole ? ` to ${targetRole}` : " to all";
     if (payload.type !== "stats-response" && payload.type !== "get-stats") {
-      console.log(
+      logger.debug(
         `[BROADCAST] sent to ${sent} client(s)${targetLabel}:`,
         payload
       );

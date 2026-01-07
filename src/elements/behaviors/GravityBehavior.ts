@@ -1,20 +1,20 @@
 import { Element } from "../Element";
 import { TransformElement } from "../TransformElement";
 
-interface FallingConfig {
+interface GravityConfig {
   gravity?: number;
   velocityY?: number;
   velocityX?: number;
   drag?: number; // 0-1
 }
 
-export class TransformGravityBehavior extends Element {
+export class GravityBehavior extends Element {
   private gravity: number;
   private velocityY: number;
   private velocityX: number;
   private drag: number;
 
-  constructor(config: FallingConfig = {}) {
+  constructor(config: GravityConfig = {}) {
     super();
     this.gravity = config.gravity ?? 200;
     this.velocityY = config.velocityY ?? 0;

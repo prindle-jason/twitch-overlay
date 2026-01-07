@@ -1,6 +1,7 @@
 import { SceneElement } from "./SceneElement";
 import { ConfettiScene } from "./ConfettiScene";
 import { DvdElement } from "../DvdElement";
+import { logger } from "../../utils/logger";
 
 /**
  * PooledDvdEffect manages multiple DVD logos that bounce around the screen.
@@ -42,6 +43,6 @@ export class PooledDvdScene extends SceneElement {
     this.children.forEach((child) => {
       child.finish();
     });
-    console.log("[PooledDvdEffect] Cleared all DVDs and confetti");
+    logger.debug("[PooledDvdEffect] Cleared all DVDs and confetti");
   }
 }

@@ -1,6 +1,6 @@
 import { Element } from "../Element";
-import { ImageElement } from "../ImageElement";
 import { applyTiming, TimingCurve } from "../../utils/timing";
+import { TransformElement } from "../TransformElement";
 
 interface FadeInOutConfig {
   fadeTime?: number;
@@ -14,8 +14,8 @@ export class FadeInOutBehavior extends Element {
     this.fadeTime = config.fadeTime ?? 0.25;
   }
 
-  private get target(): ImageElement | null {
-    return this.parent instanceof ImageElement ? this.parent : null;
+  private get target(): TransformElement | null {
+    return this.parent instanceof TransformElement ? this.parent : null;
   }
 
   private apply(): void {
