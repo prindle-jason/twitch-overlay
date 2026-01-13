@@ -69,7 +69,7 @@ export class TickerScene extends SceneElement {
             fontSize: this.fontSize,
             fontWeight: "bold",
             color: this.textColor,
-            textBaseline: "middle",
+            textBaseline: "top",
           })
         );
       } else {
@@ -89,6 +89,8 @@ export class TickerScene extends SceneElement {
   }
 
   override play(): void {
+    super.play();
+
     // Now that elements are initialized, calculate dimensions and layout
     const textWidth = this.tickerTextGrid.getWidth() ?? 0;
 
@@ -105,10 +107,10 @@ export class TickerScene extends SceneElement {
     );
 
     // Position text off-screen to the right
+    const gridHeight = this.tickerTextGrid.getHeight() ?? 0;
     this.tickerTextGrid.x = this.W;
-    this.tickerTextGrid.y = this.H - 100;
+    this.tickerTextGrid.y = this.H - 100 - gridHeight / 2;
 
-    super.play();
     this.tickerState = "FADE_IN";
   }
 

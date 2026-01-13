@@ -116,8 +116,8 @@ function loop() {
   health.recordFrame(deltaTime);
 
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-  //ctx.fillStyle = "green";
-  //ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  ctx.fillStyle = "green";
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   sceneManager.update(ctx, deltaTime);
 

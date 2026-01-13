@@ -1,6 +1,7 @@
 import { TransformElement } from "./TransformElement";
 import { Element } from "./Element";
 import { logger } from "../utils/logger";
+import { ImageElement } from "./ImageElement";
 
 interface GridLayoutConfig {
   columns?: number; // Number of columns (default: auto-wrap based on children)
@@ -34,23 +35,21 @@ export class GridLayoutElement extends TransformElement {
   override play(): void {
     // Scale images if imageHeight is configured
     if (this.imageHeight !== undefined) {
-      this.scaleImages();
+      for (const img of this.getChildrenOfType(ImageElement)) {
+        const h = img.getHeight() ?? 0;
+        if (h > 0) {
+          img.setScale(this.imageHeight! / h);
+        }
+      }
     }
     this.calculateLayout();
     super.play();
   }
 
   private scaleImages(): void {
-    const imageChildren = this.getChildrenOfType(TransformElement).filter(
-      (child) => child.constructor.name === "ImageElement"
-    );
-
-    for (const img of imageChildren) {
-      const h = img.getHeight() ?? 0;
-      if (h > 0) {
-        img.setScale(this.imageHeight! / h);
-      }
-    }
+    // const imageChildren = this.getChildrenOfType(TransformElement).filter(
+    //   (child) => child.constructor.name === "ImageElement"
+    // );
   }
 
   override addChild(child: Element): void {

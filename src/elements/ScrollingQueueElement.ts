@@ -8,203 +8,318 @@ export enum ScrollDirection {
   RIGHT = "RIGHT",
 }
 
+interface ScrollingQueueConfig {
+  direction?: ScrollDirection;
+  maxItems?: number;
+  itemGap?: number;
+  lerpFactor?: number; // 0-1, controls spring convergence speed (default 0.15)
+  snapThreshold?: number; // pixels - snap to target when within this distance (default 0.5)
+  fadeInDistance?: number; // proportion of travel distance for fade-in (0-1)
+  fadeOutDuration?: number; // ms to fade out when removing items
+}
+
 enum ItemState {
   FADE_IN = "FADE_IN",
   NORMAL = "NORMAL",
   FADE_OUT = "FADE_OUT",
 }
 
-interface ScrollingQueueConfig {
-  direction?: ScrollDirection;
-  maxItems?: number;
-  itemGap?: number;
-  baseSpeed?: number; // pixels per second
-  urgencyFactor?: number; // speed multiplier per queued item
-  lerpThreshold?: number; // distance at which to start lerping
-  lerpFactor?: number; // lerp speed (0-1)
-  fadeInDistance?: number; // proportion of travel distance to fade in (0-1)
-  fadeOutDuration?: number; // ms
-}
-
 interface QueuedItem {
   element: TransformElement;
-  state: ItemState;
   targetPosition: number; // target x or y depending on direction
-  spawnPosition: number; // initial spawn position for distance-based fading
-  fadeOutElapsed?: number; // only used in FADE_OUT state
+  spawnPosition: number; // initial spawn position
+  fadeDistance: number; // distance from spawn to target for fade calculation
+  fadeInState: ItemState; // FADE_IN or NORMAL
+  fadeOutElapsed?: number; // ms elapsed in fade-out (only used in FADE_OUT)
 }
 
 /**
  * A container that manages a scrolling queue of items.
- * New items appear at the bottom/end and push older items up/away.
- * Supports dynamic speed adjustment based on queue depth.
+ * Phase 1: Basic static positioning - items stack correctly without animation
  */
 export class ScrollingQueueElement extends TransformElement {
   private direction: ScrollDirection;
   private maxItems: number;
   private itemGap: number;
-  private baseSpeed: number;
-  private urgencyFactor: number;
-  private lerpThreshold: number;
-  private lerpFactor: number;
-  private fadeInDistance: number;
-  private fadeOutDuration: number;
-
+  private lerpFactor: number; // 0-1, spring convergence speed
+  private snapThreshold: number; // pixels, snap when within this distance
+  private fadeInDistance: number; // 0-1, proportion of travel
+  private fadeOutDuration: number; // ms
   private items: QueuedItem[] = [];
-  private pendingQueue: TransformElement[] = [];
-  private lastSizes: Map<TransformElement, number> = new Map();
+  private pendingItems: TransformElement[] = []; // Elements waiting to be PLAYING
 
   constructor(config: ScrollingQueueConfig = {}) {
     super();
     this.direction = config.direction ?? ScrollDirection.UP;
     this.maxItems = config.maxItems ?? 10;
     this.itemGap = config.itemGap ?? 10;
-    this.baseSpeed = config.baseSpeed ?? 200; // pixels per second
-    this.urgencyFactor = config.urgencyFactor ?? 0.5;
-    this.lerpThreshold = config.lerpThreshold ?? 5;
-    this.lerpFactor = config.lerpFactor ?? 8;
-    this.fadeInDistance = config.fadeInDistance ?? 0.3; // Fade in first 30% of travel
-    this.fadeOutDuration = config.fadeOutDuration ?? 300;
+    this.lerpFactor = config.lerpFactor ?? 0.15; // 0.15 = smooth, 0.3 = snappy
+    this.snapThreshold = config.snapThreshold ?? 0.5; // pixels
+    this.fadeInDistance = config.fadeInDistance ?? 0.3; // fade in first 30% of travel
+    this.fadeOutDuration = config.fadeOutDuration ?? 300; // ms
   }
 
   /**
-   * Add a new item to the queue. It will appear at the bottom and animate in.
+   * Add a new item to the queue. It will be added to pending list until PLAYING.
    */
   addItem(element: TransformElement): void {
     logger.debug("[ScrollingQueue] addItem", {
-      pendingBefore: this.pendingQueue.length,
+      currentItems: this.items.length,
+      pendingItems: this.pendingItems.length,
+      elementType: element.constructor.name,
     });
-    // SIMPLIFIED: Just add as child at 0,0
-    element.x = 0;
-    element.y = 0;
-    element.setDuration(5000);
+
+    // Add as child so it goes through lifecycle
     this.addChild(element);
+
+    // Add to pending - will be moved to items list once PLAYING
+    this.pendingItems.push(element);
   }
 
-  private processPendingQueue(): void {
-    // SIMPLIFIED: Disabled pending queue processing
-    // if (this.pendingQueue.length === 0) return;
-    // const toProcess = this.pendingQueue.filter(
-    //   (el) => el.getState() === "PLAYING"
-    // );
-    // toProcess.forEach((element) => this.queueItem(element));
-    // // Mark excess items for removal (all at once)
-    // this.markExcess();
-    // // Recalculate targets once if anything changed
-    // if (toProcess.length > 0) {
-    //   this.recalculateTargets();
-    // }
-    // // Keep only non-PLAYING items in pending queue
-    // this.pendingQueue = this.pendingQueue.filter(
-    //   (el) => el.getState() !== "PLAYING"
-    // );
+  /**
+   * Process pending items - move PLAYING items to the active queue
+   */
+  private processPending(): void {
+    const nowPlaying = this.pendingItems.filter(
+      (el) => el.getState() === "PLAYING"
+    );
+
+    if (nowPlaying.length === 0) return;
+
+    logger.info("[ScrollingQueue] processPending START", {
+      count: nowPlaying.length,
+      existingItems: this.items.length,
+    });
+
+    // Calculate spawn positions for the batch of newly playing items
+    // Spawn position depends on direction - new items appear "after" the queue
+    let spawnAccumulated: number;
+    if (this.items.length > 0) {
+      const endPos = this.getEndOfQueuePosition();
+      // For UP/LEFT: spawn beyond the queue (positive offset from end)
+      // For DOWN/RIGHT: spawn before the queue (negative offset from end)
+      if (
+        this.direction === ScrollDirection.UP ||
+        this.direction === ScrollDirection.LEFT
+      ) {
+        spawnAccumulated = endPos + this.itemGap;
+      } else {
+        // DOWN or RIGHT: spawn in opposite direction
+        spawnAccumulated = endPos - this.itemGap;
+      }
+    } else {
+      spawnAccumulated = 0;
+    }
+
+    logger.info("[ScrollingQueue] spawn position base", {
+      direction: this.direction,
+      endOfQueue: this.getEndOfQueuePosition(),
+      spawnAccumulated,
+    });
+
+    // Add each to the active queue with calculated spawn position
+    for (const element of nowPlaying) {
+      const spawnPos = spawnAccumulated;
+
+      this.items.push({
+        element,
+        targetPosition: 0, // Will be calculated
+        spawnPosition: spawnPos,
+        fadeDistance: 0, // Will be calculated after recalculateTargets
+        fadeInState: ItemState.FADE_IN,
+      });
+
+      logger.info("[ScrollingQueue] item added to queue", {
+        elementType: element.constructor.name,
+        spawnPos,
+        size: this.getItemSize(element),
+      });
+
+      // Update spawn accumulation for next item
+      // For UP/LEFT: accumulate positively (further away)
+      // For DOWN/RIGHT: accumulate negatively (further away in opposite direction)
+      if (
+        this.direction === ScrollDirection.UP ||
+        this.direction === ScrollDirection.LEFT
+      ) {
+        spawnAccumulated += this.getItemSize(element) + this.itemGap;
+      } else {
+        spawnAccumulated -= this.getItemSize(element) + this.itemGap;
+      }
+    }
+
+    // Remove from pending
+    this.pendingItems = this.pendingItems.filter(
+      (el) => el.getState() !== "PLAYING"
+    );
+
+    // Recalculate all target positions now that we have valid sizes
+    this.recalculateTargets();
+
+    // Phase 2: Set only the NEW elements at spawn position, they will animate to target
+    logger.info("[ScrollingQueue] positioning NEW items after recalc", {
+      newItemsCount: nowPlaying.length,
+      totalItems: this.items.length,
+    });
+
+    for (const element of nowPlaying) {
+      const item = this.items.find((it) => it.element === element);
+      if (item) {
+        // Calculate fade distance for this item
+        item.fadeDistance = Math.abs(item.targetPosition - item.spawnPosition);
+
+        this.setElementPosition(item.element, item.spawnPosition);
+        logger.info("[ScrollingQueue] new item positioned at spawn", {
+          elementType: item.element.constructor.name,
+          spawnPos: item.spawnPosition,
+          targetPos: item.targetPosition,
+          fadeDistance: item.fadeDistance,
+        });
+        item.element.opacity = 0; // Start fully transparent for fade-in
+        item.fadeInState = ItemState.FADE_IN;
+      }
+    }
+
+    // Phase 4: Mark excess items for fade-out
+    this.markExcess();
   }
 
-  private queueItem(element: TransformElement): void {
-    // SIMPLIFIED: Disabled
-    // // Initialize element position offscreen
-    // const spawnPos = this.getSpawnOffset(element);
-    // this.setElementPosition(element, spawnPos);
-    // element.opacity = 0;
-    // this.items.push({
-    //   element,
-    //   state: ItemState.FADE_IN,
-    //   targetPosition: 0, // Will be recalculated
-    //   spawnPosition: spawnPos,
-    // });
-    // logger.debug("[ScrollingQueue] enqueued item", {
-    //   spawnPos,
-    //   itemSize: this.getItemSize(element),
-    //   itemsCount: this.items.length,
-    // });
-  }
-
+  /**
+   * Mark excess items (oldest) for fade-out when queue exceeds maxItems
+   */
   private markExcess(): void {
-    // SIMPLIFIED: Disabled
-    // if (this.items.length > this.maxItems) {
-    //   const excessCount = this.items.length - this.maxItems;
-    //   for (let i = 0; i < excessCount; i++) {
-    //     const item = this.items[i];
-    //     if (item.state !== ItemState.FADE_OUT) {
-    //       item.state = ItemState.FADE_OUT;
-    //       item.fadeOutElapsed = 0;
-    //       logger.debug("[ScrollingQueue] mark FADE_OUT", {
-    //         index: i,
-    //         itemsCount: this.items.length,
-    //         max: this.maxItems,
-    //       });
-    //     }
-    //   }
-    // }
-  }
+    if (this.items.length <= this.maxItems) return;
 
-  private getSpawnOffset(element: TransformElement): number {
-    const size = this.getItemSize(element);
-    const offset = size + this.itemGap;
-
-    switch (this.direction) {
-      case ScrollDirection.UP:
-        return offset; // Spawn below by element's height
-      case ScrollDirection.DOWN:
-        return -offset; // Spawn above
-      case ScrollDirection.LEFT:
-        return offset; // Spawn right
-      case ScrollDirection.RIGHT:
-        return -offset; // Spawn left
+    const excessCount = this.items.length - this.maxItems;
+    for (let i = 0; i < excessCount; i++) {
+      const item = this.items[i];
+      if (item.fadeInState !== ItemState.FADE_OUT) {
+        item.fadeInState = ItemState.FADE_OUT;
+        item.fadeOutElapsed = 0;
+        logger.info("[ScrollingQueue] mark FADE_OUT", {
+          index: i,
+          itemsCount: this.items.length,
+          max: this.maxItems,
+          elementType: item.element.constructor.name,
+        });
+      }
     }
   }
 
+  /**
+   * Get the position where new items should start spawning (end of queue, accounting for direction and gap)
+   * Uses current position of last item, not target, so new items spawn relative to where items actually are
+   */
+  private getEndOfQueuePosition(): number {
+    if (this.items.length === 0) return 0;
+
+    const lastItem = this.items[this.items.length - 1];
+    const currentPos = this.getElementPosition(lastItem.element);
+    const itemSize = this.getItemSize(lastItem.element);
+
+    // For UP/LEFT: spawn extends positively from the current position
+    // For DOWN/RIGHT: spawn extends negatively from the current position
+    if (
+      this.direction === ScrollDirection.UP ||
+      this.direction === ScrollDirection.LEFT
+    ) {
+      return currentPos + itemSize + this.itemGap;
+    } else {
+      // DOWN or RIGHT
+      return currentPos - itemSize - this.itemGap;
+    }
+  }
+
+  /**
+   * Calculate target positions for all items in the queue.
+   * Items stack from position 0 outward based on their size and gap.
+   */
   private recalculateTargets(): void {
     let accumulatedPosition = 0;
 
-    // Calculate from bottom to top (newest to oldest)
+    logger.info("[ScrollingQueue] recalculateTargets START", {
+      itemsCount: this.items.length,
+    });
+
+    // Calculate from newest (bottom/end) to oldest (top/beginning)
     for (let i = this.items.length - 1; i >= 0; i--) {
       const item = this.items[i];
       const size = this.getItemSize(item.element);
 
-      if (this.direction === ScrollDirection.UP) {
-        item.targetPosition = -accumulatedPosition;
-      } else if (this.direction === ScrollDirection.DOWN) {
-        item.targetPosition = accumulatedPosition;
-      } else if (this.direction === ScrollDirection.LEFT) {
-        item.targetPosition = -accumulatedPosition;
-      } else {
-        // RIGHT
-        item.targetPosition = accumulatedPosition;
+      // Set target position based on direction
+      switch (this.direction) {
+        case ScrollDirection.UP:
+          item.targetPosition = -accumulatedPosition; // Negative = upward
+          break;
+        case ScrollDirection.DOWN:
+          item.targetPosition = accumulatedPosition; // Positive = downward
+          break;
+        case ScrollDirection.LEFT:
+          item.targetPosition = -accumulatedPosition; // Negative = leftward
+          break;
+        case ScrollDirection.RIGHT:
+          item.targetPosition = accumulatedPosition; // Positive = rightward
+          break;
       }
+
+      logger.info("[ScrollingQueue] target calc", {
+        index: i,
+        accumulated: accumulatedPosition,
+        size,
+        target: item.targetPosition,
+        elementType: item.element.constructor.name,
+      });
 
       accumulatedPosition += size + this.itemGap;
     }
 
-    logger.debug("[ScrollingQueue] recalculateTargets end", {
-      items: this.items.map((it, idx) => ({ idx, target: it.targetPosition })),
+    logger.info("[ScrollingQueue] recalculateTargets END", {
+      items: this.items.map((it, idx) => ({
+        idx,
+        target: it.targetPosition,
+        size: this.getItemSize(it.element),
+      })),
     });
   }
 
+  /**
+   * Get the size of an item (width or height depending on scroll direction)
+   */
   private getItemSize(element: TransformElement): number {
     if (this.isVertical()) {
-      const h = element.getHeight() ?? 0;
-      if (h === 0) {
-        logger.warn("[ScrollingQueue] getItemSize vertical returned 0");
+      const height = element.getHeight() ?? 0;
+      if (height === 0) {
+        logger.warn("[ScrollingQueue] element height is 0", {
+          elementType: element.constructor.name,
+          state: element.getState(),
+        });
       }
-      return h;
+      return height;
     } else {
-      const w = element.getWidth() ?? 0;
-      if (w === 0) {
-        logger.warn("[ScrollingQueue] getItemSize horizontal returned 0");
+      const width = element.getWidth() ?? 0;
+      if (width === 0) {
+        logger.warn("[ScrollingQueue] element width is 0", {
+          elementType: element.constructor.name,
+          state: element.getState(),
+        });
       }
-      return w;
+      return width;
     }
   }
 
+  /**
+   * Check if scrolling vertically (UP or DOWN)
+   */
   private isVertical(): boolean {
-    const vertical =
+    return (
       this.direction === ScrollDirection.UP ||
-      this.direction === ScrollDirection.DOWN;
-    //logger.debug("[ScrollingQueue] isVertical", { vertical });
-    return vertical;
+      this.direction === ScrollDirection.DOWN
+    );
   }
 
+  /**
+   * Set an element's position along the scroll axis
+   */
   private setElementPosition(
     element: TransformElement,
     position: number
@@ -214,124 +329,119 @@ export class ScrollingQueueElement extends TransformElement {
     } else {
       element.x = position;
     }
-    //logger.debug("[ScrollingQueue] setElementPosition", {
-    //  position,
-    //  x: element.x,
-    //  y: element.y,
-    //});
   }
 
+  /**
+   * Get an element's position along the scroll axis
+   */
   private getElementPosition(element: TransformElement): number {
     if (this.isVertical()) {
-      const pos = element.y;
-      //logger.debug("[ScrollingQueue] getElementPosition vertical", { pos });
-      return pos;
+      return element.y;
     } else {
-      const pos = element.x;
-      //logger.debug("[ScrollingQueue] getElementPosition horizontal", { pos });
-      return pos;
+      return element.x;
     }
   }
 
   override update(deltaTime: number): void {
     super.update(deltaTime);
 
-    // SIMPLIFIED: All update logic disabled
-    // this.processPendingQueue();
+    // Check if any pending items are now PLAYING
+    this.processPending();
 
-    // // If any item size changed after async init, recalc targets
-    // let sizesChanged = false;
-    // for (const item of this.items) {
-    //   const size = this.getItemSize(item.element);
-    //   const prev = this.lastSizes.get(item.element);
-    //   if (prev !== size) {
-    //     this.lastSizes.set(item.element, size);
-    //     sizesChanged = true;
-    //   }
-    // }
-    // if (sizesChanged) {
-    //   this.recalculateTargets();
-    // }
+    // Phase 2, 3, & 4: Move items toward their targets, apply fade-in, handle fade-out
+    for (let i = this.items.length - 1; i >= 0; i--) {
+      const item = this.items[i];
+      const currentPos = this.getElementPosition(item.element);
+      const distance = item.targetPosition - currentPos;
+      const absDistance = Math.abs(distance);
 
-    // if (this.items.length === 0) return;
+      // Phase 4: Handle fade-out and removal
+      if (item.fadeInState === ItemState.FADE_OUT) {
+        item.fadeOutElapsed = (item.fadeOutElapsed ?? 0) + deltaTime;
+        const fadeOutProgress = Math.min(
+          1,
+          item.fadeOutElapsed / this.fadeOutDuration
+        );
+        item.element.opacity = Math.max(0, 1 - fadeOutProgress);
 
-    // // Calculate urgency multiplier based on how many items are not at target
-    // const itemsNotAtTarget = this.items.filter(
-    //   (item) =>
-    //     Math.abs(this.getElementPosition(item.element) - item.targetPosition) >
-    //     0.5
-    // ).length;
-    // const urgencyMultiplier = 1 + itemsNotAtTarget * this.urgencyFactor;
-    // const currentSpeed = this.baseSpeed * urgencyMultiplier;
+        // Remove item when fade-out complete
+        if (fadeOutProgress >= 1) {
+          this.removeChild(item.element);
+          item.element.finish();
+          this.items.splice(i, 1);
+          logger.info("[ScrollingQueue] item removed after fade-out", {
+            elementType: item.element.constructor.name,
+            remainingItems: this.items.length,
+          });
+          continue; // Skip remaining logic for this item
+        }
+      }
 
-    // // Update each item
-    // for (let i = this.items.length - 1; i >= 0; i--) {
-    //   const item = this.items[i];
-    //   const currentPos = this.getElementPosition(item.element);
+      // Phase 3: Apply fade-in
+      if (item.fadeInState === ItemState.FADE_IN) {
+        const distanceTraveled = Math.abs(currentPos - item.spawnPosition);
+        if (item.fadeDistance > 0) {
+          const fadeProgress = Math.min(
+            1,
+            distanceTraveled / item.fadeDistance
+          );
+          item.element.opacity = fadeProgress;
 
-    //   // State machine
-    //   switch (item.state) {
-    //     case ItemState.FADE_IN: {
-    //       const travelDistance = Math.abs(
-    //         item.spawnPosition - item.targetPosition
-    //       );
-    //       const distanceTraveled = Math.abs(item.spawnPosition - currentPos);
-    //       const fadeInThreshold = travelDistance * this.fadeInDistance;
+          // Transition to NORMAL when fade is complete
+          if (fadeProgress >= 1) {
+            item.element.opacity = 1;
+            item.fadeInState = ItemState.NORMAL;
+          }
+        } else {
+          // Zero fade distance - just set to 1
+          item.element.opacity = 1;
+          item.fadeInState = ItemState.NORMAL;
+        }
+      }
 
-    //       if (distanceTraveled < fadeInThreshold) {
-    //         const fadeInProgress =
-    //           fadeInThreshold > 0 ? distanceTraveled / fadeInThreshold : 1;
-    //         item.element.opacity = fadeInProgress;
-    //       } else {
-    //         item.element.opacity = 1;
-    //         item.state = ItemState.NORMAL;
-    //       }
-    //       break;
-    //     }
+      // Phase 6: Move toward target with spring-like lerp
+      if (absDistance > this.snapThreshold) {
+        // Frame-rate independent exponential decay
+        const frameNormalizedFactor = 1 - Math.pow(1 - this.lerpFactor, deltaTime / 16.67);
+        const movement = distance * frameNormalizedFactor;
+        const newPos = currentPos + movement;
+        this.setElementPosition(item.element, newPos);
+      } else {
+        // Snap to target when close enough
+        this.setElementPosition(item.element, item.targetPosition);
+      }
+    }
+  }
 
-    //     case ItemState.NORMAL: {
-    //       item.element.opacity = 1;
-    //       break;
-    //     }
+  override drawSelf(ctx: CanvasRenderingContext2D): void {
+    // Phase 1: Debug visualization - draw bounds around queue area
+    // This is called within the element's transformed context
+    if (this.items.length > 0) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 0, 255, 0.5)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
 
-    //     case ItemState.FADE_OUT: {
-    //       item.fadeOutElapsed = (item.fadeOutElapsed ?? 0) + deltaTime;
-    //       const fadeOutProgress = Math.min(
-    //         1,
-    //         item.fadeOutElapsed / this.fadeOutDuration
-    //       );
-    //       item.element.opacity = Math.max(0, 1 - fadeOutProgress);
+      // Draw a box showing the queue extent (in local coordinates)
+      if (this.isVertical()) {
+        const minY = Math.min(...this.items.map((it) => it.targetPosition));
+        const maxY = Math.max(
+          ...this.items.map(
+            (it) => it.targetPosition + this.getItemSize(it.element)
+          )
+        );
+        ctx.strokeRect(-10, minY, 500, maxY - minY);
+      } else {
+        const minX = Math.min(...this.items.map((it) => it.targetPosition));
+        const maxX = Math.max(
+          ...this.items.map(
+            (it) => it.targetPosition + this.getItemSize(it.element)
+          )
+        );
+        ctx.strokeRect(minX, -10, maxX - minX, 200);
+      }
 
-    //       // if (fadeOutProgress >= 1) {
-    //       //   // Remove from queue
-    //       //   this.removeChild(item.element);
-    //       //   this.items.splice(i, 1);
-    //       //   this.lastSizes.delete(item.element);
-    //       //   this.recalculateTargets();
-    //       //   continue; // Skip movement logic for removed items
-    //       // }
-    //       break;
-    //     }
-    //   }
-
-    //   // Move toward target (for all states)
-    //   const distance = item.targetPosition - currentPos;
-    //   const absDistance = Math.abs(distance);
-
-    //   if (absDistance > 0.1) {
-    //     let movement: number;
-
-    //     if (absDistance < this.lerpThreshold) {
-    //       // Smooth lerp when close
-    //       movement = distance * this.lerpFactor * (deltaTime / 1000);
-    //     } else {
-    //       // Constant velocity when far
-    //       const velocity = currentSpeed * (deltaTime / 1000);
-    //       movement = Math.sign(distance) * Math.min(absDistance, velocity);
-    //     }
-
-    //     this.setElementPosition(item.element, currentPos + movement);
-    //   }
-    // }
+      ctx.restore();
+    }
   }
 }

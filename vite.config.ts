@@ -7,6 +7,7 @@ export default {
     strictPort: true,
   },
   build: {
+    chunkSizeWarningLimit: 2000,
     outDir: "dist",
     emptyOutDir: true,
     minify: "terser",

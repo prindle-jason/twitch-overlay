@@ -38,12 +38,37 @@ export class DashboardClient {
     dvdBounceBtn: () => this.dispatchEffect("dvdBounce"),
     xJasonBtn: () => this.dispatchEffect("xJason"),
     richTextTestBtn: () => this.dispatchEffect("richTextTest"),
-    hypeChatBtn: () => this.dispatchEffect("hypeChat"),
+    hypeChatToggleBtn: () => this.dispatchEffect("hypeChat"),
     chatMessageTextBtn: () => this.dispatchEffect("chatMessageText"),
     newImageTestBtn: () => this.dispatchEffect("newImageTest"),
     tickerBtn: () => {
       const message = this.tickerInputEl.value.trim();
       this.dispatchEffect("ticker", message ? { message } : {});
+    },
+    tickerEmoteTestBtn: () => {
+      this.dispatchEffect("ticker", {
+        message: "This is a test KappaPride with emotes prndddLoading here!",
+        emotes: [
+          {
+            name: "KappaPride",
+            type: "Twitch",
+            imageUrl:
+              "https://static-cdn.jtvnw.net/emoticons/v2/55338/default/dark/2.0",
+            startIndex: 15,
+            endIndex: 24,
+            id: 55338,
+          },
+          {
+            name: "prndddLoading",
+            type: "Twitch",
+            imageUrl:
+              "https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_11fb52f3a8cc41d2bb599c22a8890c60/default/dark/2.0",
+            startIndex: 38,
+            endIndex: 50,
+            id: "emotesv2_11fb52f3a8cc41d2bb599c22a8890c60",
+          },
+        ],
+      });
     },
   };
 

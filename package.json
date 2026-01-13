@@ -7,8 +7,9 @@
     "start": "node dist/server/server.js",
     "dev": "npm run build && npm start",
     "build": "vite build && tsc -p tsconfig.server.json",
-    "build:client": "vite build",
-    "build:server": "tsc -p tsconfig.server.json"
+    "watch:client": "vite build --watch",
+    "watch:server": "tsc -p tsconfig.server.json --watch",
+    "dev:watch": "npm run build && concurrently \"npm run start\" \"npm run watch:client\" \"npm run watch:server\""
   },
   "dependencies": {
     "express": "^5.2.1",
@@ -22,6 +23,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.3",
     "@types/ws": "^8.18.1",
+    "concurrently": "^9.2.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.0"
   }

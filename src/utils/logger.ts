@@ -7,7 +7,7 @@ export enum LogLevel {
 }
 
 class Logger {
-  private level: LogLevel = LogLevel.DEBUG;
+  private level: LogLevel = LogLevel.INFO;
 
   setLevel(level: LogLevel): void {
     this.level = level;
