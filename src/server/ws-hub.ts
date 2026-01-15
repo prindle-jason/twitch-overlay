@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import http, { IncomingMessage } from "http";
 import type { ClientRole, ClientSession, WsMessage } from "./ws-types.js";
-import { WsMessageRouter } from "./ws-message-router.js";
+import { WsMessageRouter, HandlerResult } from "./ws-message-router.js";
 import { logger } from "../utils/logger.js";
 
 export class WsHub {
@@ -26,13 +26,8 @@ export class WsHub {
     ws.on("message", (data: Buffer) => {
       try {
         const msg = JSON.parse(data.toString()) as WsMessage;
-        this.router.handle(
-          session,
-          msg,
-          this.broadcast.bind(this),
-          this.sendToClient.bind(this),
-          () => this.addClientToRole(session)
-        );
+        const result = this.router.handle(session, msg);
+        this.executeHandlerResult(result, session);
       } catch (err) {
         logger.error(`[WS] Client #${id} message parse error:`, err);
       }
@@ -73,42 +68,53 @@ export class WsHub {
     }
   }
 
+  private executeHandlerResult(result: HandlerResult, session: ClientSession) {
+    switch (result.action) {
+      case "broadcast":
+        this.broadcast(result.message, result.targetRole);
+        break;
+
+      case "reply":
+        this.sendToClient(session, result.message);
+        break;
+
+      case "role-assigned":
+        this.addClientToRole(session);
+        this.sendToClient(session, result.message);
+        break;
+
+      case "none":
+        // Do nothing
+        break;
+    }
+  }
+
+  private getClientsByRole(role?: ClientRole): ClientSession[] {
+    if (role === "overlay") {
+      return Array.from(this.overlayClients.values());
+    }
+    if (role === "dashboard") {
+      return Array.from(this.dashboardClients.values());
+    }
+    // No role specified - return all clients
+    return [...this.overlayClients.values(), ...this.dashboardClients.values()];
+  }
+
   broadcast(payload: WsMessage, targetRole?: ClientRole) {
     const msgStr = JSON.stringify(payload);
-    const targetMap =
-      targetRole === "overlay"
-        ? this.overlayClients
-        : targetRole === "dashboard"
-        ? this.dashboardClients
-        : null;
+    const clients = this.getClientsByRole(targetRole);
 
     let sent = 0;
-
-    if (targetMap) {
-      for (const session of targetMap.values()) {
-        if (session.ws.readyState === WebSocket.OPEN) {
-          session.ws.send(msgStr);
-          sent++;
-        }
-      }
-    } else {
-      // Send to all
-      for (const session of this.overlayClients.values()) {
-        if (session.ws.readyState === WebSocket.OPEN) {
-          session.ws.send(msgStr);
-          sent++;
-        }
-      }
-      for (const session of this.dashboardClients.values()) {
-        if (session.ws.readyState === WebSocket.OPEN) {
-          session.ws.send(msgStr);
-          sent++;
-        }
+    for (const session of clients) {
+      if (session.ws.readyState === WebSocket.OPEN) {
+        session.ws.send(msgStr);
+        sent++;
       }
     }
 
-    const targetLabel = targetRole ? ` to ${targetRole}` : " to all";
+    // Log non-stats messages to avoid spam
     if (payload.type !== "stats-response" && payload.type !== "get-stats") {
+      const targetLabel = targetRole ? ` to ${targetRole}` : " to all";
       logger.debug(
         `[BROADCAST] sent to ${sent} client(s)${targetLabel}:`,
         payload

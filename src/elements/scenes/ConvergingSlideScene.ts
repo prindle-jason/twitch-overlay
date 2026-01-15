@@ -2,12 +2,9 @@ import { SceneElement } from "./SceneElement";
 import { SoundElement } from "../SoundElement";
 import { TranslateBehavior } from "../behaviors/TranslateBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
-import {
-  localImages,
-  type ImageKey,
-  type SoundKey,
-} from "../../core/resources";
+import { localImages, type SoundKey } from "../../core/resources";
 import { ImageElement } from "../ImageElement";
+import type { PoolId } from "../../utils/types";
 
 interface ConvergingCfg {
   duration?: number;
@@ -18,7 +15,7 @@ interface ConvergingCfg {
   fadeTime?: number;
 }
 
-export class ConvergingSlideScene extends SceneElement {
+class ConvergingSlideScene extends SceneElement {
   private cfg: ConvergingCfg;
   private bottomLeftImage: ImageElement | null = null;
   private bottomRightImage: ImageElement | null = null;
@@ -26,26 +23,6 @@ export class ConvergingSlideScene extends SceneElement {
 
   private scale: number;
   private fadeTime: number;
-
-  static createBamSuccess(): ConvergingSlideScene {
-    return new ConvergingSlideScene({
-      bottomLeftImageUrl: localImages.bubSuccess,
-      bottomRightImageUrl: localImages.bobSuccess,
-      soundKey: "bamHooray",
-      scale: 0.25,
-      fadeTime: 0.2,
-    });
-  }
-
-  static createBamFailure(): ConvergingSlideScene {
-    return new ConvergingSlideScene({
-      bottomLeftImageUrl: localImages.bubFailure,
-      bottomRightImageUrl: localImages.bobFailure,
-      soundKey: "bamUhOh",
-      scale: 0.25,
-      fadeTime: 0.2,
-    });
-  }
 
   constructor(cfg: ConvergingCfg) {
     super();
@@ -125,5 +102,35 @@ export class ConvergingSlideScene extends SceneElement {
         })
       );
     }
+  }
+}
+
+/** Bam Success scene variant - triggered by "bamSuccess" or "success" pools */
+export class BamSuccessScene extends ConvergingSlideScene {
+  static readonly poolIds: readonly PoolId[] = ["bamSuccess", "success"];
+
+  constructor() {
+    super({
+      bottomLeftImageUrl: localImages.bubSuccess,
+      bottomRightImageUrl: localImages.bobSuccess,
+      soundKey: "bamHooray",
+      scale: 0.25,
+      fadeTime: 0.2,
+    });
+  }
+}
+
+/** Bam Failure scene variant - triggered by "bamUhOh" or "failure" pools */
+export class BamFailureScene extends ConvergingSlideScene {
+  static readonly poolIds: readonly PoolId[] = ["bamUhOh", "failure"];
+
+  constructor() {
+    super({
+      bottomLeftImageUrl: localImages.bubFailure,
+      bottomRightImageUrl: localImages.bobFailure,
+      soundKey: "bamUhOh",
+      scale: 0.25,
+      fadeTime: 0.2,
+    });
   }
 }

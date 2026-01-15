@@ -25,6 +25,7 @@ export class WatermarkScene extends SceneElement {
   private fadeTime: number;
   private watermarkUrl: string;
   private image!: ImageElement;
+  static eventIds = ["watermark"];
 
   constructor(cfg: WatermarkCfg = {}) {
     super();

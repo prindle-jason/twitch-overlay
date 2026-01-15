@@ -1,76 +1,138 @@
-import type { ClientRole, ClientSession, WsMessage } from "./ws-types";
+import type {
+  ClientRole,
+  ClientSession,
+  HelloMessage,
+  PingMessage,
+  GetStatsMessage,
+  StatsResponseMessage,
+  SceneEventMessage,
+  SetSettingsMessage,
+  ClearScenesMessage,
+  WsMessage,
+} from "./ws-types";
 import { logger } from "../utils/logger.js";
 
-export type MessageHandler = (
+// Handler result types - what should happen after processing a message
+export type HandlerResult =
+  | { action: "broadcast"; message: WsMessage; targetRole?: ClientRole }
+  | { action: "reply"; message: WsMessage }
+  | { action: "role-assigned"; role: ClientRole; message: WsMessage }
+  | { action: "none" };
+
+export type MessageHandler<T extends WsMessage = WsMessage> = (
   session: ClientSession,
-  msg: WsMessage,
-  broadcast: (payload: WsMessage, targetRole?: ClientRole) => void,
-  sendToClient: (session: ClientSession, msg: WsMessage) => void,
-  onRoleAssigned?: () => void
-) => void;
+  msg: T
+) => HandlerResult;
 
 export class WsMessageRouter {
-  private readonly handlers: Record<string, MessageHandler> = {
-    hello: (session, msg, broadcast, sendToClient, onRoleAssigned) => {
-      session.role = msg.role ?? "overlay";
-      logger.info(`[WS] Client #${session.id} identified as "${session.role}"`);
-      if (onRoleAssigned) onRoleAssigned();
-      sendToClient(session, {
-        type: "hello-ack",
-        role: session.role,
-        ts: Date.now(),
-      });
+  private readonly handlers = {
+    hello: (session: ClientSession, msg: HelloMessage): HandlerResult => {
+      const role = msg.role ?? "overlay";
+      session.role = role;
+      logger.info(`[WS] Client #${session.id} identified as "${role}"`);
+      return {
+        action: "role-assigned",
+        role,
+        message: {
+          type: "hello-ack",
+          role,
+          ts: Date.now(),
+        },
+      };
     },
 
-    ping: (session, msg, broadcast, sendToClient) => {
-      sendToClient(session, { type: "pong", ts: Date.now() });
+    "hello-ack": (session: ClientSession, _msg: WsMessage): HandlerResult => {
+      return { action: "none" };
     },
 
-    "get-stats": (session, msg, broadcast, sendToClient) => {
+    ping: (session: ClientSession, _msg: PingMessage): HandlerResult => {
+      return {
+        action: "reply",
+        message: { type: "pong", ts: Date.now() },
+      };
+    },
+
+    pong: (session: ClientSession, _msg: WsMessage): HandlerResult => {
+      return { action: "none" };
+    },
+
+    "get-stats": (
+      session: ClientSession,
+      _msg: GetStatsMessage
+    ): HandlerResult => {
       if (session.role === "dashboard") {
-        broadcast({ type: "get-stats" }, "overlay");
+        return {
+          action: "broadcast",
+          message: { type: "get-stats" },
+          targetRole: "overlay",
+        };
       }
+      return { action: "none" };
     },
 
-    "stats-response": (session, msg, broadcast, sendToClient) => {
+    "stats-response": (
+      session: ClientSession,
+      msg: StatsResponseMessage
+    ): HandlerResult => {
       if (session.role === "overlay") {
-        broadcast(
-          { type: "stats-response", payload: msg.payload },
-          "dashboard"
-        );
+        return {
+          action: "broadcast",
+          message: msg,
+          targetRole: "dashboard",
+        };
       }
+      return { action: "none" };
     },
 
-    "effect-event": (session, msg, broadcast, sendToClient) => {
-      logger.info(`[WS] Client #${session.id} spawning effect:`, msg.payload);
-      broadcast({ type: "effect-event", payload: msg.payload }, "overlay");
+    "scene-event": (
+      session: ClientSession,
+      msg: SceneEventMessage
+    ): HandlerResult => {
+      logger.info(
+        `[WS] Client #${session.id} spawning effect: ${msg.sceneType}`,
+        msg.payload
+      );
+      return {
+        action: "broadcast",
+        message: msg,
+        targetRole: "overlay",
+      };
     },
 
-    "set-settings": (session, msg, broadcast, sendToClient) => {
-      logger.info(`[WS] Client #${session.id} set settings:`, msg.payload);
-      broadcast({ type: "set-settings", payload: msg.payload }, "overlay");
+    "set-settings": (
+      session: ClientSession,
+      msg: SetSettingsMessage
+    ): HandlerResult => {
+      logger.info(`[WS] Client #${session.id} set settings:`, msg.settings);
+      return {
+        action: "broadcast",
+        message: msg,
+        targetRole: "overlay",
+      };
     },
 
-    "clear-effects": (session, msg, broadcast, sendToClient) => {
-      logger.info(`[WS] Client #${session.id} clearing effects`);
-      broadcast({ type: "clear-effects" }, "overlay");
+    "clear-scenes": (
+      session: ClientSession,
+      msg: ClearScenesMessage
+    ): HandlerResult => {
+      logger.info(`[WS] Client #${session.id} clearing scenes`);
+      return {
+        action: "broadcast",
+        message: msg,
+        targetRole: "overlay",
+      };
     },
   };
 
-  handle(
-    session: ClientSession,
-    msg: WsMessage,
-    broadcast: (payload: WsMessage, targetRole?: ClientRole) => void,
-    sendToClient: (session: ClientSession, msg: WsMessage) => void,
-    onRoleAssigned?: () => void
-  ) {
+  handle(session: ClientSession, msg: WsMessage): HandlerResult {
     const handler = this.handlers[msg.type];
-    if (handler) {
-      handler(session, msg, broadcast, sendToClient, onRoleAssigned);
-    } else {
+    if (!handler) {
       logger.warn(
         `[WS] Client #${session.id} sent unhandled message type: ${msg.type}`
       );
+      return { action: "none" };
     }
+
+    return handler(session, msg as any);
   }
 }

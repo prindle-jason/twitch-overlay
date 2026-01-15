@@ -1,4 +1,4 @@
-import { SceneElement } from "./SceneElement";
+import { TriggerableSceneElement } from "./SceneElement";
 import { ConfettiScene } from "./ConfettiScene";
 import { DvdElement } from "../DvdElement";
 import { logger } from "../../utils/logger";
@@ -8,14 +8,20 @@ import { logger } from "../../utils/logger";
  * Instead of creating a new effect for each DVD, they all share one effect instance.
  * This allows for centralized control and potential interactions between DVDs.
  */
-export class PooledDvdScene extends SceneElement {
+export class DvdScene extends TriggerableSceneElement {
   constructor() {
     super();
     this.duration = -1; // SceneElement duration management
   }
 
-  async addDvd(opts?: Record<string, unknown>): Promise<void> {
-    this.children.push(new DvdElement());
+  override async init() {
+    this.addChild(new DvdElement());
+    await super.init();
+  }
+
+  handleTrigger(payload?: unknown): void {
+    //Add a new DVD
+    this.addChild(new DvdElement());
   }
 
   private spawnConfetti(): void {

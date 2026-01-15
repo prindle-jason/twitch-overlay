@@ -1,57 +1,73 @@
-import { SceneElement } from "../elements/scenes/SceneElement";
-import { CenteredImageScene } from "../elements/scenes/CenteredImageScene";
-import { WatermarkScene } from "../elements/scenes/WatermarkScene";
-import { ConfettiScene } from "../elements/scenes/ConfettiScene";
-import { ConvergingSlideScene } from "../elements/scenes/ConvergingSlideScene";
-import { HeadbladeScene } from "../elements/scenes/HeadbladeScene";
-import { TickerScene } from "../elements/scenes/TickerScene";
-import { XJasonScene } from "../elements/scenes/XJasonScene";
-import { RichTextTestScene } from "../elements/scenes/RichTextTestScene";
-import { HypeChatScene } from "../elements/scenes/HypeChatScene";
-import { ChatMessageTestScene } from "../elements/scenes/ChatMessageTestScene";
-import { ImageTestScene } from "../elements/scenes/ImageTestScene";
+import type { SceneElement } from "../elements/scenes/SceneElement";
+import type { PoolId } from "../utils/types";
 import { pickRandom } from "../utils/random";
-
-type SceneFactoryFn = (opts: Record<string, unknown>) => SceneElement;
+import * as Scenes from "../elements/scenes";
 
 /**
- * SceneFactory creates SceneElement instances.
+ * Factory function type for creating scenes
+ */
+type SceneFactoryFn = (payload?: unknown) => SceneElement;
+
+/**
+ * SceneFactory manages scene creation through factory functions.
+ * This avoids type issues with storing class constructors that have varied signatures.
  */
 export class SceneFactory {
-  private factories: Record<string, SceneFactoryFn>;
+  private static pools: Record<PoolId, SceneFactoryFn[]> = {
+    // Regular pools
+    ssbmSuccess: [(p) => new Scenes.SsbmSuccessScene()],
+    ssbmFail: [(p) => new Scenes.SsbmFailScene()],
+    bamSuccess: [(p) => new Scenes.BamSuccessScene()],
+    bamUhOh: [(p) => new Scenes.BamFailureScene()],
+    watermark: [(p) => new Scenes.WatermarkScene(p as any)],
+    confetti: [(p) => new Scenes.ConfettiScene(p as any)],
+    headblade: [(p) => new Scenes.HeadbladeScene(p as any)],
+    ticker: [(p) => new Scenes.TickerScene(p as any)],
+    xJason: [(p) => new Scenes.XJasonScene()],
 
-  constructor() {
-    this.factories = {
-      ssbmFail: () => CenteredImageScene.createSsbmFail(),
-      ssbmSuccess: () => CenteredImageScene.createSsbmSuccess(),
-      watermark: () => new WatermarkScene(),
-      confetti: () => new ConfettiScene(),
-      headblade: () => new HeadbladeScene(),
-      ticker: (opts) => new TickerScene(opts as any),
-      xJason: () => new XJasonScene(),
-      hypeChat: () => new HypeChatScene(),
-      chatMessageText: () => new ChatMessageTestScene(),
-      bamSuccess: () => ConvergingSlideScene.createBamSuccess(),
-      bamUhOh: () => ConvergingSlideScene.createBamFailure(),
-      richTextTest: () => new RichTextTestScene(),
-      newImageTest: () => new ImageTestScene(),
+    // Triggerable pools
+    hypeChat: [(p) => new Scenes.HypeChatScene()],
+    dvdBounce: [(p) => new Scenes.PooledDvdScene()],
 
-      success: (opts) => {
-        const scenes = ["ssbmSuccess", "bamSuccess"];
-        const choice = pickRandom(scenes);
-        return this.factories[choice](opts);
-      },
-      failure: (opts) => {
-        const scenes = ["ssbmFail", "bamUhOh"];
-        const choice = pickRandom(scenes);
-        return this.factories[choice](opts);
-      },
-    };
+    // Multi-variant pools
+    success: [
+      (p) => new Scenes.SsbmSuccessScene(),
+      (p) => new Scenes.BamSuccessScene(),
+    ],
+    failure: [
+      (p) => new Scenes.SsbmFailScene(),
+      (p) => new Scenes.BamFailureScene(),
+    ],
+
+    // Test pools
+    richTextTest: [(p) => new Scenes.RichTextTestScene()],
+    chatMessageTest: [(p) => new Scenes.ChatMessageTestScene()],
+    newImageTest: [(p) => new Scenes.ImageTestScene()],
+  };
+
+  /**
+   * Create a scene from a pool ID, optionally passing a payload.
+   * For multi-variant pools, picks a random factory.
+   */
+  static createScene(poolId: PoolId, payload?: unknown): SceneElement | null {
+    const factories = this.pools[poolId];
+    if (!factories?.length) return null;
+
+    const factory = pickRandom(factories);
+    return factory(payload);
   }
 
-  create(type: string, opts?: Record<string, unknown>): SceneElement | null {
-    if (!type || !this.factories[type]) return null;
-    const scene = this.factories[type](opts as any);
-    return scene;
+  /**
+   * Get all known pool IDs
+   */
+  static getPoolIds(): PoolId[] {
+    return Object.keys(this.pools) as PoolId[];
+  }
+
+  /**
+   * Check if a pool has any factories registered
+   */
+  static hasPool(poolId: PoolId): boolean {
+    return !!this.pools[poolId]?.length;
   }
 }

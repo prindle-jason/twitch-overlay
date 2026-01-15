@@ -1,11 +1,16 @@
 import { connectWS, getWS } from "./utils/wsUtil";
 import { Health } from "./utils/health";
 import { SceneManager } from "./core/SceneManager";
-import { SceneFactory } from "./core/SceneFactory";
 import { canvasConfig } from "./config";
 import { OverlaySettings } from "./core/OverlaySettings";
 import { setOverlayContainer } from "./utils/overlayContainer";
 import { logger } from "./utils/logger";
+import type {
+  WsMessage,
+  StatsResponseMessage,
+  SceneEventMessage,
+  SetSettingsMessage,
+} from "./server/ws-types";
 
 const canvasWidth = canvasConfig.W;
 const canvasHeight = canvasConfig.H;
@@ -27,7 +32,6 @@ canvas.width = canvasConfig.W;
 canvas.height = canvasConfig.H;
 
 const sceneManager = new SceneManager();
-const sceneFactory = new SceneFactory();
 const health = new Health();
 
 function startApp() {
@@ -67,39 +71,35 @@ function startApp() {
           effectsPlaying: counts.playing,
           wsReadyState: ws.readyState,
         });
-        ws.send(
-          JSON.stringify({
-            type: "stats-response",
-            payload: stats,
-          })
-        );
+        const response: StatsResponseMessage = {
+          type: "stats-response",
+          stats,
+        };
+        ws.send(JSON.stringify(response));
       } else {
         logger.warn("[overlay] ws not ready or not open");
       }
     }
 
-    if (msg.type === "effect-event") {
-      const effectType = msg.payload?.effectType as string;
-      logger.info("[overlay] handling effect event:", effectType, msg.payload);
+    if (msg.type === "scene-event") {
+      const sceneMsg = msg as SceneEventMessage;
+      logger.info(
+        "[overlay] handling scene event:",
+        sceneMsg.sceneType,
+        sceneMsg.payload
+      );
 
-      // Handle persistent effects separately
-      if (effectType === "dvdBounce") {
-        sceneManager.handleEvent(effectType, msg.payload);
-      } else {
-        // Create and add other effects through factory
-        const scene = sceneFactory.create(effectType, msg.payload);
-        if (scene) {
-          sceneManager.addScene(scene);
-        }
-      }
+      // Create and add scenes through manager
+      sceneManager.handleEvent(sceneMsg.sceneType as any, sceneMsg.payload);
     }
 
     if (msg.type === "set-settings") {
-      sceneManager.applySettings((msg.payload || {}) as OverlaySettings);
+      const settingsMsg = msg as SetSettingsMessage;
+      sceneManager.applySettings(settingsMsg.settings as OverlaySettings);
     }
 
-    if (msg.type === "clear-effects") {
-      logger.info("[overlay] clearing all effects");
+    if (msg.type === "clear-scenes") {
+      logger.info("[overlay] clearing all scenes");
       sceneManager.clearAll();
     }
   });

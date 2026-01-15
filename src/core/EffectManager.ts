@@ -1,15 +1,15 @@
 import { OverlaySettings } from "./OverlaySettings";
 import { SceneElement } from "../elements/scenes/SceneElement";
-import { PooledDvdScene } from "../elements/scenes/PooledDvdScene";
+import { DvdScene } from "../elements/scenes/DvdScene";
 
 export class SceneManager {
   private scenes: SceneElement[] = [];
-  private pooledDvdScene!: PooledDvdScene;
+  private pooledDvdScene!: DvdScene;
   private settings = new OverlaySettings();
 
   constructor() {
     // Create the pooled DVD effect that will always exist
-    this.pooledDvdScene = new PooledDvdScene();
+    this.pooledDvdScene = new DvdScene();
     this.addScene(this.pooledDvdScene);
   }
 

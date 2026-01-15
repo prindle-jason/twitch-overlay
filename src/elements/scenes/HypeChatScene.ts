@@ -1,4 +1,4 @@
-import { SceneElement } from "./SceneElement";
+import { TriggerableSceneElement } from "./SceneElement";
 import { ChatMessageElement } from "../ChatMessageElement";
 import {
   ScrollingQueueElement,
@@ -10,7 +10,7 @@ import { FakeChatProvider } from "../../utils/chat/FakeChatProvider";
 /**
  * Scene that displays a stream of chat messages using ScrollingQueueElement
  */
-export class HypeChatScene extends SceneElement {
+export class HypeChatScene extends TriggerableSceneElement {
   private chatProvider: FakeChatProvider;
   private scrollingQueueUp!: ScrollingQueueElement;
   private scrollingQueueDown?: ScrollingQueueElement;
@@ -214,5 +214,10 @@ export class HypeChatScene extends SceneElement {
     this.addChild(messageScheduler);
 
     await super.init();
+  }
+
+  handleTrigger(payload?: unknown): void {
+    //Finish
+    this.finish();
   }
 }

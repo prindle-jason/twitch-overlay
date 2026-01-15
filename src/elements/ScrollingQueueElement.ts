@@ -402,7 +402,8 @@ export class ScrollingQueueElement extends TransformElement {
       // Phase 6: Move toward target with spring-like lerp
       if (absDistance > this.snapThreshold) {
         // Frame-rate independent exponential decay
-        const frameNormalizedFactor = 1 - Math.pow(1 - this.lerpFactor, deltaTime / 16.67);
+        const frameNormalizedFactor =
+          1 - Math.pow(1 - this.lerpFactor, deltaTime / 16.67);
         const movement = distance * frameNormalizedFactor;
         const newPos = currentPos + movement;
         this.setElementPosition(item.element, newPos);

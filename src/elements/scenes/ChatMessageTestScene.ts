@@ -31,7 +31,7 @@ export class ChatMessageTestScene extends SceneElement {
       chatMsg.y = startY + i * messageGap;
 
       console.debug(
-        `[ChatMessageTextScene] Message ${i} at (${chatMsg.x}, ${chatMsg.y}): ${messages[i].username}: ${messages[i].message}`
+        `[ChatMessageTestScene] Message ${i} at (${chatMsg.x}, ${chatMsg.y}): ${messages[i].username}: ${messages[i].message}`
       );
 
       this.addChild(chatMsg);

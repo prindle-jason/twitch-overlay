@@ -1,23 +1,44 @@
 import { OverlaySettings } from "./OverlaySettings";
-import { SceneElement } from "../elements/scenes/SceneElement";
-import { PooledDvdScene } from "../elements/scenes/PooledDvdScene";
+import {
+  SceneElement,
+  TriggerableSceneElement,
+} from "../elements/scenes/SceneElement";
 import { logger } from "../utils/logger";
+import type { PoolId } from "../utils/types";
+import { SceneFactory } from "./SceneFactory";
 
 export class SceneManager {
   private scenes: SceneElement[] = [];
-  private pooledDvdScene!: PooledDvdScene;
   private settings = new OverlaySettings();
+  private triggerablePools = new Set<PoolId>(["hypeChat", "dvdBounce"]);
 
-  constructor() {
-    // Create the pooled DVD effect that will always exist
-    this.pooledDvdScene = new PooledDvdScene();
-    this.addScene(this.pooledDvdScene);
-  }
+  constructor() {}
 
-  handleEvent(type: string, opts?: Record<string, unknown>) {
-    // Handle dvdBounce specially - add to pool instead of creating new effect
-    if (type === "dvdBounce") {
-      this.pooledDvdScene.addDvd(opts);
+  /**
+   * Handle a scene pool event, creating new scenes or triggering existing ones.
+   */
+  handleEvent(poolId: PoolId, payload?: unknown): void {
+    if (!SceneFactory.hasPool(poolId)) {
+      logger.warn(`No scene factory for pool: ${poolId}`);
+      return;
+    }
+
+    // For triggerable pools, check if an instance already exists
+    if (this.triggerablePools.has(poolId)) {
+      const activeTriggerable = this.scenes.find(
+        (s) => s instanceof TriggerableSceneElement
+      ) as TriggerableSceneElement | undefined;
+
+      if (activeTriggerable) {
+        activeTriggerable.handleTrigger(payload);
+        return;
+      }
+    }
+
+    // Create new scene instance
+    const scene = SceneFactory.createScene(poolId, payload);
+    if (scene) {
+      this.addScene(scene);
     }
   }
 
@@ -78,15 +99,8 @@ export class SceneManager {
   }
 
   clearAll() {
-    // Clear contents of pooled effect but keep it alive
-    this.pooledDvdScene.clear();
-
-    // Clear all other items
-    this.scenes
-      .filter((scene) => scene !== this.pooledDvdScene)
-      .forEach((scene) => scene.finish());
-
-    // Keep only the pooled effect
-    this.scenes = [this.pooledDvdScene];
+    // Clear all active scenes
+    this.scenes.forEach((scene) => scene.finish());
+    this.scenes = [];
   }
 }

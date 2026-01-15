@@ -4,6 +4,7 @@ import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { type SoundKey, localImages } from "../../core/resources";
 import { ImageElement } from "../ImageElement";
+import type { PoolId } from "../../utils/types";
 
 interface CenteredImageSceneCfg {
   imageUrl: string;
@@ -12,27 +13,11 @@ interface CenteredImageSceneCfg {
   fadeTime?: number;
 }
 
-export class CenteredImageScene extends SceneElement {
+class CenteredImageScene extends SceneElement {
   private cfg: CenteredImageSceneCfg;
   private image: ImageElement | null = null;
   private soundElement: SoundElement | null = null;
   private fadeTime: number;
-
-  static createSsbmSuccess(): CenteredImageScene {
-    return new CenteredImageScene({
-      imageUrl: localImages.ssbmSuccess,
-      soundKey: "ssbmSuccess",
-      fadeTime: 0.25,
-    });
-  }
-
-  static createSsbmFail(): CenteredImageScene {
-    return new CenteredImageScene({
-      imageUrl: localImages.ssbmFailure,
-      soundKey: "ssbmFail",
-      fadeTime: 0.25,
-    });
-  }
 
   constructor(cfg: CenteredImageSceneCfg) {
     super();
@@ -42,7 +27,6 @@ export class CenteredImageScene extends SceneElement {
 
   override async init(): Promise<void> {
     this.image = new ImageElement({ imageUrl: this.cfg.imageUrl });
-    //this.image = new ImageElement({ imageKey: this.cfg.imageUrl });
     this.image.addChild(new FadeInOutBehavior({ fadeTime: this.fadeTime }));
     this.addChild(this.image);
 
@@ -72,5 +56,31 @@ export class CenteredImageScene extends SceneElement {
     }
 
     super.play();
+  }
+}
+
+/** SSBM Success scene variant - triggered by "ssbmSuccess" or "success" pools */
+export class SsbmSuccessScene extends CenteredImageScene {
+  static readonly poolIds: readonly PoolId[] = ["ssbmSuccess", "success"];
+
+  constructor() {
+    super({
+      imageUrl: localImages.ssbmSuccess,
+      soundKey: "ssbmSuccess",
+      fadeTime: 0.25,
+    });
+  }
+}
+
+/** SSBM Fail scene variant - triggered by "ssbmFail" or "failure" pools */
+export class SsbmFailScene extends CenteredImageScene {
+  static readonly poolIds: readonly PoolId[] = ["ssbmFail", "failure"];
+
+  constructor() {
+    super({
+      imageUrl: localImages.ssbmFailure,
+      soundKey: "ssbmFail",
+      fadeTime: 0.25,
+    });
   }
 }
