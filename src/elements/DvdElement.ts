@@ -5,7 +5,7 @@ import { ScreenCornerDetectionBehavior } from "./behaviors/ScreenCornerDetection
 import { HueCycleBehavior } from "./behaviors/HueCycleBehavior";
 import { pickRandomByWeight } from "../utils/random";
 import { calculateScaleForMax } from "../utils/dimensionUtils";
-import { getCanvasConfig } from "../config";
+import { configProps } from "../core/configProps";
 import { localImages, type ImageKey, type SoundKey } from "../core/resources";
 import { Element } from "./Element";
 
@@ -73,7 +73,7 @@ export class DvdElement extends Element {
   }
 
   play(): void {
-    const { W, H } = getCanvasConfig();
+    const { W, H } = configProps.canvas;
 
     this.updateDimensions();
     this.imageElement.x = Math.random() * (W - this.imageElement.getWidth());
@@ -83,7 +83,7 @@ export class DvdElement extends Element {
   }
 
   private createImage(option: DvdOption): void {
-    const { W, H } = getCanvasConfig();
+    const { W, H } = configProps.canvas;
     this.imageElement = new ImageElement({ imageUrl: option.imageUrl });
 
     const velocity = Math.random() + 2;

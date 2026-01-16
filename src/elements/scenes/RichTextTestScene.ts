@@ -9,6 +9,7 @@ import { Emote } from "../../utils/chat/chatTypes";
  * Test scene for RichTextElement with various configurations
  */
 export class RichTextTestScene extends SceneElement {
+  readonly type = "richTextTest" as const;
   private pendingScales: Array<{
     image: ImageElement;
     targetHeight: number;

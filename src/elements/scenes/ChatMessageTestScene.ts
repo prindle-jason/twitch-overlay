@@ -6,6 +6,7 @@ import { FakeChatProvider } from "../../utils/chat/FakeChatProvider";
  * Simple test scene with 20 manually positioned chat messages
  */
 export class ChatMessageTestScene extends SceneElement {
+  readonly type = "chatMessageTest" as const;
   private chatProvider: FakeChatProvider;
 
   constructor() {

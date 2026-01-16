@@ -1,4 +1,7 @@
-import type { StatsResponseMessage } from "../server/ws-types";
+import type {
+  StatsResponseMessage,
+  HypeChatSettings,
+} from "../server/ws-types";
 
 type ButtonCallback = () => void;
 type SliderCallback = (value: number) => void;
@@ -13,6 +16,17 @@ export class DashboardUI {
   private stabilitySliderEl: HTMLInputElement;
   private stabilityValueEl: HTMLElement;
   private logLevelSelectEl: HTMLSelectElement;
+  // HypeChat slider elements
+  private messageRateSliderEl: HTMLElement | null = null;
+  private minRateValueEl: HTMLElement | null = null;
+  private maxRateValueEl: HTMLElement | null = null;
+  private lerpFactorSliderEl: HTMLInputElement | null = null;
+  private lerpFactorValueEl: HTMLElement | null = null;
+  // HypeChat current values + change callback
+  private currentMinMessageRate: number = 200;
+  private currentMaxMessageRate: number = 500;
+  private currentLerpFactor: number = 0.5;
+  private hypeChatChangeHandler: (() => void) | null = null;
 
   private buttonCallbacks = new Map<string, ButtonCallback>();
   private sliderCallbacks = new Map<string, SliderCallback>();
@@ -27,9 +41,18 @@ export class DashboardUI {
     this.stabilitySliderEl = this.getEl("stabilitySlider") as HTMLInputElement;
     this.stabilityValueEl = this.getEl("stabilityValue");
     this.logLevelSelectEl = this.getEl("logLevelSelect") as HTMLSelectElement;
+    // Optional HypeChat UI elements (may not exist in all builds)
+    this.messageRateSliderEl = document.getElementById("messageRateSlider");
+    this.minRateValueEl = document.getElementById("minRateValue");
+    this.maxRateValueEl = document.getElementById("maxRateValue");
+    this.lerpFactorSliderEl = document.getElementById(
+      "lerpFactorSlider"
+    ) as HTMLInputElement | null;
+    this.lerpFactorValueEl = document.getElementById("lerpFactorValue");
 
     this.initializeSliders();
     this.initializeLogLevel();
+    this.initializeHypeChatSlider();
   }
 
   private getEl(id: string): HTMLElement {
@@ -52,6 +75,18 @@ export class DashboardUI {
       const callback = this.sliderCallbacks.get("stability");
       if (callback) callback(value);
     });
+
+    // Lerp factor: update display only (no controller wiring)
+    if (this.lerpFactorSliderEl && this.lerpFactorValueEl) {
+      const update = () => {
+        const v = Number(this.lerpFactorSliderEl!.value);
+        this.currentLerpFactor = v;
+        this.lerpFactorValueEl!.textContent = v.toFixed(2);
+        if (this.hypeChatChangeHandler) this.hypeChatChangeHandler();
+      };
+      this.lerpFactorSliderEl.addEventListener("change", update);
+      update();
+    }
   }
 
   private initializeLogLevel(): void {
@@ -122,5 +157,60 @@ export class DashboardUI {
       "tickerInput"
     ) as HTMLInputElement | null;
     return input?.value.trim() || "";
+  }
+
+  // Initialize the dual-thumb Message Rate slider via module import (UI only)
+  private async initializeHypeChatSlider(): Promise<void> {
+    try {
+      if (
+        !this.messageRateSliderEl ||
+        !this.minRateValueEl ||
+        !this.maxRateValueEl
+      ) {
+        return;
+      }
+      const mod: any = await import("nouislider");
+      const noUiSlider = mod?.default ?? mod;
+      const slider = noUiSlider.create(this.messageRateSliderEl, {
+        start: [this.currentMinMessageRate, this.currentMaxMessageRate],
+        connect: false,
+        step: 20,
+        range: { min: 20, max: 1500 },
+        tooltips: [false, false],
+      });
+
+      slider.on(
+        "change",
+        (
+          _values: (number | string)[],
+          _handle: number,
+          unencoded: number[]
+        ) => {
+          const minVal = Math.round(unencoded[0]);
+          const maxVal = Math.round(unencoded[1]);
+          this.currentMinMessageRate = minVal;
+          this.currentMaxMessageRate = maxVal;
+          this.minRateValueEl!.textContent = `${minVal}ms`;
+          this.maxRateValueEl!.textContent = `${maxVal}ms`;
+          if (this.hypeChatChangeHandler) this.hypeChatChangeHandler();
+        }
+      );
+    } catch (err) {
+      // If module import fails, keep UI graceful without throwing
+      console.warn("Failed to initialize noUiSlider:", err);
+    }
+  }
+
+  onHypeChatChange(handler: () => void): void {
+    this.hypeChatChangeHandler = handler;
+  }
+
+  getHypeChatSettings(): HypeChatSettings {
+    return {
+      target: "hypeChat",
+      minMessageRate: this.currentMinMessageRate,
+      maxMessageRate: this.currentMaxMessageRate,
+      lerpFactor: this.currentLerpFactor,
+    };
   }
 }

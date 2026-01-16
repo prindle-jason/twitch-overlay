@@ -4,7 +4,7 @@ import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { type SoundKey, localImages } from "../../core/resources";
 import { ImageElement } from "../ImageElement";
-import type { PoolId } from "../../utils/types";
+import type { PoolType } from "../../utils/types";
 
 interface CenteredImageSceneCfg {
   imageUrl: string;
@@ -13,7 +13,7 @@ interface CenteredImageSceneCfg {
   fadeTime?: number;
 }
 
-class CenteredImageScene extends SceneElement {
+abstract class CenteredImageScene extends SceneElement {
   private cfg: CenteredImageSceneCfg;
   private image: ImageElement | null = null;
   private soundElement: SoundElement | null = null;
@@ -61,7 +61,8 @@ class CenteredImageScene extends SceneElement {
 
 /** SSBM Success scene variant - triggered by "ssbmSuccess" or "success" pools */
 export class SsbmSuccessScene extends CenteredImageScene {
-  static readonly poolIds: readonly PoolId[] = ["ssbmSuccess", "success"];
+  readonly type = "ssbmSuccess" as const;
+  static readonly poolIds: readonly PoolType[] = ["ssbmSuccess", "success"];
 
   constructor() {
     super({
@@ -74,7 +75,8 @@ export class SsbmSuccessScene extends CenteredImageScene {
 
 /** SSBM Fail scene variant - triggered by "ssbmFail" or "failure" pools */
 export class SsbmFailScene extends CenteredImageScene {
-  static readonly poolIds: readonly PoolId[] = ["ssbmFail", "failure"];
+  readonly type = "ssbmFail" as const;
+  static readonly poolIds: readonly PoolType[] = ["ssbmFail", "failure"];
 
   constructor() {
     super({

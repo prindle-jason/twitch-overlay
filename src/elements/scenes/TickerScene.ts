@@ -20,6 +20,7 @@ interface TickerConfig {
 type TickerState = "FADE_IN" | "TEXT_SCROLLING" | "FADE_OUT" | "FINISHED";
 
 export class TickerScene extends SceneElement {
+  readonly type = "ticker" as const;
   private message: string;
   private emotes: Emote[];
   private tickerState: TickerState = "FADE_IN";

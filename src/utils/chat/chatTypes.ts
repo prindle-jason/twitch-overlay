@@ -26,7 +26,7 @@ export interface Emote {
  * Designed to work with both Streamer.bot data and fake chat generation
  */
 export interface ChatMessage {
-  userId: string; // Unique identifier for the user
+  userId?: string; // Unique identifier for the user
   username: string; // Display name shown in chat (case-sensitive)
   usernameLogin?: string; // Login name (lowercase, optional)
   message: string; // The actual message content (emotes rendered at their positions)

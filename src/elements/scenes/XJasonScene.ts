@@ -22,6 +22,7 @@ const IMAGE_OPTIONS: readonly ImageOption[] = [
 
 /** Plays an audio file while spawning images around the screen */
 export class XJasonScene extends SceneElement {
+  readonly type = "xJason" as const;
   private readonly imageIntervalRange: Range = { min: 300, max: 1000 };
   private readonly imageDurationRange: Range = { min: 1200, max: 1600 };
   private readonly imageWidthRange: Range = { min: 250, max: 1500 };

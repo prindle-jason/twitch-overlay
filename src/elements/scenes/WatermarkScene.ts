@@ -22,6 +22,7 @@ interface WatermarkCfg {
 }
 
 export class WatermarkScene extends SceneElement {
+  readonly type = "watermark" as const;
   private fadeTime: number;
   private watermarkUrl: string;
   private image!: ImageElement;

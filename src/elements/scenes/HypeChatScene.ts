@@ -6,218 +6,122 @@ import {
 } from "../ScrollingQueueElement";
 import { SchedulerElement } from "../SchedulerElement";
 import { FakeChatProvider } from "../../utils/chat/FakeChatProvider";
+import type { HypeChatSettings } from "../../server/ws-types";
+import { Range } from "../../utils/random";
 
 /**
  * Scene that displays a stream of chat messages using ScrollingQueueElement
  */
 export class HypeChatScene extends TriggerableSceneElement {
+  readonly type = "hypeChat" as const;
   private chatProvider: FakeChatProvider;
-  private scrollingQueueUp!: ScrollingQueueElement;
-  private scrollingQueueDown?: ScrollingQueueElement;
-  private scrollingQueueLeft?: ScrollingQueueElement;
-  private scrollingQueueRight?: ScrollingQueueElement;
+  private scrollQueue!: ScrollingQueueElement;
+  private messageScheduler!: SchedulerElement;
 
-  // Debug flags to enable/disable individual queues for testing
-  private readonly ENABLE_UP = true;
-  private readonly ENABLE_DOWN = false;
-  private readonly ENABLE_LEFT = false;
-  private readonly ENABLE_RIGHT = false;
+  // Configurable settings
+  private minMessageRate: number = 1500; // ms
+  private maxMessageRate: number = 2500; // ms
+  private lerpFactor: number = 0.5;
 
-  constructor() {
+  constructor(payload?: Record<string, unknown>) {
     super();
     this.chatProvider = new FakeChatProvider();
+
+    // Apply settings from payload if provided
+    if (payload && typeof payload === "object") {
+      const config = payload as Partial<HypeChatSettings>;
+      if (config.minMessageRate !== undefined)
+        this.minMessageRate = config.minMessageRate;
+      if (config.maxMessageRate !== undefined)
+        this.maxMessageRate = config.maxMessageRate;
+      if (config.lerpFactor !== undefined) this.lerpFactor = config.lerpFactor;
+    }
   }
 
   override async init(): Promise<void> {
-    // Create UP queue (scrolls upward, positioned on left side, bottom area)
-    if (this.ENABLE_UP) {
-      const queueUp = new ScrollingQueueElement({
-        direction: ScrollDirection.UP,
-        maxItems: 10,
-        itemGap: 4,
-      });
-      queueUp.x = 50;
-      queueUp.y = 700;
-      this.scrollingQueueUp = queueUp;
-      this.addChild(this.scrollingQueueUp);
-    }
+    const queue = new ScrollingQueueElement({
+      direction: ScrollDirection.UP,
+      maxItems: 25,
+      itemGap: 8,
+      lerpFactor: this.lerpFactor,
+    });
+    queue.x = this.W - 500;
+    queue.y = this.H - 50;
+    this.scrollQueue = queue;
+    this.addChild(this.scrollQueue);
 
-    // Create DOWN queue (scrolls downward, positioned on right side, top area)
-    if (this.ENABLE_DOWN) {
-      this.scrollingQueueDown = new ScrollingQueueElement({
-        direction: ScrollDirection.DOWN,
-        maxItems: 15,
-        itemGap: 4,
-      });
-      this.scrollingQueueDown.x = 800;
-      this.scrollingQueueDown.y = 200;
-      this.addChild(this.scrollingQueueDown);
-    }
+    // const initialMessages = this.chatProvider.generateMessages(2);
+    // for (const message of initialMessages) {
+    //   const chatMsg = new ChatMessageElement(message, {
+    //     fontSize: 18,
+    //     emoteHeight: 22,
+    //     badgeHeight: 16,
+    //     gap: 4,
+    //     badgeGap: 6,
+    //   });
+    //   console.debug(
+    //     `[HypeChatScene] Initial UP message from ${message.username}: ${message.message}`
+    //   );
+    //   this.scrollingQueueUp.addItem(chatMsg);
+    // }
 
-    // Create LEFT queue (scrolls leftward from right, lower-middle area)
-    if (this.ENABLE_LEFT) {
-      this.scrollingQueueLeft = new ScrollingQueueElement({
-        direction: ScrollDirection.LEFT,
-        maxItems: 15,
-        itemGap: 4,
-      });
-      this.scrollingQueueLeft.x = 1750;
-      this.scrollingQueueLeft.y = 800;
-      this.addChild(this.scrollingQueueLeft);
-    }
-
-    // Create RIGHT queue (scrolls rightward from left, bottom area)
-    if (this.ENABLE_RIGHT) {
-      this.scrollingQueueRight = new ScrollingQueueElement({
-        direction: ScrollDirection.RIGHT,
-        maxItems: 15,
-        itemGap: 4,
-      });
-      this.scrollingQueueRight.x = 50;
-      this.scrollingQueueRight.y = 900;
-      this.addChild(this.scrollingQueueRight);
-    }
-
-    // Add initial messages to UP queue (2 messages)
-    if (this.ENABLE_UP && this.scrollingQueueUp) {
-      const initialMessages = this.chatProvider.generateMessages(2);
-      for (const message of initialMessages) {
-        const chatMsg = new ChatMessageElement(message, {
-          fontSize: 18,
-          emoteHeight: 22,
-          badgeHeight: 16,
-          gap: 4,
-          badgeGap: 6,
-        });
-        console.debug(
-          `[HypeChatScene] Initial UP message from ${message.username}: ${message.message}`
-        );
-        this.scrollingQueueUp.addItem(chatMsg);
-      }
-    }
-
-    // Add initial messages to DOWN queue if enabled (2 messages)
-    if (this.ENABLE_DOWN && this.scrollingQueueDown) {
-      const downMessages = this.chatProvider.generateMessages(2);
-      for (const message of downMessages) {
-        const chatMsg = new ChatMessageElement(message, {
-          fontSize: 18,
-          emoteHeight: 22,
-          badgeHeight: 16,
-          gap: 4,
-          badgeGap: 6,
-        });
-        console.debug(
-          `[HypeChatScene] Initial DOWN message from ${message.username}: ${message.message}`
-        );
-        this.scrollingQueueDown.addItem(chatMsg);
-      }
-    }
-
-    // Add initial messages to LEFT queue if enabled (2 messages)
-    if (this.ENABLE_LEFT && this.scrollingQueueLeft) {
-      const leftMessages = this.chatProvider.generateMessages(2);
-      for (const message of leftMessages) {
-        const chatMsg = new ChatMessageElement(message, {
-          fontSize: 18,
-          emoteHeight: 22,
-          badgeHeight: 16,
-          gap: 4,
-          badgeGap: 6,
-        });
-        console.debug(
-          `[HypeChatScene] Initial LEFT message from ${message.username}: ${message.message}`
-        );
-        this.scrollingQueueLeft.addItem(chatMsg);
-      }
-    }
-
-    // Add initial messages to RIGHT queue if enabled (2 messages)
-    if (this.ENABLE_RIGHT && this.scrollingQueueRight) {
-      const rightMessages = this.chatProvider.generateMessages(2);
-      for (const message of rightMessages) {
-        const chatMsg = new ChatMessageElement(message, {
-          fontSize: 18,
-          emoteHeight: 22,
-          badgeHeight: 16,
-          gap: 4,
-          badgeGap: 6,
-        });
-        console.debug(
-          `[HypeChatScene] Initial RIGHT message from ${message.username}: ${message.message}`
-        );
-        this.scrollingQueueRight.addItem(chatMsg);
-      }
-    }
-
-    // Create scheduler to add messages every 3 seconds to all active queues
-    const messageScheduler = new SchedulerElement({
-      interval: 2000,
+    // Create scheduler to add messages at configurable rate to all active queues
+    this.messageScheduler = new SchedulerElement({
+      interval: this.calculateInterval(),
       onTick: () => {
-        const messages = this.chatProvider.generateMessages(1);
-        const message = messages[0];
+        const message = this.chatProvider.generateMessage();
 
-        console.debug(
-          `[HypeChatScene] Generated message from ${message.username}: ${message.message}`
-        );
-
-        // Add to UP queue if enabled
-        if (this.ENABLE_UP && this.scrollingQueueUp) {
-          const chatMsgUp = new ChatMessageElement(message, {
-            fontSize: 18,
-            emoteHeight: 22,
-            badgeHeight: 16,
-            gap: 4,
-            badgeGap: 6,
-          });
-          this.scrollingQueueUp.addItem(chatMsgUp);
-        }
-
-        // Add to DOWN queue if enabled
-        if (this.ENABLE_DOWN && this.scrollingQueueDown) {
-          const chatMsgDown = new ChatMessageElement(message, {
-            fontSize: 18,
-            emoteHeight: 22,
-            badgeHeight: 16,
-            gap: 4,
-            badgeGap: 6,
-          });
-          this.scrollingQueueDown.addItem(chatMsgDown);
-        }
-
-        // Add to LEFT queue if enabled
-        if (this.ENABLE_LEFT && this.scrollingQueueLeft) {
-          const chatMsgLeft = new ChatMessageElement(message, {
-            fontSize: 18,
-            emoteHeight: 22,
-            badgeHeight: 16,
-            gap: 4,
-            badgeGap: 6,
-          });
-          this.scrollingQueueLeft.addItem(chatMsgLeft);
-        }
-
-        // Add to RIGHT queue if enabled
-        if (this.ENABLE_RIGHT && this.scrollingQueueRight) {
-          const chatMsgRight = new ChatMessageElement(message, {
-            fontSize: 18,
-            emoteHeight: 22,
-            badgeHeight: 16,
-            gap: 4,
-            badgeGap: 6,
-          });
-          this.scrollingQueueRight.addItem(chatMsgRight);
-        }
+        const chatMsg = new ChatMessageElement(message, {
+          fontSize: 24,
+          font: "'Inter', 'Segoe UI', sans-serif",
+          emoteHeight: 28,
+          badgeHeight: 22,
+          gap: 6,
+        });
+        this.scrollQueue.addItem(chatMsg);
       },
     });
 
-    this.addChild(messageScheduler);
+    this.addChild(this.messageScheduler);
 
     await super.init();
+  }
+
+  /**
+   * Calculate interval based on min/max rates and lerpFactor.
+   * lerpFactor interpolates between min and max: 0 = max rate, 1 = min rate
+   */
+  private calculateInterval(): number {
+    return (
+      this.maxMessageRate -
+      (this.maxMessageRate - this.minMessageRate) * this.lerpFactor
+    );
   }
 
   handleTrigger(payload?: unknown): void {
     //Finish
     this.finish();
+  }
+
+  override onSceneConfig(config: HypeChatSettings): void {
+    if (config.minMessageRate !== undefined)
+      this.minMessageRate = config.minMessageRate;
+    if (config.maxMessageRate !== undefined)
+      this.maxMessageRate = config.maxMessageRate;
+    if (config.lerpFactor !== undefined) {
+      this.lerpFactor = config.lerpFactor;
+      this.scrollQueue.setLerpFactor(this.lerpFactor);
+    }
+
+    if (
+      config.minMessageRate !== undefined ||
+      config.maxMessageRate !== undefined
+    ) {
+      // Recalculate interval (all three affect it anyway)
+      this.messageScheduler.setInterval({
+        min: this.minMessageRate,
+        max: this.maxMessageRate,
+      });
+    }
   }
 }

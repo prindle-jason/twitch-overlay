@@ -7,6 +7,7 @@ import { GridLayoutElement } from "../GridLayoutElement";
  * Test scene for ImageElement with various URL types
  */
 export class ImageTestScene extends SceneElement {
+  readonly type = "newImageTest" as const;
   override async init(): Promise<void> {
     const testCases: Array<{
       name: string;

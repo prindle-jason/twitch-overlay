@@ -4,39 +4,53 @@ import {
   TriggerableSceneElement,
 } from "../elements/scenes/SceneElement";
 import { logger } from "../utils/logger";
-import type { PoolId } from "../utils/types";
+import type { PoolType, SceneType } from "../utils/types";
+import type { Settings } from "../server/ws-types";
 import { SceneFactory } from "./SceneFactory";
 
 export class SceneManager {
   private scenes: SceneElement[] = [];
   private settings = new OverlaySettings();
-  private triggerablePools = new Set<PoolId>(["hypeChat", "dvdBounce"]);
+  private triggerableSceneTypes = new Set<SceneType>(["hypeChat", "dvdBounce"]);
 
   constructor() {}
 
   /**
    * Handle a scene pool event, creating new scenes or triggering existing ones.
    */
-  handleEvent(poolId: PoolId, payload?: unknown): void {
-    if (!SceneFactory.hasPool(poolId)) {
-      logger.warn(`No scene factory for pool: ${poolId}`);
-      return;
-    }
+  handleSceneEvent(sceneType: SceneType, payload?: unknown): void {
+    // if (!SceneFactory.hasPool(poolId)) {
+    //   logger.warn(`No scene factory for pool: ${poolId}`);
+    //   return;
+    // }
 
-    // For triggerable pools, check if an instance already exists
-    if (this.triggerablePools.has(poolId)) {
-      const activeTriggerable = this.scenes.find(
-        (s) => s instanceof TriggerableSceneElement
-      ) as TriggerableSceneElement | undefined;
+    // For triggerable scenes, check if an instance already exists
+    if (this.triggerableSceneTypes.has(sceneType)) {
+      const activeTriggerables = this.scenes.filter(
+        (s) => s instanceof TriggerableSceneElement && s.type === sceneType
+      ) as TriggerableSceneElement[];
 
-      if (activeTriggerable) {
-        activeTriggerable.handleTrigger(payload);
+      if (activeTriggerables.length > 0) {
+        activeTriggerables.forEach((s) => s.handleTrigger(payload));
         return;
       }
     }
 
     // Create new scene instance
-    const scene = SceneFactory.createScene(poolId, payload);
+    const scene = SceneFactory.createScene(sceneType, payload);
+    if (scene) {
+      this.addScene(scene);
+    }
+  }
+
+  handlePoolEvent(poolType: PoolType, payload?: unknown): void {
+    if (!SceneFactory.hasPool(poolType)) {
+      logger.warn(`No scene factory for pool: ${poolType}`);
+      return;
+    }
+
+    // Create new scene instance
+    const scene = SceneFactory.createSceneFromPool(poolType, payload);
     if (scene) {
       this.addScene(scene);
     }
@@ -59,6 +73,21 @@ export class SceneManager {
 
     // Notify all active items of the settings change
     this.scenes.forEach((scene) => scene.onSettingsChanged(this.settings));
+  }
+
+  /**
+   * Configure a running scene by its type identifier.
+   * Only sends config to scenes that are currently active.
+   */
+  configureScene(sceneType: string, config: Settings) {
+    const targetScene = this.scenes.find((s) => s.type === sceneType);
+    if (targetScene) {
+      targetScene.onSceneConfig(config);
+    } else {
+      logger.debug(
+        `[SceneManager] No active scene of type ${sceneType} to configure`
+      );
+    }
   }
 
   update(ctx: CanvasRenderingContext2D, deltaTime: number) {

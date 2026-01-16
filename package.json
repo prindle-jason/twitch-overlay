@@ -16,6 +16,7 @@
     "gifuct-js": "^2.1.2",
     "libwebp-wasm": "^0.1.6",
     "node-fetch": "^3.3.2",
+    "nouislider": "^15.8.1",
     "terser": "^5.44.1",
     "ws": "^8.18.3"
   },

@@ -48,11 +48,6 @@ export class SchedulerElement extends Element {
   override update(deltaTime: number): void {
     super.update(deltaTime);
 
-    if (this.isFinished()) {
-      this.finish();
-      return;
-    }
-
     this.timeSinceLastTick += deltaTime;
 
     while (
@@ -77,6 +72,22 @@ export class SchedulerElement extends Element {
   reset(): void {
     this.timeSinceLastTick = 0;
     this.ticks = 0;
+    this.nextInterval = this.getRandomInterval();
+  }
+
+  /**
+   * Update the interval dynamically.
+   * @param interval Either a fixed number or a Range for random intervals
+   */
+  setInterval(interval: number | Range): void {
+    if (typeof interval === "number") {
+      this.intervalMin = interval;
+      this.intervalMax = interval;
+    } else {
+      this.intervalMin = interval.min;
+      this.intervalMax = interval.max;
+    }
+
     this.nextInterval = this.getRandomInterval();
   }
 }

@@ -1,116 +1,23 @@
 import { ChatDataProvider, ChatMessage, Badge, Emote } from "./chatTypes";
+import {
+  messageTemplates,
+  emotes,
+  usernameAdjectives,
+  usernameNouns,
+  usernameColors,
+  badgePool,
+} from "./fakeChatData";
 
 /**
  * Generates fake chat messages for testing and demonstration
  */
 export class FakeChatProvider extends ChatDataProvider {
-  private messageTemplates = [
-    "nice play!",
-    "Pog",
-    "no way",
-    "sick",
-    "GOOOOO",
-    "let's go!",
-    "huge W",
-    "gg",
-    "what a moment",
-    "insane",
-    "yoooo",
-    "clip it",
-    "same",
-    "rip",
-    "lmao",
-    "based",
-  ];
-
-  private emotes = [
-    {
-      name: "KappaPride",
-      type: "Twitch",
-      imageUrl:
-        "https://static-cdn.jtvnw.net/emoticons/v2/55338/default/dark/2.0",
-      id: 55338,
-    },
-    {
-      name: "prndddLoading",
-      type: "Twitch",
-      imageUrl:
-        "https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_11fb52f3a8cc41d2bb599c22a8890c60/default/dark/2.0",
-      id: "emotesv2_11fb52f3a8cc41d2bb599c22a8890c60",
-    },
-    {
-      name: "thasixCry",
-      type: "Twitch",
-      imageUrl:
-        "https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_2a83bde9f241421cb0ef6db5750c667e/default/dark/2.0",
-      id: "emotesv2_2a83bde9f241421cb0ef6db5750c667e",
-    },
-    {
-      name: "DededeLUL",
-      type: "BTTVChannel",
-      imageUrl: "https://cdn.betterttv.net/emote/60a6d39e67644f1d67e89f2d/3x",
-    },
-  ];
-
-  private usernameAdjectives = [
-    "Swift",
-    "Rapid",
-    "Shadow",
-    "Mystic",
-    "Silent",
-    "Bright",
-    "Dark",
-    "Fierce",
-    "Quick",
-    "Smart",
-  ];
-
-  private usernameNouns = [
-    "Panda",
-    "Wolf",
-    "Fox",
-    "Eagle",
-    "Tiger",
-    "Dragon",
-    "Phoenix",
-    "Raven",
-    "Bear",
-    "Hawk",
-  ];
-
-  private colors = [
-    "#FF0000", // Red
-    "#0000FF", // Blue
-    "#00FF00", // Green
-    "#FF7F00", // Orange
-    "#9400D3", // Violet
-    "#00FFFF", // Cyan
-    "#FF1493", // Deep Pink
-    "#FFD700", // Gold
-    "#00CED1", // Dark Turquoise
-    "#FF69B4", // Hot Pink
-  ];
-
-  private badgePool = [
-    {
-      name: "broadcaster",
-      version: 1,
-      imageUrl:
-        "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/3",
-    },
-    {
-      name: "moderator",
-      version: 1,
-      imageUrl:
-        "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
-    },
-    {
-      name: "subscriber",
-      version: 0,
-      imageUrl:
-        "https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/3",
-    },
-  ];
+  private messageTemplates = messageTemplates;
+  private emotes = emotes;
+  private usernameAdjectives = usernameAdjectives;
+  private usernameNouns = usernameNouns;
+  private colors = usernameColors;
+  private badgePool = badgePool;
 
   /**
    * Generate a consistent color based on username hash
@@ -126,7 +33,7 @@ export class FakeChatProvider extends ChatDataProvider {
   }
 
   /**
-   * Generate a random username
+   * Generate a random username with various formats
    */
   private generateUsername(): string {
     const adjective =
@@ -136,13 +43,45 @@ export class FakeChatProvider extends ChatDataProvider {
     const noun =
       this.usernameNouns[Math.floor(Math.random() * this.usernameNouns.length)];
     const number = Math.floor(Math.random() * 10000);
-    return `${adjective}${noun}${number}`;
+    const smallNumber = Math.floor(Math.random() * 100);
+
+    // Pick a random format
+    const format = Math.floor(Math.random() * 8);
+
+    switch (format) {
+      case 0: // AdjectiveNoun1234
+        return `${adjective}${noun}${number}`;
+      case 1: // Noun1234 (no adjective)
+        return `${noun}${number}`;
+      case 2: // AdjectiveNoun (no numbers)
+        return `${adjective}${noun}`;
+      case 3: // adjective_noun_12
+        return `${adjective.toLowerCase()}_${noun.toLowerCase()}_${smallNumber}`;
+      case 4: // xX_AdjectiveNoun_Xx (gamer tag style)
+        return `xX_${adjective}${noun}_Xx`;
+      case 5: // TheAdjectiveNoun
+        return `The${adjective}${noun}`;
+      case 6: // Adjective_Noun
+        return `${adjective}_${noun}`;
+      case 7: // Leetspeak variations
+        const leetAdjective = adjective
+          .replace(/o/gi, "0")
+          .replace(/e/gi, "3")
+          .replace(/a/gi, "4");
+        const leetNoun = noun
+          .replace(/o/gi, "0")
+          .replace(/e/gi, "3")
+          .replace(/a/gi, "4");
+        return `${leetAdjective}${leetNoun}${smallNumber}`;
+      default:
+        return `${adjective}${noun}${number}`;
+    }
   }
 
   /**
    * Generate a random message, optionally with emotes inserted
    */
-  private generateMessage(): { text: string; emotes: Emote[] } {
+  private createMessage(): { text: string; emotes: Emote[] } {
     let messageText =
       this.messageTemplates[
         Math.floor(Math.random() * this.messageTemplates.length)
@@ -179,9 +118,19 @@ export class FakeChatProvider extends ChatDataProvider {
    */
   private generateBadges(): Badge[] {
     const badges: Badge[] = [];
-    // 20% chance for each badge type
+
+    // Different probabilities for each badge type
     this.badgePool.forEach((badge) => {
-      if (Math.random() < 0.2) {
+      let chance = 0;
+      if (badge.name === "broadcaster") {
+        chance = 0.001; // 0.1%
+      } else if (badge.name === "moderator") {
+        chance = 0.01; // 1%
+      } else if (badge.name === "subscriber") {
+        chance = 0.3; // 30%
+      }
+
+      if (Math.random() < chance) {
         badges.push({
           name: badge.name,
           version: badge.version,
@@ -192,6 +141,22 @@ export class FakeChatProvider extends ChatDataProvider {
     return badges;
   }
 
+  generateMessage(): ChatMessage {
+    const username = this.generateUsername();
+    const color = this.generateColorForUsername(username);
+    const { text: message, emotes } = this.createMessage();
+
+    return {
+      username,
+      usernameLogin: username.toLowerCase(),
+      message,
+      color,
+      timestamp: Date.now(),
+      badges: this.generateBadges(),
+      emotes: emotes.length > 0 ? emotes : undefined,
+    };
+  }
+
   /**
    * Generate a batch of fake chat messages
    */
@@ -199,20 +164,7 @@ export class FakeChatProvider extends ChatDataProvider {
     const messages: ChatMessage[] = [];
 
     for (let i = 0; i < count; i++) {
-      const username = this.generateUsername();
-      const color = this.generateColorForUsername(username);
-      const { text: message, emotes } = this.generateMessage();
-
-      messages.push({
-        userId: `fake-user-${i}`,
-        username,
-        usernameLogin: username.toLowerCase(),
-        message,
-        color,
-        timestamp: Date.now() + i * 100, // Stagger timestamps
-        badges: this.generateBadges(),
-        emotes: emotes.length > 0 ? emotes : undefined,
-      });
+      messages.push(this.generateMessage());
     }
 
     return messages;

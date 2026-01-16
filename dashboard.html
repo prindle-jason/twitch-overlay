@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Overlay Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
+    />
     <link rel="stylesheet" href="/dashboard.css" />
   </head>
   <body>
@@ -93,6 +97,30 @@
         <div class="button-grid">
           <button id="hypeChatToggleBtn">Toggle</button>
         </div>
+        <div class="section-label">Message Rate</div>
+        <div id="messageRateSlider" class="nouislider-container"></div>
+        <div class="slider-labels">
+          <div class="slider-label">
+            <span class="label-text">Min:</span>
+            <span class="label-value" id="minRateValue">200ms</span>
+          </div>
+          <div class="slider-label">
+            <span class="label-text">Max:</span>
+            <span class="label-value" id="maxRateValue">500ms</span>
+          </div>
+        </div>
+        <div class="section-label">Lerp Factor</div>
+        <div class="slider-row">
+          <input
+            type="range"
+            id="lerpFactorSlider"
+            min="0.01"
+            max="1"
+            value="0.5"
+            step="0.01"
+          />
+          <span class="value" id="lerpFactorValue">0.50</span>
+        </div>
       </div>
 
       <div class="card">
@@ -119,6 +147,6 @@
     </div>
 
     <div id="log" class="log"></div>
-    <script type="module" src="/src/dashboard.ts"></script>
+    <script type="module" src="/src/dashboard/index.ts"></script>
   </body>
 </html>

@@ -1,6 +1,3 @@
-import * as Scenes from "../elements/scenes";
-import type { SceneElement } from "../elements/scenes/SceneElement";
-
 /**
  * Lifecycle state for Effects and Elements
  * NEW → INITIALIZING → READY → PLAYING → FINISHED
@@ -13,9 +10,11 @@ export type LifecycleState =
   | "FINISHED";
 
 /**
- * Pool identifier type
+ * Scene type identifiers - identifies the actual scene class
+ * Used for routing scene config messages (scene.type must match one of these)
+ * Naming follows the simplified pool naming pattern
  */
-export type PoolId =
+export type SceneType =
   | "ssbmSuccess"
   | "ssbmFail"
   | "bamSuccess"
@@ -29,6 +28,9 @@ export type PoolId =
   | "chatMessageTest"
   | "newImageTest"
   | "hypeChat"
-  | "dvdBounce"
-  | "success"
-  | "failure";
+  | "dvdBounce";
+
+/**
+ * Pool identifier type
+ */
+export type PoolType = "success" | "failure";

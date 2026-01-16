@@ -1,5 +1,5 @@
 import type { SceneElement } from "../elements/scenes/SceneElement";
-import type { PoolId } from "../utils/types";
+import type { PoolType, SceneType } from "../utils/types";
 import { pickRandom } from "../utils/random";
 import * as Scenes from "../elements/scenes";
 
@@ -13,22 +13,28 @@ type SceneFactoryFn = (payload?: unknown) => SceneElement;
  * This avoids type issues with storing class constructors that have varied signatures.
  */
 export class SceneFactory {
-  private static pools: Record<PoolId, SceneFactoryFn[]> = {
+  private static sceneTypeMaps: Record<SceneType, SceneFactoryFn> = {
     // Regular pools
-    ssbmSuccess: [(p) => new Scenes.SsbmSuccessScene()],
-    ssbmFail: [(p) => new Scenes.SsbmFailScene()],
-    bamSuccess: [(p) => new Scenes.BamSuccessScene()],
-    bamUhOh: [(p) => new Scenes.BamFailureScene()],
-    watermark: [(p) => new Scenes.WatermarkScene(p as any)],
-    confetti: [(p) => new Scenes.ConfettiScene(p as any)],
-    headblade: [(p) => new Scenes.HeadbladeScene(p as any)],
-    ticker: [(p) => new Scenes.TickerScene(p as any)],
-    xJason: [(p) => new Scenes.XJasonScene()],
+    ssbmSuccess: (p) => new Scenes.SsbmSuccessScene(),
+    ssbmFail: (p) => new Scenes.SsbmFailScene(),
+    bamSuccess: (p) => new Scenes.BamSuccessScene(),
+    bamUhOh: (p) => new Scenes.BamFailureScene(),
+    watermark: (p) => new Scenes.WatermarkScene(p as any),
+    confetti: (p) => new Scenes.ConfettiScene(p as any),
+    headblade: (p) => new Scenes.HeadbladeScene(p as any),
+    ticker: (p) => new Scenes.TickerScene(p as any),
+    xJason: (p) => new Scenes.XJasonScene(),
 
     // Triggerable pools
-    hypeChat: [(p) => new Scenes.HypeChatScene()],
-    dvdBounce: [(p) => new Scenes.PooledDvdScene()],
+    hypeChat: (p) => new Scenes.HypeChatScene(p as Record<string, unknown>),
+    dvdBounce: (p) => new Scenes.PooledDvdScene(),
+    // Test pools
+    richTextTest: (p) => new Scenes.RichTextTestScene(),
+    chatMessageTest: (p) => new Scenes.ChatMessageTestScene(),
+    newImageTest: (p) => new Scenes.ImageTestScene(),
+  };
 
+  private static pools: Record<PoolType, SceneFactoryFn[]> = {
     // Multi-variant pools
     success: [
       (p) => new Scenes.SsbmSuccessScene(),
@@ -38,36 +44,46 @@ export class SceneFactory {
       (p) => new Scenes.SsbmFailScene(),
       (p) => new Scenes.BamFailureScene(),
     ],
-
-    // Test pools
-    richTextTest: [(p) => new Scenes.RichTextTestScene()],
-    chatMessageTest: [(p) => new Scenes.ChatMessageTestScene()],
-    newImageTest: [(p) => new Scenes.ImageTestScene()],
   };
 
   /**
-   * Create a scene from a pool ID, optionally passing a payload.
+   * Create a scene directly from a type, optionally passing a payload.
    * For multi-variant pools, picks a random factory.
    */
-  static createScene(poolId: PoolId, payload?: unknown): SceneElement | null {
-    const factories = this.pools[poolId];
-    if (!factories?.length) return null;
+  static createScene(
+    sceneType: SceneType,
+    payload?: unknown
+  ): SceneElement | null {
+    return this.sceneTypeMaps[sceneType](payload);
+  }
 
-    const factory = pickRandom(factories);
-    return factory(payload);
+  /**
+   * Create a random scene from a pool type, optionally passing a payload.
+   *
+   */
+  static createSceneFromPool(
+    poolType: PoolType,
+    payload?: unknown
+  ): SceneElement | null {
+    const factory = this.pools[poolType];
+
+    if (!factory) return null;
+    const sceneFn = pickRandom(factory);
+
+    return sceneFn(payload);
   }
 
   /**
    * Get all known pool IDs
    */
-  static getPoolIds(): PoolId[] {
-    return Object.keys(this.pools) as PoolId[];
+  static getPoolIds(): PoolType[] {
+    return Object.keys(this.pools) as PoolType[];
   }
 
   /**
    * Check if a pool has any factories registered
    */
-  static hasPool(poolId: PoolId): boolean {
+  static hasPool(poolId: PoolType): boolean {
     return !!this.pools[poolId]?.length;
   }
 }

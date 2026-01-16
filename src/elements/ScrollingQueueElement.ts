@@ -1,5 +1,6 @@
 import { TransformElement } from "./TransformElement";
 import { logger } from "../utils/logger";
+import { configProps } from "../core/configProps";
 
 export enum ScrollDirection {
   UP = "UP",
@@ -47,6 +48,7 @@ export class ScrollingQueueElement extends TransformElement {
   private fadeOutDuration: number; // ms
   private items: QueuedItem[] = [];
   private pendingItems: TransformElement[] = []; // Elements waiting to be PLAYING
+  private normalItemCount: number = 0; // Track count of items in NORMAL state
 
   constructor(config: ScrollingQueueConfig = {}) {
     super();
@@ -57,6 +59,10 @@ export class ScrollingQueueElement extends TransformElement {
     this.snapThreshold = config.snapThreshold ?? 0.5; // pixels
     this.fadeInDistance = config.fadeInDistance ?? 0.3; // fade in first 30% of travel
     this.fadeOutDuration = config.fadeOutDuration ?? 300; // ms
+  }
+
+  setLerpFactor(value: number) {
+    this.lerpFactor = value;
   }
 
   /**
@@ -86,11 +92,6 @@ export class ScrollingQueueElement extends TransformElement {
 
     if (nowPlaying.length === 0) return;
 
-    logger.info("[ScrollingQueue] processPending START", {
-      count: nowPlaying.length,
-      existingItems: this.items.length,
-    });
-
     // Calculate spawn positions for the batch of newly playing items
     // Spawn position depends on direction - new items appear "after" the queue
     let spawnAccumulated: number;
@@ -111,7 +112,7 @@ export class ScrollingQueueElement extends TransformElement {
       spawnAccumulated = 0;
     }
 
-    logger.info("[ScrollingQueue] spawn position base", {
+    logger.debug("[ScrollingQueue] spawn position base", {
       direction: this.direction,
       endOfQueue: this.getEndOfQueuePosition(),
       spawnAccumulated,
@@ -129,7 +130,7 @@ export class ScrollingQueueElement extends TransformElement {
         fadeInState: ItemState.FADE_IN,
       });
 
-      logger.info("[ScrollingQueue] item added to queue", {
+      logger.debug("[ScrollingQueue] item added to queue", {
         elementType: element.constructor.name,
         spawnPos,
         size: this.getItemSize(element),
@@ -157,7 +158,7 @@ export class ScrollingQueueElement extends TransformElement {
     this.recalculateTargets();
 
     // Phase 2: Set only the NEW elements at spawn position, they will animate to target
-    logger.info("[ScrollingQueue] positioning NEW items after recalc", {
+    logger.debug("[ScrollingQueue] positioning NEW items after recalc", {
       newItemsCount: nowPlaying.length,
       totalItems: this.items.length,
     });
@@ -169,7 +170,7 @@ export class ScrollingQueueElement extends TransformElement {
         item.fadeDistance = Math.abs(item.targetPosition - item.spawnPosition);
 
         this.setElementPosition(item.element, item.spawnPosition);
-        logger.info("[ScrollingQueue] new item positioned at spawn", {
+        logger.debug("[ScrollingQueue] new item positioned at spawn", {
           elementType: item.element.constructor.name,
           spawnPos: item.spawnPosition,
           targetPos: item.targetPosition,
@@ -188,20 +189,15 @@ export class ScrollingQueueElement extends TransformElement {
    * Mark excess items (oldest) for fade-out when queue exceeds maxItems
    */
   private markExcess(): void {
-    if (this.items.length <= this.maxItems) return;
+    if (this.normalItemCount <= this.maxItems) return;
 
-    const excessCount = this.items.length - this.maxItems;
+    const excessCount = this.normalItemCount - this.maxItems;
     for (let i = 0; i < excessCount; i++) {
       const item = this.items[i];
-      if (item.fadeInState !== ItemState.FADE_OUT) {
+      if (item.fadeInState === ItemState.NORMAL) {
         item.fadeInState = ItemState.FADE_OUT;
         item.fadeOutElapsed = 0;
-        logger.info("[ScrollingQueue] mark FADE_OUT", {
-          index: i,
-          itemsCount: this.items.length,
-          max: this.maxItems,
-          elementType: item.element.constructor.name,
-        });
+        this.normalItemCount--;
       }
     }
   }
@@ -237,7 +233,7 @@ export class ScrollingQueueElement extends TransformElement {
   private recalculateTargets(): void {
     let accumulatedPosition = 0;
 
-    logger.info("[ScrollingQueue] recalculateTargets START", {
+    logger.debug("[ScrollingQueue] recalculateTargets START", {
       itemsCount: this.items.length,
     });
 
@@ -262,7 +258,7 @@ export class ScrollingQueueElement extends TransformElement {
           break;
       }
 
-      logger.info("[ScrollingQueue] target calc", {
+      logger.debug("[ScrollingQueue] target calc", {
         index: i,
         accumulated: accumulatedPosition,
         size,
@@ -273,7 +269,7 @@ export class ScrollingQueueElement extends TransformElement {
       accumulatedPosition += size + this.itemGap;
     }
 
-    logger.info("[ScrollingQueue] recalculateTargets END", {
+    logger.debug("[ScrollingQueue] recalculateTargets END", {
       items: this.items.map((it, idx) => ({
         idx,
         target: it.targetPosition,
@@ -369,7 +365,7 @@ export class ScrollingQueueElement extends TransformElement {
           this.removeChild(item.element);
           item.element.finish();
           this.items.splice(i, 1);
-          logger.info("[ScrollingQueue] item removed after fade-out", {
+          logger.debug("[ScrollingQueue] item removed after fade-out", {
             elementType: item.element.constructor.name,
             remainingItems: this.items.length,
           });
@@ -391,11 +387,13 @@ export class ScrollingQueueElement extends TransformElement {
           if (fadeProgress >= 1) {
             item.element.opacity = 1;
             item.fadeInState = ItemState.NORMAL;
+            this.normalItemCount++;
           }
         } else {
           // Zero fade distance - just set to 1
           item.element.opacity = 1;
           item.fadeInState = ItemState.NORMAL;
+          this.normalItemCount++;
         }
       }
 
@@ -417,12 +415,11 @@ export class ScrollingQueueElement extends TransformElement {
   override drawSelf(ctx: CanvasRenderingContext2D): void {
     // Phase 1: Debug visualization - draw bounds around queue area
     // This is called within the element's transformed context
-    if (this.items.length > 0) {
+    if (configProps.debugMode && this.items.length > 0) {
       ctx.save();
       ctx.strokeStyle = "rgba(255, 0, 255, 0.5)";
       ctx.lineWidth = 2;
       ctx.setLineDash([5, 5]);
-
       // Draw a box showing the queue extent (in local coordinates)
       if (this.isVertical()) {
         const minY = Math.min(...this.items.map((it) => it.targetPosition));

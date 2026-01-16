@@ -17,6 +17,7 @@ interface HeadbladeCfg {
 }
 
 export class HeadbladeScene extends SceneElement {
+  readonly type = "headblade" as const;
   private totalCount: number;
   private imageUrls: string[] = [
     localImages.hb1,

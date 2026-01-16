@@ -9,6 +9,8 @@ import { logger } from "../../utils/logger";
  * This allows for centralized control and potential interactions between DVDs.
  */
 export class DvdScene extends TriggerableSceneElement {
+  readonly type = "dvdBounce" as const;
+
   constructor() {
     super();
     this.duration = -1; // SceneElement duration management
@@ -37,18 +39,5 @@ export class DvdScene extends TriggerableSceneElement {
     });
 
     super.update(deltaTime);
-  }
-
-  /**
-   * Clear all DVDs and confetti from the pool without destroying the effect itself.
-   * Used when clearing effects from the dashboard.
-   *
-   * TODO: This causes confetti to spawn for all active DVDs when clearing.
-   */
-  clear(): void {
-    this.children.forEach((child) => {
-      child.finish();
-    });
-    logger.debug("[PooledDvdEffect] Cleared all DVDs and confetti");
   }
 }

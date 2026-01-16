@@ -303,3 +303,61 @@ button:disabled {
   min-width: 45px;
   text-align: right;
 }
+.nouislider-container {
+  margin: 12px 0;
+}
+
+.noUi-target {
+  background: #1a1f2a;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.noUi-connect {
+  background: var(--accent);
+}
+
+.noUi-handle {
+  background: var(--accent);
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(62, 166, 255, 0.3);
+}
+
+.noUi-handle:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.noUi-handle:active {
+  box-shadow: 0 4px 12px rgba(62, 166, 255, 0.5);
+}
+
+.noUi-handle.noUi-active {
+  box-shadow: 0 4px 12px rgba(62, 166, 255, 0.5);
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 0 4px;
+}
+
+.slider-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.slider-label .label-text {
+  color: var(--muted);
+}
+
+.slider-label .label-value {
+  color: var(--text);
+  font-weight: 600;
+  min-width: 60px;
+}

@@ -10,6 +10,7 @@ interface ConfettiConfig {
 }
 
 export class ConfettiScene extends SceneElement {
+  readonly type = "confetti" as const;
   private readonly particleCount: number;
   private readonly spawnDurationMs: number;
   private readonly bufferMs = 3000;

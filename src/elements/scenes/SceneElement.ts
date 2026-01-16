@@ -1,5 +1,7 @@
 import { Element } from "../Element";
-import { getCanvasConfig } from "../../config";
+import { configProps } from "../../core/configProps";
+import type { SceneType } from "../../utils/types";
+import type { Settings } from "../../server/ws-types";
 
 /**
  * SceneElement is a top-level element that represents a complete scene or composition.
@@ -7,17 +9,32 @@ import { getCanvasConfig } from "../../config";
  * SceneElements are the primary unit managed by SceneManager.
  */
 export abstract class SceneElement extends Element {
+  /**
+   * Type identifier for this scene - must match SceneType union
+   * Subclasses MUST implement this getter
+   */
+  abstract get type(): SceneType;
+
   constructor() {
     super();
   }
 
   // Convenience accessors for canvas dimensions
   get W(): number {
-    return getCanvasConfig().W;
+    return configProps.canvas.W;
   }
 
   get H(): number {
-    return getCanvasConfig().H;
+    return configProps.canvas.H;
+  }
+
+  /**
+   * Handle scene-specific configuration updates.
+   * Scene config is not cascaded to children - it applies only to the scene.
+   * Subclasses can override to handle their specific config settings.
+   */
+  onSceneConfig(config: Settings): void {
+    // Default: do nothing. Subclasses override as needed.
   }
 }
 

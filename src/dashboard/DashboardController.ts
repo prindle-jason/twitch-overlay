@@ -1,14 +1,18 @@
-import type { WebSocketClient } from "../client/WebSocketClient";
+import type { WebSocketClient } from "../core/WebSocketClient";
 import type { DashboardUI } from "./DashboardUI";
-import type { PoolId } from "../utils/types";
+import type { PoolType, SceneType } from "../utils/types";
 import type {
   SceneEventMessage,
   SetSettingsMessage,
   WsMessage,
+  GlobalSettings,
+  HypeChatSettings,
+  PoolEventMessage,
 } from "../server/ws-types";
 
 export class DashboardController {
   private settingsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private hypeChatDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private wsClient: WebSocketClient) {}
 
@@ -19,33 +23,47 @@ export class DashboardController {
   }
 
   private hookSceneButtons(ui: DashboardUI): void {
-    ui.onButtonClick("successBtn", () => this.dispatchScene("success"));
-    ui.onButtonClick("failureBtn", () => this.dispatchScene("failure"));
-    ui.onButtonClick("bamSuccessBtn", () => this.dispatchScene("bamSuccess"));
-    ui.onButtonClick("bamUhOhBtn", () => this.dispatchScene("bamUhOh"));
-    ui.onButtonClick("ssbmSuccessBtn", () => this.dispatchScene("ssbmSuccess"));
-    ui.onButtonClick("ssbmFailBtn", () => this.dispatchScene("ssbmFail"));
-    ui.onButtonClick("headbladeBtn", () => this.dispatchScene("headblade"));
-    ui.onButtonClick("watermarkBtn", () => this.dispatchScene("watermark"));
-    ui.onButtonClick("confettiBtn", () => this.dispatchScene("confetti"));
-    ui.onButtonClick("dvdBounceBtn", () => this.dispatchScene("dvdBounce"));
-    ui.onButtonClick("xJasonBtn", () => this.dispatchScene("xJason"));
-    ui.onButtonClick("richTextTestBtn", () =>
-      this.dispatchScene("richTextTest")
+    ui.onButtonClick("successBtn", () => this.dispatchPoolEvent("success"));
+    ui.onButtonClick("failureBtn", () => this.dispatchPoolEvent("failure"));
+    ui.onButtonClick("bamSuccessBtn", () =>
+      this.dispatchSceneEvent("bamSuccess")
     );
-    ui.onButtonClick("hypeChatToggleBtn", () => this.dispatchScene("hypeChat"));
+    ui.onButtonClick("bamUhOhBtn", () => this.dispatchSceneEvent("bamUhOh"));
+    ui.onButtonClick("ssbmSuccessBtn", () =>
+      this.dispatchSceneEvent("ssbmSuccess")
+    );
+    ui.onButtonClick("ssbmFailBtn", () => this.dispatchSceneEvent("ssbmFail"));
+    ui.onButtonClick("headbladeBtn", () =>
+      this.dispatchSceneEvent("headblade")
+    );
+    ui.onButtonClick("watermarkBtn", () =>
+      this.dispatchSceneEvent("watermark")
+    );
+    ui.onButtonClick("confettiBtn", () => this.dispatchSceneEvent("confetti"));
+    ui.onButtonClick("dvdBounceBtn", () =>
+      this.dispatchSceneEvent("dvdBounce")
+    );
+    ui.onButtonClick("xJasonBtn", () => this.dispatchSceneEvent("xJason"));
+    ui.onButtonClick("richTextTestBtn", () =>
+      this.dispatchSceneEvent("richTextTest")
+    );
+    ui.onButtonClick("hypeChatToggleBtn", () => {
+      const settings = ui.getHypeChatSettings();
+      const { target, ...config } = settings;
+      this.dispatchSceneEvent("hypeChat", config);
+    });
     ui.onButtonClick("chatMessageTextBtn", () =>
-      this.dispatchScene("chatMessageTest")
+      this.dispatchSceneEvent("chatMessageTest")
     );
     ui.onButtonClick("newImageTestBtn", () =>
-      this.dispatchScene("newImageTest")
+      this.dispatchSceneEvent("newImageTest")
     );
     ui.onButtonClick("tickerBtn", () => {
       const message = ui.getTickerInput();
-      this.dispatchScene("ticker", message ? { message } : {});
+      this.dispatchSceneEvent("ticker", message ? { message } : {});
     });
     ui.onButtonClick("tickerEmoteTestBtn", () => {
-      this.dispatchScene("ticker", {
+      this.dispatchSceneEvent("ticker", {
         message: "This is a test KappaPride with emotes prndddLoading here!",
         emotes: [
           {
@@ -82,15 +100,28 @@ export class DashboardController {
   private hookSliders(ui: DashboardUI): void {
     ui.onSliderChange("volume", () => this.debouncedSendSettings());
     ui.onSliderChange("stability", () => this.debouncedSendSettings());
+    ui.onHypeChatChange(() => this.debouncedSendHypeChatSettings(ui));
   }
 
-  private dispatchScene(
-    sceneType: PoolId,
+  private dispatchSceneEvent(
+    sceneType: SceneType,
     payload?: Record<string, unknown>
   ): void {
     const msg: SceneEventMessage = {
       type: "scene-event",
-      sceneType,
+      sceneType: sceneType,
+      ...(payload && { payload }),
+    };
+    this.wsClient.send(msg);
+  }
+
+  private dispatchPoolEvent(
+    poolType: PoolType,
+    payload?: Record<string, unknown>
+  ): void {
+    const msg: PoolEventMessage = {
+      type: "pool-event",
+      poolType: poolType,
       ...(payload && { payload }),
     };
     this.wsClient.send(msg);
@@ -101,9 +132,10 @@ export class DashboardController {
   }
 
   private togglePause(): void {
+    const settings: GlobalSettings = { target: "global", togglePause: true };
     const msg: SetSettingsMessage = {
       type: "set-settings",
-      settings: { togglePause: true },
+      settings,
     };
     this.sendMessage(msg);
   }
@@ -121,9 +153,28 @@ export class DashboardController {
       ) as HTMLInputElement;
       const masterVolume = Number(volumeSlider.value) / 100;
       const stability = Number(stabilitySlider.value);
+      const settings: GlobalSettings = {
+        target: "global",
+        masterVolume,
+        stability,
+      };
       const msg: SetSettingsMessage = {
         type: "set-settings",
-        settings: { masterVolume, stability },
+        settings,
+      };
+      this.sendMessage(msg);
+    }, 200);
+  }
+
+  private debouncedSendHypeChatSettings(ui: DashboardUI): void {
+    if (this.hypeChatDebounceTimer) {
+      clearTimeout(this.hypeChatDebounceTimer);
+    }
+    this.hypeChatDebounceTimer = setTimeout(() => {
+      const settings: HypeChatSettings = ui.getHypeChatSettings();
+      const msg: SetSettingsMessage = {
+        type: "set-settings",
+        settings,
       };
       this.sendMessage(msg);
     }, 200);

@@ -1,4 +1,5 @@
 import { logger } from "../utils/logger";
+import type { GlobalSettings } from "../server/ws-types";
 
 export class OverlaySettings {
   masterVolume: number = 1.0;
@@ -8,7 +9,7 @@ export class OverlaySettings {
   /* Optional flag used by dashboard to toggle the paused state */
   togglePause?: boolean;
 
-  constructor(init?: Partial<OverlaySettings>) {
+  constructor(init?: Partial<OverlaySettings> | GlobalSettings) {
     if (init) {
       Object.assign(this, init);
     }

@@ -9,6 +9,8 @@ import type {
   SetSettingsMessage,
   ClearScenesMessage,
   WsMessage,
+  PoolEventMessage,
+  WsMessageType,
 } from "./ws-types";
 import { logger } from "../utils/logger.js";
 
@@ -24,8 +26,13 @@ export type MessageHandler<T extends WsMessage = WsMessage> = (
   msg: T
 ) => HandlerResult;
 
+// Discriminated handler map: each handler accepts only its specific message type
+type HandlerMap = {
+  [K in WsMessageType]: MessageHandler<Extract<WsMessage, { type: K }>>;
+};
+
 export class WsMessageRouter {
-  private readonly handlers = {
+  private readonly handlers: HandlerMap = {
     hello: (session: ClientSession, msg: HelloMessage): HandlerResult => {
       const role = msg.role ?? "overlay";
       session.role = role;
@@ -90,6 +97,21 @@ export class WsMessageRouter {
     ): HandlerResult => {
       logger.info(
         `[WS] Client #${session.id} spawning effect: ${msg.sceneType}`,
+        msg.payload
+      );
+      return {
+        action: "broadcast",
+        message: msg,
+        targetRole: "overlay",
+      };
+    },
+
+    "pool-event": (
+      session: ClientSession,
+      msg: PoolEventMessage
+    ): HandlerResult => {
+      logger.info(
+        `[WS] Client #${session.id} spawning pool event: ${msg.poolType}`,
         msg.payload
       );
       return {

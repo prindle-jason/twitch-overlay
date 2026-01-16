@@ -4,7 +4,7 @@ import { TranslateBehavior } from "../behaviors/TranslateBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { localImages, type SoundKey } from "../../core/resources";
 import { ImageElement } from "../ImageElement";
-import type { PoolId } from "../../utils/types";
+import type { PoolType } from "../../utils/types";
 
 interface ConvergingCfg {
   duration?: number;
@@ -15,7 +15,7 @@ interface ConvergingCfg {
   fadeTime?: number;
 }
 
-class ConvergingSlideScene extends SceneElement {
+abstract class ConvergingSlideScene extends SceneElement {
   private cfg: ConvergingCfg;
   private bottomLeftImage: ImageElement | null = null;
   private bottomRightImage: ImageElement | null = null;
@@ -36,16 +36,8 @@ class ConvergingSlideScene extends SceneElement {
       imageUrl: this.cfg.bottomLeftImageUrl,
       scale: this.scale,
     });
-    // this.bottomLeftImage = new ImageElement({
-    //   imageKey: this.cfg.bottomLeftImageUrl,
-    //   scale: this.scale,
-    // });
     this.addChild(this.bottomLeftImage);
 
-    // this.bottomRightUrl = new ImageElement({
-    //   imageKey: this.cfg.rightImageKey,
-    //   scale: this.scale,
-    // });
     this.bottomRightImage = new ImageElement({
       imageUrl: this.cfg.bottomRightImageUrl,
       scale: this.scale,
@@ -107,7 +99,8 @@ class ConvergingSlideScene extends SceneElement {
 
 /** Bam Success scene variant - triggered by "bamSuccess" or "success" pools */
 export class BamSuccessScene extends ConvergingSlideScene {
-  static readonly poolIds: readonly PoolId[] = ["bamSuccess", "success"];
+  readonly type = "bamSuccess" as const;
+  static readonly poolIds: readonly PoolType[] = ["bamSuccess", "success"];
 
   constructor() {
     super({
@@ -122,7 +115,8 @@ export class BamSuccessScene extends ConvergingSlideScene {
 
 /** Bam Failure scene variant - triggered by "bamUhOh" or "failure" pools */
 export class BamFailureScene extends ConvergingSlideScene {
-  static readonly poolIds: readonly PoolId[] = ["bamUhOh", "failure"];
+  readonly type = "bamUhOh" as const;
+  static readonly poolIds: readonly PoolType[] = ["bamUhOh", "failure"];
 
   constructor() {
     super({

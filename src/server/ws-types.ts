@@ -1,4 +1,5 @@
 import { WebSocket } from "ws";
+import type { PoolType, SceneType } from "../utils/types";
 
 export type ClientRole = "overlay" | "dashboard";
 
@@ -8,10 +9,41 @@ export interface ClientSession {
   role?: ClientRole;
 }
 
+export type WsMessageType =
+  | "hello"
+  | "hello-ack"
+  | "ping"
+  | "pong"
+  | "get-stats"
+  | "stats-response"
+  | "scene-event"
+  | "pool-event"
+  | "set-settings"
+  | "clear-scenes";
+
 // Base message interface (not used directly)
 interface BaseWsMessage {
-  type: string;
+  type: WsMessageType;
   ts?: number;
+}
+
+// Settings types - base interface and implementations
+export interface Settings {
+  target: "global" | SceneType;
+}
+
+export interface GlobalSettings extends Settings {
+  target: "global";
+  masterVolume?: number;
+  stability?: number;
+  togglePause?: boolean;
+}
+
+export interface HypeChatSettings extends Settings {
+  target: "hypeChat";
+  minMessageRate?: number;
+  maxMessageRate?: number;
+  lerpFactor?: number;
 }
 
 // Connection handshake messages
@@ -54,18 +86,20 @@ export interface StatsResponseMessage extends BaseWsMessage {
 // Scene event message
 export interface SceneEventMessage extends BaseWsMessage {
   type: "scene-event";
-  sceneType: string;
+  sceneType: SceneType;
   payload?: Record<string, unknown>; // Scene-specific data
 }
 
-// Settings message
+export interface PoolEventMessage extends BaseWsMessage {
+  type: "pool-event";
+  poolType: PoolType;
+  payload?: Record<string, unknown>;
+}
+
+// Settings message - target is now part of settings
 export interface SetSettingsMessage extends BaseWsMessage {
   type: "set-settings";
-  settings: {
-    masterVolume?: number;
-    stability?: number;
-    togglePause?: boolean;
-  };
+  settings: Settings; // Includes target and all settings
 }
 
 // Clear scenes message
@@ -82,13 +116,6 @@ export type WsMessage =
   | GetStatsMessage
   | StatsResponseMessage
   | SceneEventMessage
+  | PoolEventMessage
   | SetSettingsMessage
   | ClearScenesMessage;
-
-// Type guard helper
-export function isMessageType<T extends WsMessage["type"]>(
-  msg: WsMessage,
-  type: T
-): msg is Extract<WsMessage, { type: T }> {
-  return msg.type === type;
-}
