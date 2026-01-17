@@ -125,14 +125,29 @@ export class DashboardUI {
     const playing = stats.effectsPlaying;
     const wsState = stats.wsReadyState;
     const ts = stats.timestamp;
+    const memory = stats.memory;
 
     const lines = [
       `FPS: ${Number.isFinite(fps) ? fps.toFixed(1) : "-"}`,
       `Frame ms (EMA): ${Number.isFinite(frameMs) ? frameMs.toFixed(2) : "-"}`,
       `Effects loading/playing: ${loading ?? "-"}/${playing ?? "-"}`,
       `Overlay WS state: ${wsState ?? "-"}`,
+      `Memory: ${memory.active} active (${memory.totalCreated} created, ${memory.totalFinished} finished)`,
       `Sampled at: ${ts ? new Date(ts).toLocaleTimeString() : "-"}`,
+      "Top elements:",
     ];
+
+    // Add top element types or empty lines for consistent spacing
+    if (memory.byClass && Object.keys(memory.byClass).length > 0) {
+      const topClasses = Object.entries(memory.byClass)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([name, count]) => `  ${name}: ${count}`);
+      lines.push(...topClasses);
+    } else {
+      // Add empty lines to maintain consistent vertical space
+      lines.push("  (none)");
+    }
 
     this.statsEl.textContent = lines.join("\n");
   }

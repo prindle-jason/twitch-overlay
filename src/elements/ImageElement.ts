@@ -128,4 +128,13 @@ export class ImageElement extends TransformElement {
     }
     this.frameCtx = ctx;
   }
+
+  override finish(): void {
+    super.finish();
+    // Clean up image resources to prevent memory leaks
+    this.staticImage = null;
+    this.sequenceElement = null;
+    this.frameCanvas = null;
+    this.frameCtx = null;
+  }
 }

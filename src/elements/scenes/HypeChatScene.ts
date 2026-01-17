@@ -124,4 +124,11 @@ export class HypeChatScene extends TriggerableSceneElement {
       });
     }
   }
+
+  override finish(): void {
+    super.finish();
+    // Clear element references to prevent memory leaks
+    this.scrollQueue = null as any;
+    this.messageScheduler = null as any;
+  }
 }

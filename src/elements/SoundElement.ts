@@ -48,9 +48,11 @@ export class SoundElement extends Element {
     // No-op for sound
   }
 
-  finish(): void {
+  override finish(): void {
     this.stopSound();
     super.finish();
+    // Clean up sound reference to prevent memory leaks
+    this.sound = null;
   }
 
   onSettingsChanged(settings: OverlaySettings): void {

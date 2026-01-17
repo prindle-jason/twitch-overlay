@@ -362,7 +362,7 @@ export class ScrollingQueueElement extends TransformElement {
 
         // Remove item when fade-out complete
         if (fadeOutProgress >= 1) {
-          this.removeChild(item.element);
+          // this.removeChild(item.element);
           item.element.finish();
           this.items.splice(i, 1);
           logger.debug("[ScrollingQueue] item removed after fade-out", {
@@ -441,5 +441,12 @@ export class ScrollingQueueElement extends TransformElement {
 
       ctx.restore();
     }
+  }
+
+  override finish(): void {
+    super.finish();
+    // Clear tracking arrays to release element references
+    this.items = [];
+    this.pendingItems = [];
   }
 }

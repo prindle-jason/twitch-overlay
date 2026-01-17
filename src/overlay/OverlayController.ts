@@ -2,6 +2,7 @@ import { SceneManager } from "../core/SceneManager";
 import { Health } from "../utils/health";
 import { WebSocketClient } from "../core/WebSocketClient";
 import { logger } from "../utils/logger";
+import { Element } from "../elements/Element";
 import type {
   WsMessage,
   StatsResponseMessage,
@@ -13,7 +14,18 @@ import type {
 import { OverlaySettings } from "../core/OverlaySettings";
 
 export class OverlayController {
-  constructor(private sceneManager: SceneManager, private health: Health) {}
+  constructor(private sceneManager: SceneManager, private health: Health) {
+    // Initialize memory diagnostics with Health instance
+    Element.setHealthInstance(health);
+
+    // Expose active elements to console for debugging
+    if (typeof window !== "undefined") {
+      Object.defineProperty(window, "activeElements", {
+        get: () => health.getActiveElements(),
+        enumerable: true,
+      });
+    }
+  }
 
   handleMessage(msg: WsMessage, wsClient: WebSocketClient): void {
     if (!msg?.type) return;
@@ -88,5 +100,6 @@ export class OverlayController {
   private handleClearScenes(): void {
     logger.info("[overlay] clearing all scenes");
     this.sceneManager.clearAll();
+    this.health.reset();
   }
 }

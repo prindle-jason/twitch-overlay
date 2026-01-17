@@ -1,3 +1,5 @@
+import type { Element } from "../elements/Element";
+
 export type HealthSnapshot = {
   timestamp: number;
   fps: number;
@@ -5,6 +7,12 @@ export type HealthSnapshot = {
   effectsLoading: number;
   effectsPlaying: number;
   wsReadyState: number | null;
+  memory: {
+    totalCreated: number;
+    totalFinished: number;
+    active: number;
+    byClass: Record<string, number>;
+  };
 };
 
 export class Health {
@@ -13,6 +21,12 @@ export class Health {
   private fps = 0;
   private emaFrameMs = 16.67;
   private readonly alpha = 0.1;
+
+  // Memory diagnostics tracking
+  private elementCounts = new Map<string, number>();
+  private activeElements = new Map<string, Element[]>();
+  private totalCreated = 0;
+  private totalFinished = 0;
 
   recordFrame(deltaMs: number) {
     this.frames += 1;
@@ -26,11 +40,63 @@ export class Health {
     }
   }
 
+  trackElementCreation(className: string, element: Element) {
+    this.totalCreated++;
+    const count = this.elementCounts.get(className) || 0;
+    this.elementCounts.set(className, count + 1);
+
+    // Track active element references
+    if (!this.activeElements.has(className)) {
+      this.activeElements.set(className, []);
+    }
+    this.activeElements.get(className)!.push(element);
+  }
+
+  trackElementFinish(className: string, element: Element) {
+    this.totalFinished++;
+    const count = this.elementCounts.get(className) || 0;
+    this.elementCounts.set(className, count - 1);
+
+    // Remove from active elements
+    const active = this.activeElements.get(className);
+    if (active) {
+      const idx = active.indexOf(element);
+      if (idx !== -1) {
+        active.splice(idx, 1);
+      }
+    }
+  }
+
+  reset() {
+    this.elementCounts.clear();
+    this.activeElements.clear();
+    this.totalCreated = 0;
+    this.totalFinished = 0;
+  }
+
+  getActiveElements(): Record<string, Element[]> {
+    const result: Record<string, Element[]> = {};
+    for (const [className, elements] of this.activeElements.entries()) {
+      if (elements.length > 0) {
+        result[className] = elements;
+      }
+    }
+    return result;
+  }
+
   snapshot(extra: {
     effectsLoading: number;
     effectsPlaying: number;
     wsReadyState: number | null;
   }): HealthSnapshot {
+    // Build per-class counts, only including active elements
+    const byClass: Record<string, number> = {};
+    for (const [className, count] of this.elementCounts.entries()) {
+      if (count > 0) {
+        byClass[className] = count;
+      }
+    }
+
     return {
       timestamp: Date.now(),
       fps: Number(this.fps.toFixed(1)),
@@ -38,6 +104,12 @@ export class Health {
       effectsLoading: extra.effectsLoading,
       effectsPlaying: extra.effectsPlaying,
       wsReadyState: extra.wsReadyState,
+      memory: {
+        totalCreated: this.totalCreated,
+        totalFinished: this.totalFinished,
+        active: this.totalCreated - this.totalFinished,
+        byClass,
+      },
     };
   }
 }

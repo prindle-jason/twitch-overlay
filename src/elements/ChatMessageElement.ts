@@ -217,4 +217,11 @@ export class ChatMessageElement extends TransformElement {
       }
     }
   }
+
+  override finish(): void {
+    super.finish();
+    // Clear element references to prevent memory leaks
+    this.grid = null;
+    this.pendingScales = [];
+  }
 }

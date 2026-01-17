@@ -161,4 +161,11 @@ export class TickerScene extends SceneElement {
         break;
     }
   }
+
+  override finish(): void {
+    super.finish();
+    // Clear element references to prevent memory leaks
+    this.tickerTextGrid = null as any;
+    this.tickerBackground = null as any;
+  }
 }

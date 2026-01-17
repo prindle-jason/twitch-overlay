@@ -1,6 +1,7 @@
 import type { LifecycleState } from "../utils/types";
 import { OverlaySettings } from "../core/OverlaySettings";
 import { logger } from "../utils/logger";
+import { type Health } from "../utils/health";
 
 /**
  * Base node for overlay scenes. Orchestrates parent/child links, behavior
@@ -8,6 +9,13 @@ import { logger } from "../utils/logger";
  * their own draw/update concerns.
  */
 export abstract class Element {
+  // Static health instance for memory tracking
+  private static health: Health | null = null;
+
+  static setHealthInstance(health: Health) {
+    Element.health = health;
+  }
+
   // ---------------------------------------------------------------------------------
   // State management
   // ---------------------------------------------------------------------------------
@@ -20,6 +28,7 @@ export abstract class Element {
 
   constructor(config: Record<string, unknown> = {}) {
     Object.assign(this, config);
+    Element.health?.trackElementCreation(this.constructor.name, this);
   }
 
   // ---------------------------------------------------------------------------------
@@ -131,9 +140,14 @@ export abstract class Element {
     }
 
     this.state = "FINISHED";
+    Element.health?.trackElementFinish(this.constructor.name, this);
+
     this.children.forEach((child) => {
       child.finish();
     });
+
+    this.children = [];
+    this.parent = null;
   }
 
   // ---------------------------------------------------------------------------------

@@ -51,4 +51,10 @@ export class WatermarkScene extends SceneElement {
 
     super.play();
   }
+
+  override finish(): void {
+    super.finish();
+    // Clear element reference to prevent memory leaks
+    this.image = null as any;
+  }
 }

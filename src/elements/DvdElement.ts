@@ -127,4 +127,11 @@ export class DvdElement extends Element {
     );
     this.soundElement.playSound();
   }
+
+  override finish(): void {
+    super.finish();
+    // Clear element references to prevent memory leaks
+    this.imageElement = null as any;
+    this.soundElement = null as any;
+  }
 }

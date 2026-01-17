@@ -49,20 +49,25 @@ abstract class CenteredImageScene extends SceneElement {
 
     if (this.cfg.duration) {
       this.duration = this.cfg.duration;
-    } else if (this.soundElement?.sound) {
-      this.duration = this.soundElement.sound.duration * 1000;
     } else {
       this.duration = 5000;
     }
 
     super.play();
   }
+
+  override finish(): void {
+    super.finish();
+    // Clear element references to prevent memory leaks
+    this.image = null;
+    this.soundElement = null;
+  }
 }
 
 /** SSBM Success scene variant - triggered by "ssbmSuccess" or "success" pools */
 export class SsbmSuccessScene extends CenteredImageScene {
   readonly type = "ssbmSuccess" as const;
-  static readonly poolIds: readonly PoolType[] = ["ssbmSuccess", "success"];
+  static readonly poolIds: readonly PoolType[] = ["success"];
 
   constructor() {
     super({
@@ -76,7 +81,7 @@ export class SsbmSuccessScene extends CenteredImageScene {
 /** SSBM Fail scene variant - triggered by "ssbmFail" or "failure" pools */
 export class SsbmFailScene extends CenteredImageScene {
   readonly type = "ssbmFail" as const;
-  static readonly poolIds: readonly PoolType[] = ["ssbmFail", "failure"];
+  static readonly poolIds: readonly PoolType[] = ["failure"];
 
   constructor() {
     super({

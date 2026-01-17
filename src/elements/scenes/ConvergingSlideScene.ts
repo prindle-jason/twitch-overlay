@@ -5,6 +5,7 @@ import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { localImages, type SoundKey } from "../../core/resources";
 import { ImageElement } from "../ImageElement";
 import type { PoolType } from "../../utils/types";
+import { logger } from "../../utils/logger";
 
 interface ConvergingCfg {
   duration?: number;
@@ -59,10 +60,10 @@ abstract class ConvergingSlideScene extends SceneElement {
 
   override play(): void {
     if (this.cfg.duration) {
+      logger.info("Setting scene duration from config:", this.cfg.duration);
       this.duration = this.cfg.duration;
-    } else if (this.soundElement?.sound) {
-      this.duration = this.soundElement.sound.duration * 1000;
     } else {
+      logger.info("Setting scene duration to default:", 4500);
       this.duration = 4500;
     }
 
@@ -95,12 +96,20 @@ abstract class ConvergingSlideScene extends SceneElement {
       );
     }
   }
+
+  override finish(): void {
+    super.finish();
+    // Clear element references to prevent memory leaks
+    this.bottomLeftImage = null;
+    this.bottomRightImage = null;
+    this.soundElement = null;
+  }
 }
 
 /** Bam Success scene variant - triggered by "bamSuccess" or "success" pools */
 export class BamSuccessScene extends ConvergingSlideScene {
   readonly type = "bamSuccess" as const;
-  static readonly poolIds: readonly PoolType[] = ["bamSuccess", "success"];
+  static readonly poolIds: readonly PoolType[] = ["success"];
 
   constructor() {
     super({
@@ -116,7 +125,7 @@ export class BamSuccessScene extends ConvergingSlideScene {
 /** Bam Failure scene variant - triggered by "bamUhOh" or "failure" pools */
 export class BamFailureScene extends ConvergingSlideScene {
   readonly type = "bamUhOh" as const;
-  static readonly poolIds: readonly PoolType[] = ["bamUhOh", "failure"];
+  static readonly poolIds: readonly PoolType[] = ["failure"];
 
   constructor() {
     super({

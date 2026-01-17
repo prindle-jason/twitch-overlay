@@ -80,6 +80,12 @@ export interface StatsResponseMessage extends BaseWsMessage {
     effectsPlaying: number;
     wsReadyState: number | null;
     timestamp: number;
+    memory: {
+      totalCreated: number;
+      totalFinished: number;
+      active: number;
+      byClass: Record<string, number>;
+    };
   };
 }
 
