@@ -59,14 +59,6 @@ abstract class ConvergingSlideScene extends SceneElement {
   }
 
   override play(): void {
-    if (this.cfg.duration) {
-      logger.info("Setting scene duration from config:", this.cfg.duration);
-      this.duration = this.cfg.duration;
-    } else {
-      logger.info("Setting scene duration to default:", 4500);
-      this.duration = 4500;
-    }
-
     this.setSlideBehaviors();
     super.play();
   }
@@ -80,7 +72,7 @@ abstract class ConvergingSlideScene extends SceneElement {
           endX: 0,
           endY: this.H - this.bottomLeftImage.getHeight(),
           fadeTime: this.fadeTime,
-        })
+        }),
       );
     }
 
@@ -92,7 +84,7 @@ abstract class ConvergingSlideScene extends SceneElement {
           endX: this.W - this.bottomRightImage.getWidth(),
           endY: this.H - this.bottomRightImage.getHeight(),
           fadeTime: this.fadeTime,
-        })
+        }),
       );
     }
   }
@@ -118,6 +110,7 @@ export class BamSuccessScene extends ConvergingSlideScene {
       soundKey: "bamHooray",
       scale: 0.25,
       fadeTime: 0.2,
+      duration: 5000,
     });
   }
 }
@@ -134,6 +127,7 @@ export class BamFailureScene extends ConvergingSlideScene {
       soundKey: "bamUhOh",
       scale: 0.25,
       fadeTime: 0.2,
+      duration: 6500,
     });
   }
 }

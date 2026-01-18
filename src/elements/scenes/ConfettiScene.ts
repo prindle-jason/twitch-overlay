@@ -27,7 +27,7 @@ export class ConfettiScene extends SceneElement {
         interval,
         onTick: () => this.spawnParticle(),
         count: this.particleCount,
-      })
+      }),
     );
   }
 
@@ -47,7 +47,7 @@ export class ConfettiScene extends SceneElement {
         velocityX: (Math.random() - 0.5) * 100,
         gravity: 300 + Math.random() * 200,
         drag: 0.02,
-      })
+      }),
     );
 
     particle.addChild(
@@ -55,7 +55,7 @@ export class ConfettiScene extends SceneElement {
         rotationSpeed: (Math.random() - 0.5) * 6,
         wobbleAmount: Math.random() * 0.5,
         wobbleSpeed: Math.random() * 3 + 1,
-      })
+      }),
     );
 
     this.addChild(particle);
@@ -70,7 +70,7 @@ export class ConfettiScene extends SceneElement {
         child instanceof EllipseElement &&
         child.isOffScreen(this.W, this.H)
       ) {
-        child.setParent(null);
+        child.finish();
         return false;
       }
       return true;

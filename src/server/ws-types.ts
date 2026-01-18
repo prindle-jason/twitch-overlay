@@ -44,6 +44,8 @@ export interface HypeChatSettings extends Settings {
   minMessageRate?: number;
   maxMessageRate?: number;
   lerpFactor?: number;
+  minBurstCount?: number;
+  maxBurstCount?: number;
 }
 
 // Connection handshake messages

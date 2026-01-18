@@ -20,11 +20,16 @@ export class DashboardUI {
   private messageRateSliderEl: HTMLElement | null = null;
   private minRateValueEl: HTMLElement | null = null;
   private maxRateValueEl: HTMLElement | null = null;
+  private burstCountSliderEl: HTMLElement | null = null;
+  private minBurstValueEl: HTMLElement | null = null;
+  private maxBurstValueEl: HTMLElement | null = null;
   private lerpFactorSliderEl: HTMLInputElement | null = null;
   private lerpFactorValueEl: HTMLElement | null = null;
   // HypeChat current values + change callback
   private currentMinMessageRate: number = 200;
   private currentMaxMessageRate: number = 500;
+  private currentMinBurstCount: number = 1;
+  private currentMaxBurstCount: number = 3;
   private currentLerpFactor: number = 0.5;
   private hypeChatChangeHandler: (() => void) | null = null;
 
@@ -45,8 +50,11 @@ export class DashboardUI {
     this.messageRateSliderEl = document.getElementById("messageRateSlider");
     this.minRateValueEl = document.getElementById("minRateValue");
     this.maxRateValueEl = document.getElementById("maxRateValue");
+    this.burstCountSliderEl = document.getElementById("burstCountSlider");
+    this.minBurstValueEl = document.getElementById("minBurstValue");
+    this.maxBurstValueEl = document.getElementById("maxBurstValue");
     this.lerpFactorSliderEl = document.getElementById(
-      "lerpFactorSlider"
+      "lerpFactorSlider",
     ) as HTMLInputElement | null;
     this.lerpFactorValueEl = document.getElementById("lerpFactorValue");
 
@@ -162,14 +170,14 @@ export class DashboardUI {
 
   onSliderChange(
     sliderId: "volume" | "stability",
-    handler: SliderCallback
+    handler: SliderCallback,
   ): void {
     this.sliderCallbacks.set(sliderId, handler);
   }
 
   getTickerInput(): string {
     const input = document.getElementById(
-      "tickerInput"
+      "tickerInput",
     ) as HTMLInputElement | null;
     return input?.value.trim() || "";
   }
@@ -199,7 +207,7 @@ export class DashboardUI {
         (
           _values: (number | string)[],
           _handle: number,
-          unencoded: number[]
+          unencoded: number[],
         ) => {
           const minVal = Math.round(unencoded[0]);
           const maxVal = Math.round(unencoded[1]);
@@ -208,8 +216,40 @@ export class DashboardUI {
           this.minRateValueEl!.textContent = `${minVal}ms`;
           this.maxRateValueEl!.textContent = `${maxVal}ms`;
           if (this.hypeChatChangeHandler) this.hypeChatChangeHandler();
-        }
+        },
       );
+
+      // Initialize burst count slider
+      if (
+        this.burstCountSliderEl &&
+        this.minBurstValueEl &&
+        this.maxBurstValueEl
+      ) {
+        const burstSlider = noUiSlider.create(this.burstCountSliderEl, {
+          start: [this.currentMinBurstCount, this.currentMaxBurstCount],
+          connect: false,
+          step: 1,
+          range: { min: 1, max: 10 },
+          tooltips: [false, false],
+        });
+
+        burstSlider.on(
+          "change",
+          (
+            _values: (number | string)[],
+            _handle: number,
+            unencoded: number[],
+          ) => {
+            const minVal = Math.round(unencoded[0]);
+            const maxVal = Math.round(unencoded[1]);
+            this.currentMinBurstCount = minVal;
+            this.currentMaxBurstCount = maxVal;
+            this.minBurstValueEl!.textContent = `${minVal}`;
+            this.maxBurstValueEl!.textContent = `${maxVal}`;
+            if (this.hypeChatChangeHandler) this.hypeChatChangeHandler();
+          },
+        );
+      }
     } catch (err) {
       // If module import fails, keep UI graceful without throwing
       console.warn("Failed to initialize noUiSlider:", err);
@@ -225,6 +265,8 @@ export class DashboardUI {
       target: "hypeChat",
       minMessageRate: this.currentMinMessageRate,
       maxMessageRate: this.currentMaxMessageRate,
+      minBurstCount: this.currentMinBurstCount,
+      maxBurstCount: this.currentMaxBurstCount,
       lerpFactor: this.currentLerpFactor,
     };
   }

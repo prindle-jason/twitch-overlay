@@ -1,16 +1,15 @@
-import { OverlaySettings } from "./OverlaySettings";
+import { globalSettings } from "./OverlaySettings";
 import {
   SceneElement,
   TriggerableSceneElement,
 } from "../elements/scenes/SceneElement";
 import { logger } from "../utils/logger";
 import type { PoolType, SceneType } from "../utils/types";
-import type { Settings } from "../server/ws-types";
+import type { GlobalSettings, Settings } from "../server/ws-types";
 import { SceneFactory } from "./SceneFactory";
 
 export class SceneManager {
   private scenes: SceneElement[] = [];
-  private settings = new OverlaySettings();
   private triggerableSceneTypes = new Set<SceneType>(["hypeChat", "dvdBounce"]);
 
   constructor() {}
@@ -64,15 +63,11 @@ export class SceneManager {
     logger.debug(`Adding scene of type ${scene.constructor.name}`);
     await scene.init();
     logger.debug(`Initialized scene of type ${scene.constructor.name}`);
-    scene.onSettingsChanged(this.settings);
     this.scenes.push(scene);
   }
 
-  applySettings(settings: OverlaySettings) {
-    this.settings.applySettings(settings);
-
-    // Notify all active items of the settings change
-    this.scenes.forEach((scene) => scene.onSettingsChanged(this.settings));
+  applySettings(settings: GlobalSettings) {
+    globalSettings.applySettings(settings);
   }
 
   /**
@@ -99,7 +94,7 @@ export class SceneManager {
       }
 
       if (state === "PLAYING") {
-        if (!this.settings.paused) {
+        if (!globalSettings.paused) {
           scene.update(deltaTime);
         }
         scene.draw(ctx);

@@ -1,4 +1,5 @@
 import type { Element } from "../elements/Element";
+import { EventBus } from "../core/EventBus";
 
 export type HealthSnapshot = {
   timestamp: number;
@@ -27,6 +28,17 @@ export class Health {
   private activeElements = new Map<string, Element[]>();
   private totalCreated = 0;
   private totalFinished = 0;
+
+  constructor() {
+    // Subscribe to element lifecycle events
+    EventBus.on("element-created", (detail) => {
+      this.trackElementCreation(detail.ctor, detail.instance);
+    });
+
+    EventBus.on("element-finished", (detail) => {
+      this.trackElementFinish(detail.ctor, detail.instance);
+    });
+  }
 
   recordFrame(deltaMs: number) {
     this.frames += 1;

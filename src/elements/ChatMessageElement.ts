@@ -156,7 +156,7 @@ export class ChatMessageElement extends TransformElement {
       if (currentIndex < nextEmote.startIndex) {
         const textSlice = this.chat.message.substring(
           currentIndex,
-          nextEmote.startIndex
+          nextEmote.startIndex,
         );
         if (textSlice) {
           logger.debug("[ChatMessageElement] Adding text before emote", {
@@ -170,7 +170,7 @@ export class ChatMessageElement extends TransformElement {
               fontWeight: this.fontWeight,
               color: this.textColor,
               textBaseline: "top",
-            })
+            }),
           );
         }
         currentIndex = nextEmote.startIndex;
@@ -202,7 +202,7 @@ export class ChatMessageElement extends TransformElement {
           fontWeight: this.fontWeight,
           color: this.textColor,
           textBaseline: "top",
-        })
+        }),
       );
     }
   }
@@ -216,12 +216,12 @@ export class ChatMessageElement extends TransformElement {
         logger.warn("[ChatMessageElement] Image has invalid height:", h);
       }
     }
+    this.pendingScales = [];
   }
 
   override finish(): void {
     super.finish();
     // Clear element references to prevent memory leaks
     this.grid = null;
-    this.pendingScales = [];
   }
 }

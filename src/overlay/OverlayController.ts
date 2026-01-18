@@ -2,7 +2,6 @@ import { SceneManager } from "../core/SceneManager";
 import { Health } from "../utils/health";
 import { WebSocketClient } from "../core/WebSocketClient";
 import { logger } from "../utils/logger";
-import { Element } from "../elements/Element";
 import type {
   WsMessage,
   StatsResponseMessage,
@@ -11,13 +10,9 @@ import type {
   GlobalSettings,
   PoolEventMessage,
 } from "../server/ws-types";
-import { OverlaySettings } from "../core/OverlaySettings";
 
 export class OverlayController {
   constructor(private sceneManager: SceneManager, private health: Health) {
-    // Initialize memory diagnostics with Health instance
-    Element.setHealthInstance(health);
-
     // Expose active elements to console for debugging
     if (typeof window !== "undefined") {
       Object.defineProperty(window, "activeElements", {
@@ -81,10 +76,10 @@ export class OverlayController {
     if (target === "global") {
       // Apply global settings (volume, pause, etc.)
       logger.info("[overlay] applying global settings:", msg.settings);
-      const globalSettings = new OverlaySettings(
-        msg.settings as GlobalSettings
-      );
-      this.sceneManager.applySettings(globalSettings);
+      // const globalSettings = new OverlaySettings(
+      //   msg.settings as GlobalSettings
+      // );
+      this.sceneManager.applySettings(msg.settings as GlobalSettings);
     } else {
       // Apply scene-specific settings
       logger.info(

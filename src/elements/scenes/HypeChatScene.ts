@@ -7,7 +7,7 @@ import {
 import { SchedulerElement } from "../SchedulerElement";
 import { FakeChatProvider } from "../../utils/chat/FakeChatProvider";
 import type { HypeChatSettings } from "../../server/ws-types";
-import { Range } from "../../utils/random";
+import { Range, getRandomInRange } from "../../utils/random";
 
 /**
  * Scene that displays a stream of chat messages using ScrollingQueueElement
@@ -22,6 +22,8 @@ export class HypeChatScene extends TriggerableSceneElement {
   private minMessageRate: number = 1500; // ms
   private maxMessageRate: number = 2500; // ms
   private lerpFactor: number = 0.5;
+  private minBurstCount: number = 1;
+  private maxBurstCount: number = 3;
 
   constructor(payload?: Record<string, unknown>) {
     super();
@@ -35,6 +37,10 @@ export class HypeChatScene extends TriggerableSceneElement {
       if (config.maxMessageRate !== undefined)
         this.maxMessageRate = config.maxMessageRate;
       if (config.lerpFactor !== undefined) this.lerpFactor = config.lerpFactor;
+      if (config.minBurstCount !== undefined)
+        this.minBurstCount = config.minBurstCount;
+      if (config.maxBurstCount !== undefined)
+        this.maxBurstCount = config.maxBurstCount;
     }
   }
 
@@ -69,16 +75,26 @@ export class HypeChatScene extends TriggerableSceneElement {
     this.messageScheduler = new SchedulerElement({
       interval: this.calculateInterval(),
       onTick: () => {
-        const message = this.chatProvider.generateMessage();
+        // Randomly pick burst count and spawn that many messages
+        const burstCount = Math.round(
+          getRandomInRange({
+            min: this.minBurstCount,
+            max: this.maxBurstCount,
+          }),
+        );
 
-        const chatMsg = new ChatMessageElement(message, {
-          fontSize: 24,
-          font: "'Inter', 'Segoe UI', sans-serif",
-          emoteHeight: 28,
-          badgeHeight: 22,
-          gap: 6,
-        });
-        this.scrollQueue.addItem(chatMsg);
+        for (let i = 0; i < burstCount; i++) {
+          const message = this.chatProvider.generateMessage();
+
+          const chatMsg = new ChatMessageElement(message, {
+            fontSize: 24,
+            font: "'Inter', 'Segoe UI', sans-serif",
+            emoteHeight: 28,
+            badgeHeight: 22,
+            gap: 6,
+          });
+          this.scrollQueue.addItem(chatMsg);
+        }
       },
     });
 
@@ -112,6 +128,10 @@ export class HypeChatScene extends TriggerableSceneElement {
       this.lerpFactor = config.lerpFactor;
       this.scrollQueue.setLerpFactor(this.lerpFactor);
     }
+    if (config.minBurstCount !== undefined)
+      this.minBurstCount = config.minBurstCount;
+    if (config.maxBurstCount !== undefined)
+      this.maxBurstCount = config.maxBurstCount;
 
     if (
       config.minMessageRate !== undefined ||

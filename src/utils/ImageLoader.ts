@@ -9,17 +9,40 @@ export interface LoadedImage {
 }
 
 /**
- * Handles image loading, format detection, and decoding
+ * Handles image loading, format detection, and decoding with caching
  */
 export class ImageLoader {
+  private static cache = new Map<string, Promise<LoadedImage>>();
+
   /**
    * Load an image from URL, auto-detecting format
    * Handles static images (PNG, JPEG, SVG) and animated (GIF, WebP)
    * On error, attempts to load error placeholder at /images/error.png
+   * Results are cached - multiple requests for the same URL share the same Promise
    */
   static async load(url: string): Promise<LoadedImage> {
-    logger.debug("[ImageLoader] loading image", { url });
+    // Check cache first
+    const cached = this.cache.get(url);
+    if (cached) {
+      logger.debug("[ImageLoader] cache hit", { url });
+      return cached;
+    }
 
+    logger.debug("[ImageLoader] cache miss, loading image", { url });
+    // Create promise for this load and cache it immediately
+    // This ensures concurrent requests for the same URL share the same promise
+    const loadPromise = this.loadUncached(url);
+    this.cache.set(url, loadPromise);
+
+    // If loading fails, remove from cache so retry is possible
+    loadPromise.catch(() => {
+      this.cache.delete(url);
+    });
+
+    return loadPromise;
+  }
+
+  private static async loadUncached(url: string): Promise<LoadedImage> {
     try {
       return await this.fetchImage(url);
     } catch (err) {
@@ -29,11 +52,12 @@ export class ImageLoader {
         {
           url,
           errorMessage: message,
-        }
+        },
       );
 
       try {
-        return await this.fetchImage("/images/error.png");
+        // Recursively call load() so error image can also be cached
+        return await this.load("/images/error.png");
       } catch (errorErr) {
         logger.error("[ImageLoader] Failed to load error placeholder", {
           errorMessage:
@@ -77,7 +101,7 @@ export class ImageLoader {
 
   private static async loadAnimatedImage(
     url: string,
-    contentType: string
+    contentType: string,
   ): Promise<Sequence<ImageData>> {
     const buffer = await fetchArrayBuffer(url);
 

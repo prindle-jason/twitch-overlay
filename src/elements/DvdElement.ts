@@ -118,13 +118,16 @@ export class DvdElement extends Element {
     this.hasHitCorner = true;
     this.imageElement.finish();
 
-    this.soundElement.addEventListener(
-      "ended",
-      () => {
-        this.finish();
-      },
-      { once: true }
-    );
+    const audio = this.soundElement.getSound();
+    if (audio) {
+      audio.addEventListener(
+        "ended",
+        () => {
+          this.finish();
+        },
+        { once: true }
+      );
+    }
     this.soundElement.playSound();
   }
 
