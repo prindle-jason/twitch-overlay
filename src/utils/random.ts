@@ -42,3 +42,8 @@ export function getRandomBetween(min: number, max: number): number {
 export function getRandomInRange(range: Range): number {
   return getRandomBetween(range.min, range.max);
 }
+
+/* This may not produce a int between the values */
+export function getRandomIntInRange(range: Range): number {
+  return Math.floor(getRandomBetween(range.min, range.max + 1));
+}

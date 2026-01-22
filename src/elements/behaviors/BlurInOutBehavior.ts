@@ -1,6 +1,6 @@
-import { Element } from "../Element";
-import { applyTiming, TimingCurve } from "../../utils/timing";
-import { TransformElement } from "../TransformElement";
+import { Element } from "../primitives/Element";
+import { applyTiming, TimingCurve } from "../../utils/timing/TimingCurves";
+import { TransformElement } from "../primitives/TransformElement";
 
 interface BlurInOutConfig {
   maxBlur?: number;
@@ -25,7 +25,7 @@ export class BlurInOutBehavior extends Element {
     if (this.target) {
       const alpha = applyTiming(
         this.target.getProgress(),
-        TimingCurve.EASE_IN_OUT_QUAD
+        TimingCurve.EASE_IN_OUT_QUAD,
       );
       const blurPx = this.maxBlur * (1 - alpha);
       this.target.filter = `blur(${blurPx}px)`;
@@ -37,8 +37,7 @@ export class BlurInOutBehavior extends Element {
     this.apply();
   }
 
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
+  protected override updateSelf(deltaTime: number): void {
     this.apply();
   }
 }

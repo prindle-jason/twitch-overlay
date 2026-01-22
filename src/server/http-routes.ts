@@ -1,14 +1,14 @@
 import express, { Express } from "express";
 import path from "path";
-import { fileURLToPath } from "url";
 import fetch from "node-fetch";
-import { WsHub } from "./ws-hub.js";
-import { WsMessage } from "./ws-types.js";
+import { WebSocketManager } from "./WebSocketManager.js";
+import type { WsMessage } from "../types/ws-messages.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export function setupRoutes(app: Express, wsHub: WsHub, distRoot: string) {
+export function setupRoutes(
+  app: Express,
+  wsHub: WebSocketManager,
+  distRoot: string,
+) {
   // Serve Vite build output from dist root
   app.use(express.static(distRoot));
 
@@ -30,7 +30,25 @@ export function setupRoutes(app: Express, wsHub: WsHub, distRoot: string) {
   app.post("/event", (req, res) => {
     const body = (req.body ?? {}) as WsMessage;
     if (!body.type) {
-      return res.status(400).json({ error: "Missing 'type' field" });
+      return res.status(400).json({
+        error: "Missing 'type' field",
+        hint: "Expected format: { type: 'pool-event', poolType: '...', payload?: {} } or { type: 'scene-event', sceneType: '...', payload?: {} }",
+      });
+    }
+
+    // Validate message type is recognized
+    const validTypes = [
+      "pool-event",
+      "scene-event",
+      "set-settings",
+      "clear-scenes",
+      "ping",
+    ];
+    if (!validTypes.includes(body.type)) {
+      return res.status(400).json({
+        error: `Invalid message type: '${body.type}'`,
+        validTypes,
+      });
     }
 
     wsHub.broadcast(body);

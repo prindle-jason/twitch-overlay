@@ -1,15 +1,16 @@
 import { SceneElement } from "./SceneElement";
-import { ImageElement } from "../ImageElement";
-import { SoundElement } from "../SoundElement";
+import { ImageElement } from "../primitives/ImageElement";
+import { SoundElement } from "../primitives/SoundElement";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
-import { localImages } from "../../core/resources";
+import { localImages } from "../../utils/assets/images";
+import { localSounds } from "../../utils/assets/sounds";
 import { TranslateBehavior } from "../behaviors/TranslateBehavior";
 import { Emote } from "../../utils/chat/chatTypes";
-import { GridLayoutElement } from "../GridLayoutElement";
-import { TextElement } from "../TextElement";
+import { GridLayoutElement } from "../composites/GridLayoutElement";
+import { TextElement } from "../primitives/TextElement";
 import { buildMessageParts } from "../../utils/chat/messageParts";
-import { TimingCurve } from "../../utils/timing";
+import { TimingCurve } from "../../utils/timing/TimingCurves";
 
 interface TickerConfig {
   message?: string;
@@ -71,7 +72,7 @@ export class TickerScene extends SceneElement {
             fontWeight: "bold",
             color: this.textColor,
             textBaseline: "top",
-          })
+          }),
         );
       } else {
         const img = new ImageElement({ imageUrl: part.content });
@@ -82,7 +83,7 @@ export class TickerScene extends SceneElement {
     this.addChild(this.tickerTextGrid);
 
     // Add sound
-    const tickerSound = new SoundElement("tickerSound");
+    const tickerSound = new SoundElement(localSounds.tickerSound);
     tickerSound.addChild(new SoundOnPlayBehavior());
     this.addChild(tickerSound);
 
@@ -104,7 +105,7 @@ export class TickerScene extends SceneElement {
     // Configure fade behavior on background
     const fadeTimePercent = (this.fadeTimeMs * 2) / this.duration;
     this.tickerBackground.addChild(
-      new FadeInOutBehavior({ fadeTime: fadeTimePercent })
+      new FadeInOutBehavior({ fadeTime: fadeTimePercent }),
     );
 
     // Position text off-screen to the right
@@ -130,9 +131,7 @@ export class TickerScene extends SceneElement {
     this.tickerTextGrid.addChild(translateBehavior);
   }
 
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
-
+  protected override updateSelf(deltaTime: number): void {
     switch (this.tickerState) {
       case "FADE_IN":
         if (this.elapsed >= this.fadeTimeMs) {

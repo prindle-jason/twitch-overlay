@@ -1,8 +1,8 @@
 import { SceneElement } from "./SceneElement";
 import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
-import { localImages, type ImageKey } from "../../core/resources";
+import { localImages } from "../../utils/assets/images";
 import { pickRandom } from "../../utils/random";
-import { ImageElement } from "../ImageElement";
+import { ImageElement } from "../primitives/ImageElement";
 
 const WATERMARK_URLS: string[] = [
   localImages.activateWindows,

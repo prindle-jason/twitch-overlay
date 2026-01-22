@@ -1,4 +1,4 @@
-import type { WsMessage } from "../server/ws-types";
+import type { WsMessage } from "../types/ws-messages";
 
 type ConnectionState = "connecting" | "connected" | "disconnected";
 
@@ -62,11 +62,11 @@ export class WebSocketClient {
         // Attempt reconnect
         this.reconnectTimeout = setTimeout(
           () => this.connect(),
-          this.reconnectDelay
+          this.reconnectDelay,
         );
         this.reconnectDelay = Math.min(
           this.reconnectMaxDelay,
-          this.reconnectDelay * 2
+          this.reconnectDelay * 2,
         );
       };
 

@@ -1,14 +1,15 @@
 import { SceneElement } from "./SceneElement";
-import { SoundElement } from "../SoundElement";
+import { SoundElement } from "../primitives/SoundElement";
 import { BlurInOutBehavior } from "../behaviors/BlurInOutBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
 import { JitterBehavior } from "../behaviors/JitterBehavior";
-import { SchedulerElement } from "../SchedulerElement";
+import { SchedulerElement } from "../composites/SchedulerElement";
 import { getRandomInRange, pickRandomByWeight } from "../../utils/random";
 import type { Range } from "../../utils/random";
-import { localImages } from "../../core/resources";
-import { ImageElement } from "../ImageElement";
+import { localImages } from "../../utils/assets/images";
+import { localSounds } from "../../utils/assets/sounds";
+import { ImageElement } from "../primitives/ImageElement";
 
 interface ImageOption {
   weight: number;
@@ -37,12 +38,12 @@ export class XJasonScene extends SceneElement {
       new SchedulerElement({
         interval: this.imageIntervalRange,
         onTick: () => this.trySpawnPopup(),
-      })
+      }),
     );
   }
 
   override async init(): Promise<void> {
-    const sound = new SoundElement("heavyRainJason");
+    const sound = new SoundElement(localSounds.heavyRainJason);
     sound.addChild(new SoundOnPlayBehavior());
     this.addChild(sound);
 
@@ -65,7 +66,7 @@ export class XJasonScene extends SceneElement {
       IMAGE_OPTIONS.map((opt) => ({
         weight: opt.weight,
         item: opt,
-      }))
+      })),
     );
 
     //const popup = new TimedImageElement(option.imageKey, duration);
@@ -88,9 +89,5 @@ export class XJasonScene extends SceneElement {
     this.addChild(popup);
     // Manually trigger play for dynamically spawned children
     //popup.play();
-  }
-
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
   }
 }

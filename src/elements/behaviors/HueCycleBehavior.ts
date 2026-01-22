@@ -1,5 +1,5 @@
-import { Element } from "../Element";
-import { TransformElement } from "../TransformElement";
+import { Element } from "../primitives/Element";
+import { TransformElement } from "../primitives/TransformElement";
 
 interface HueCycleConfig {
   hueIncrement?: number;
@@ -19,9 +19,7 @@ export class HueCycleBehavior extends Element {
     return this.parent instanceof TransformElement ? this.parent : null;
   }
 
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
-
+  protected override updateSelf(deltaTime: number): void {
     if (this.target) {
       this.hue = this.hue + this.hueIncrement * deltaTime;
       this.hue = this.hue % 360;

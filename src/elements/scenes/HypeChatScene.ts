@@ -1,13 +1,13 @@
 import { TriggerableSceneElement } from "./SceneElement";
-import { ChatMessageElement } from "../ChatMessageElement";
+import { ChatMessageElement } from "../composites/ChatMessageElement";
 import {
   ScrollingQueueElement,
   ScrollDirection,
-} from "../ScrollingQueueElement";
-import { SchedulerElement } from "../SchedulerElement";
+} from "../composites/ScrollingQueueElement";
+import { SchedulerElement } from "../composites/SchedulerElement";
 import { FakeChatProvider } from "../../utils/chat/FakeChatProvider";
-import type { HypeChatSettings } from "../../server/ws-types";
-import { Range, getRandomInRange } from "../../utils/random";
+import type { HypeChatSettings } from "../../types/settings";
+import { getRandomInRange } from "../../utils/random";
 
 /**
  * Scene that displays a stream of chat messages using ScrollingQueueElement

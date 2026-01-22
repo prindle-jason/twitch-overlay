@@ -1,22 +1,35 @@
 import type { WebSocketClient } from "../core/WebSocketClient";
 import type { DashboardUI } from "./DashboardUI";
-import type { PoolType, SceneType } from "../utils/types";
+import { SidebarManager, type SidebarState } from "./SidebarManager";
+import type { PoolType, SceneType } from "../types/SceneTypes";
 import type {
   SceneEventMessage,
   SetSettingsMessage,
   WsMessage,
-  GlobalSettings,
-  HypeChatSettings,
   PoolEventMessage,
-} from "../server/ws-types";
+} from "../types/ws-messages";
+import type { GlobalSettings, HypeChatSettings } from "../types/settings";
+import { logger } from "../utils/logger";
+
+const STORAGE_KEY = "dashboard-section-state";
 
 export class DashboardController {
   private settingsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private hypeChatDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(private wsClient: WebSocketClient) {}
+  constructor(
+    private wsClient: WebSocketClient,
+    private sidebarManager: SidebarManager = new SidebarManager(
+      DashboardController.loadSidebarState(),
+    ),
+  ) {}
 
   hookAll(ui: DashboardUI): void {
+    ui.bindSidebar(this.sidebarManager);
+    // Subscribe to sidebar state changes and persist to localStorage
+    this.sidebarManager.onChange(() => {
+      DashboardController.saveSidebarState(this.sidebarManager.getState());
+    });
     this.hookSceneButtons(ui);
     this.hookUtilityButtons(ui);
     this.hookSliders(ui);
@@ -26,26 +39,27 @@ export class DashboardController {
     ui.onButtonClick("successBtn", () => this.dispatchPoolEvent("success"));
     ui.onButtonClick("failureBtn", () => this.dispatchPoolEvent("failure"));
     ui.onButtonClick("bamSuccessBtn", () =>
-      this.dispatchSceneEvent("bamSuccess")
+      this.dispatchSceneEvent("bamSuccess"),
     );
     ui.onButtonClick("bamUhOhBtn", () => this.dispatchSceneEvent("bamUhOh"));
     ui.onButtonClick("ssbmSuccessBtn", () =>
-      this.dispatchSceneEvent("ssbmSuccess")
+      this.dispatchSceneEvent("ssbmSuccess"),
     );
     ui.onButtonClick("ssbmFailBtn", () => this.dispatchSceneEvent("ssbmFail"));
     ui.onButtonClick("headbladeBtn", () =>
-      this.dispatchSceneEvent("headblade")
+      this.dispatchSceneEvent("headblade"),
     );
     ui.onButtonClick("watermarkBtn", () =>
-      this.dispatchSceneEvent("watermark")
+      this.dispatchSceneEvent("watermark"),
     );
     ui.onButtonClick("confettiBtn", () => this.dispatchSceneEvent("confetti"));
     ui.onButtonClick("dvdBounceBtn", () =>
-      this.dispatchSceneEvent("dvdBounce")
+      this.dispatchSceneEvent("dvdBounce"),
     );
     ui.onButtonClick("xJasonBtn", () => this.dispatchSceneEvent("xJason"));
-    ui.onButtonClick("richTextTestBtn", () =>
-      this.dispatchSceneEvent("richTextTest")
+    ui.onButtonClick("glitchBtn", () => this.dispatchSceneEvent("glitch"));
+    ui.onButtonClick("glitchRepeaterBtn", () =>
+      this.dispatchSceneEvent("glitchRepeater"),
     );
     ui.onButtonClick("hypeChatToggleBtn", () => {
       const settings = ui.getHypeChatSettings();
@@ -53,10 +67,10 @@ export class DashboardController {
       this.dispatchSceneEvent("hypeChat", config);
     });
     ui.onButtonClick("chatMessageTextBtn", () =>
-      this.dispatchSceneEvent("chatMessageTest")
+      this.dispatchSceneEvent("chatMessageTest"),
     );
     ui.onButtonClick("newImageTestBtn", () =>
-      this.dispatchSceneEvent("newImageTest")
+      this.dispatchSceneEvent("newImageTest"),
     );
     ui.onButtonClick("tickerBtn", () => {
       const message = ui.getTickerInput();
@@ -93,7 +107,7 @@ export class DashboardController {
     ui.onButtonClick("testBtn", () => this.sendMessage({ type: "ping" }));
     ui.onButtonClick("pauseBtn", () => this.togglePause());
     ui.onButtonClick("clearBtn", () =>
-      this.sendMessage({ type: "clear-scenes" })
+      this.sendMessage({ type: "clear-scenes" }),
     );
   }
 
@@ -105,7 +119,7 @@ export class DashboardController {
 
   private dispatchSceneEvent(
     sceneType: SceneType,
-    payload?: Record<string, unknown>
+    payload?: Record<string, unknown>,
   ): void {
     const msg: SceneEventMessage = {
       type: "scene-event",
@@ -117,7 +131,7 @@ export class DashboardController {
 
   private dispatchPoolEvent(
     poolType: PoolType,
-    payload?: Record<string, unknown>
+    payload?: Record<string, unknown>,
   ): void {
     const msg: PoolEventMessage = {
       type: "pool-event",
@@ -146,10 +160,10 @@ export class DashboardController {
     }
     this.settingsDebounceTimer = setTimeout(() => {
       const volumeSlider = document.getElementById(
-        "volumeSlider"
+        "volumeSlider",
       ) as HTMLInputElement;
       const stabilitySlider = document.getElementById(
-        "stabilitySlider"
+        "stabilitySlider",
       ) as HTMLInputElement;
       const masterVolume = Number(volumeSlider.value) / 100;
       const stability = Number(stabilitySlider.value);
@@ -178,5 +192,34 @@ export class DashboardController {
       };
       this.sendMessage(msg);
     }, 200);
+  }
+
+  /**
+   * Load sidebar state from localStorage.
+   * Returns persisted state if available, otherwise uses SidebarManager defaults.
+   */
+  private static loadSidebarState(): SidebarState {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (err) {
+      logger.warn(`Failed to load sidebar state from localStorage:`, err);
+    }
+    // Fall back to SidebarManager defaults (handled by its defaultState)
+    return {};
+  }
+
+  /**
+   * Save sidebar state to localStorage.
+   * Silently handles errors to avoid disrupting UI.
+   */
+  private static saveSidebarState(state: SidebarState): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (err) {
+      logger.warn(`Failed to save sidebar state to localStorage:`, err);
+    }
   }
 }

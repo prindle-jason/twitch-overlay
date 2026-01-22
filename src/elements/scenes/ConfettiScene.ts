@@ -1,8 +1,8 @@
 import { SceneElement } from "./SceneElement";
-import { EllipseElement } from "../EllipseElement";
+import { EllipseElement } from "../primitives/EllipseElement";
 import { GravityBehavior } from "../behaviors/GravityBehavior";
 import { TiltBehavior } from "../behaviors/TiltBehavior";
-import { SchedulerElement } from "../SchedulerElement";
+import { SchedulerElement } from "../composites/SchedulerElement";
 
 interface ConfettiConfig {
   count?: number;
@@ -61,9 +61,7 @@ export class ConfettiScene extends SceneElement {
     this.addChild(particle);
   }
 
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
-
+  protected override updateSelf(deltaTime: number): void {
     // Remove particles that have left the screen
     this.children = this.children.filter((child) => {
       if (

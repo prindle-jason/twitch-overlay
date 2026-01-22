@@ -1,6 +1,6 @@
-import { Element } from "../Element";
-import { applyTiming, TimingCurve } from "../../utils/timing";
-import { TransformElement } from "../TransformElement";
+import { Element } from "../primitives/Element";
+import { applyTiming, TimingCurve } from "../../utils/timing/TimingCurves";
+import { TransformElement } from "../primitives/TransformElement";
 
 interface FadeInOutConfig {
   fadeTime?: number;
@@ -23,7 +23,7 @@ export class FadeInOutBehavior extends Element {
       this.target.opacity = applyTiming(
         this.target.getProgress(),
         TimingCurve.FADE_IN_OUT,
-        this.fadeTime
+        this.fadeTime,
       );
     }
   }
@@ -33,8 +33,7 @@ export class FadeInOutBehavior extends Element {
     this.apply();
   }
 
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
+  protected override updateSelf(deltaTime: number): void {
     this.apply();
   }
 }

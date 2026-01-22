@@ -1,5 +1,5 @@
-import { Element } from "../Element";
-import { TransformElement } from "../TransformElement";
+import { Element } from "../primitives/Element";
+import { TransformElement } from "../primitives/TransformElement";
 
 interface JitterConfig {
   jitterAmount?: number;
@@ -29,9 +29,7 @@ export class JitterBehavior extends Element {
     }
   }
 
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
-
+  protected override updateSelf(deltaTime: number): void {
     if (this.target) {
       this.target.x =
         this.baseX + (Math.random() - 0.5) * this.jitterAmount * 2;

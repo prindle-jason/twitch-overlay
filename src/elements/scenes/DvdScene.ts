@@ -1,11 +1,10 @@
 import { TriggerableSceneElement } from "./SceneElement";
 import { ConfettiScene } from "./ConfettiScene";
-import { DvdElement } from "../DvdElement";
-import { logger } from "../../utils/logger";
+import { DvdElement } from "../composites/DvdElement";
 
 /**
- * PooledDvdEffect manages multiple DVD logos that bounce around the screen.
- * Instead of creating a new effect for each DVD, they all share one effect instance.
+ * DvdScene manages multiple DVD logos that bounce around the screen.
+ * Instead of creating a new scene for each DVD, they all share one scene instance.
  * This allows for centralized control and potential interactions between DVDs.
  */
 export class DvdScene extends TriggerableSceneElement {
@@ -13,7 +12,7 @@ export class DvdScene extends TriggerableSceneElement {
 
   constructor() {
     super();
-    this.duration = -1; // SceneElement duration management
+    this.duration = -1;
   }
 
   override async init() {
@@ -30,14 +29,12 @@ export class DvdScene extends TriggerableSceneElement {
     this.addChild(new ConfettiScene());
   }
 
-  override update(deltaTime: number): void {
+  protected override updateSelf(deltaTime: number): void {
     // Check for finished DVDs that have hit a corner and spawn confetti before they are removed
     this.getChildrenOfType(DvdElement).forEach((dvd) => {
       if (dvd.getState() === "FINISHED" && dvd.getHasHitCorner()) {
         this.spawnConfetti();
       }
     });
-
-    super.update(deltaTime);
   }
 }

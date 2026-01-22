@@ -1,15 +1,12 @@
 import { SceneElement } from "./SceneElement";
-import { ImageElement } from "../ImageElement";
-import { SoundElement } from "../SoundElement";
+import { ImageElement } from "../primitives/ImageElement";
+import { SoundElement } from "../primitives/SoundElement";
 import { GravityBehavior } from "../behaviors/GravityBehavior";
 import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 import { TiltBehavior } from "../behaviors/TiltBehavior";
-import { SchedulerElement } from "../SchedulerElement";
-import {
-  localImages,
-  type ImageKey,
-  type LocalImageKey,
-} from "../../core/resources";
+import { SchedulerElement } from "../composites/SchedulerElement";
+import { localImages } from "../../utils/assets/images";
+import { localSounds } from "../../utils/assets/sounds";
 
 interface HeadbladeCfg {
   count?: number;
@@ -39,10 +36,10 @@ export class HeadbladeScene extends SceneElement {
         interval: this.duration / this.totalCount,
         onTick: () => this.spawnHeadblade(),
         count: this.totalCount,
-      })
+      }),
     );
 
-    const sound = new SoundElement("headblade");
+    const sound = new SoundElement(localSounds.headblade);
     sound.addChild(new SoundOnPlayBehavior());
     this.addChild(sound);
 
@@ -67,7 +64,7 @@ export class HeadbladeScene extends SceneElement {
         velocityX: Math.random() * 80 - 40,
         gravity: 400 + Math.random() * 200,
         drag: 0.01,
-      })
+      }),
     );
 
     img.addChild(
@@ -75,15 +72,11 @@ export class HeadbladeScene extends SceneElement {
         rotationSpeed: (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 2),
         wobbleAmount: 0,
         wobbleSpeed: 0,
-      })
+      }),
     );
 
     img.init();
 
     this.addChild(img);
-  }
-
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
   }
 }

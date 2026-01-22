@@ -1,6 +1,6 @@
-import { Element } from "../Element";
-import { TransformElement } from "../TransformElement";
-import { applyTiming, TimingCurve } from "../../utils/timing";
+import { Element } from "../primitives/Element";
+import { TransformElement } from "../primitives/TransformElement";
+import { applyTiming, TimingCurve } from "../../utils/timing/TimingCurves";
 
 interface TranslateConfig {
   duration?: number;
@@ -52,15 +52,13 @@ export class TranslateBehavior extends Element {
     target.y = this.startY;
   }
 
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
-
+  protected override updateSelf(deltaTime: number): void {
     const target = this.target;
     if (target) {
       const t = applyTiming(
         this.getProgress(),
         this.timingFunction,
-        this.fadeTime
+        this.fadeTime,
       );
       target.x = this.startX + (this.endX - this.startX) * t;
       target.y = this.startY + (this.endY - this.startY) * t;

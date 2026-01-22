@@ -1,7 +1,6 @@
-import type {
-  StatsResponseMessage,
-  HypeChatSettings,
-} from "../server/ws-types";
+import type { StatsResponseMessage } from "../types/ws-messages";
+import type { HypeChatSettings } from "../types/settings";
+import type { SidebarManager } from "./SidebarManager";
 
 type ButtonCallback = () => void;
 type SliderCallback = (value: number) => void;
@@ -15,7 +14,6 @@ export class DashboardUI {
   private volumeValueEl: HTMLElement;
   private stabilitySliderEl: HTMLInputElement;
   private stabilityValueEl: HTMLElement;
-  private logLevelSelectEl: HTMLSelectElement;
   // HypeChat slider elements
   private messageRateSliderEl: HTMLElement | null = null;
   private minRateValueEl: HTMLElement | null = null;
@@ -45,7 +43,6 @@ export class DashboardUI {
     this.volumeValueEl = this.getEl("volumeValue");
     this.stabilitySliderEl = this.getEl("stabilitySlider") as HTMLInputElement;
     this.stabilityValueEl = this.getEl("stabilityValue");
-    this.logLevelSelectEl = this.getEl("logLevelSelect") as HTMLSelectElement;
     // Optional HypeChat UI elements (may not exist in all builds)
     this.messageRateSliderEl = document.getElementById("messageRateSlider");
     this.minRateValueEl = document.getElementById("minRateValue");
@@ -59,7 +56,6 @@ export class DashboardUI {
     this.lerpFactorValueEl = document.getElementById("lerpFactorValue");
 
     this.initializeSliders();
-    this.initializeLogLevel();
     this.initializeHypeChatSlider();
   }
 
@@ -97,14 +93,6 @@ export class DashboardUI {
     }
   }
 
-  private initializeLogLevel(): void {
-    // TODO: Implement server log level syncing
-    // For now, disabled - client and server have separate logger instances
-    this.logLevelSelectEl.disabled = true;
-    this.logLevelSelectEl.title =
-      "Log level control disabled - client and server loggers are separate";
-  }
-
   log(msg: string): void {
     const timestamp = new Date().toLocaleTimeString();
     this.logEl.textContent += `${timestamp} ${msg}\n`;
@@ -129,8 +117,7 @@ export class DashboardUI {
   updateStats(stats: StatsResponseMessage["stats"]): void {
     const fps = stats.fps;
     const frameMs = stats.frameMsAvg;
-    const loading = stats.effectsLoading;
-    const playing = stats.effectsPlaying;
+    const activeScenes = stats.activeScenes;
     const wsState = stats.wsReadyState;
     const ts = stats.timestamp;
     const memory = stats.memory;
@@ -138,23 +125,27 @@ export class DashboardUI {
     const lines = [
       `FPS: ${Number.isFinite(fps) ? fps.toFixed(1) : "-"}`,
       `Frame ms (EMA): ${Number.isFinite(frameMs) ? frameMs.toFixed(2) : "-"}`,
-      `Effects loading/playing: ${loading ?? "-"}/${playing ?? "-"}`,
+      `Active scenes: ${activeScenes ?? "-"}`,
       `Overlay WS state: ${wsState ?? "-"}`,
       `Memory: ${memory.active} active (${memory.totalCreated} created, ${memory.totalFinished} finished)`,
       `Sampled at: ${ts ? new Date(ts).toLocaleTimeString() : "-"}`,
       "Top elements:",
     ];
 
-    // Add top element types or empty lines for consistent spacing
+    // Add top element types and pad to 5 lines for consistent spacing
     if (memory.byClass && Object.keys(memory.byClass).length > 0) {
       const topClasses = Object.entries(memory.byClass)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
         .map(([name, count]) => `  ${name}: ${count}`);
       lines.push(...topClasses);
+      const padCount = 5 - topClasses.length;
+      if (padCount > 0) {
+        lines.push(...Array(padCount).fill("  "));
+      }
     } else {
-      // Add empty lines to maintain consistent vertical space
-      lines.push("  (none)");
+      // Pad with a '(none)' line plus blanks to total 5 lines
+      lines.push("  (none)", "  ", "  ", "  ", "  ");
     }
 
     this.statsEl.textContent = lines.join("\n");
@@ -269,5 +260,53 @@ export class DashboardUI {
       maxBurstCount: this.currentMaxBurstCount,
       lerpFactor: this.currentLerpFactor,
     };
+  }
+
+  bindSidebar(sidebar: SidebarManager): void {
+    const toggles = Array.from(
+      document.querySelectorAll<HTMLButtonElement>("[data-section]"),
+    );
+
+    const sectionIds = new Set<string>();
+
+    const applyState = (sectionId: string, expanded: boolean) => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.toggle("expanded", expanded);
+        section.classList.toggle("collapsed", !expanded);
+      }
+
+      const navBtn = document.querySelector<HTMLButtonElement>(
+        `.nav-button[data-section="${sectionId}"]`,
+      );
+      if (navBtn) {
+        navBtn.classList.toggle("expanded", expanded);
+        navBtn.setAttribute("aria-pressed", expanded.toString());
+      }
+
+      const relatedCollapseBtns = Array.from(
+        document.querySelectorAll<HTMLButtonElement>(
+          `.collapse-btn[data-section="${sectionId}"]`,
+        ),
+      );
+      relatedCollapseBtns.forEach((btn) =>
+        btn.setAttribute("aria-expanded", expanded.toString()),
+      );
+    };
+
+    toggles.forEach((btn) => {
+      const sectionId = btn.dataset.section;
+      if (!sectionId) return;
+      sectionIds.add(sectionId);
+      btn.addEventListener("click", () => sidebar.toggle(sectionId));
+    });
+
+    sectionIds.forEach((sectionId) =>
+      applyState(sectionId, sidebar.isExpanded(sectionId)),
+    );
+
+    sidebar.onChange(({ sectionId, expanded }) => {
+      applyState(sectionId, expanded);
+    });
   }
 }

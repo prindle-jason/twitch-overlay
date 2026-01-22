@@ -15,14 +15,12 @@ Events flow: Dashboard/External API → Server (`/event` POST or WebSocket) → 
 The project uses a **hierarchical element tree** similar to scene graphs:
 
 - **`Element`** (`src/elements/Element.ts`): Base class with lifecycle states (`NEW` → `INITIALIZING` → `READY` → `PLAYING` → `FINISHED`)
-
   - Manages parent/child relationships automatically
   - State transitions cascade: calling `play()` on parent starts all READY children
   - Elements self-remove from parent when FINISHED
   - Children are updated and culled automatically
 
 - **`SceneElement`** (`src/elements/scenes/SceneElement.ts`): Top-level container managed by `SceneManager`
-
   - Regular scenes create new instance per trigger
   - **`TriggerableSceneElement`**: Persistent scenes that handle multiple triggers (e.g., `DvdScene` adds DVDs to pool instead of creating new scenes)
 
@@ -89,7 +87,9 @@ npm start           # Run built server
 
 - Overlay: `http://127.0.0.1:8787/` (add as Browser Source in OBS)
 - Dashboard: `http://127.0.0.1:8787/dashboard`
-- Trigger Event: `POST http://127.0.0.1:8787/event` with `{ "poolId": "success", "payload": {} }`
+- Trigger Event: `POST http://127.0.0.1:8787/event` with proper WsMessage format:
+  - Pool event: `{ "type": "pool-event", "poolType": "success", "payload": {} }`
+  - Scene event: `{ "type": "scene-event", "sceneType": "watermark", "payload": {} }`
 
 ### WebSocket Protocol
 

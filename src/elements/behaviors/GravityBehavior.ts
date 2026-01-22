@@ -1,5 +1,5 @@
-import { Element } from "../Element";
-import { TransformElement } from "../TransformElement";
+import { Element } from "../primitives/Element";
+import { TransformElement } from "../primitives/TransformElement";
 
 interface GravityConfig {
   gravity?: number;
@@ -22,8 +22,7 @@ export class GravityBehavior extends Element {
     this.drag = config.drag ?? 0;
   }
 
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
+  protected override updateSelf(deltaTime: number): void {
     if (!(this.parent instanceof TransformElement)) {
       return;
     }

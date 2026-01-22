@@ -12,153 +12,238 @@
   </head>
   <body>
     <h1>Overlay Dashboard</h1>
-    <div class="top card">
-      <div class="status-line">
-        <div class="left-col">
-          <div class="compact-actions">
-            <button id="testBtn">Ping Server</button>
-            <button id="pauseBtn">Pause</button>
-            <button id="clearBtn">Clear</button>
+
+    <div class="dashboard-container">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <button class="nav-button" data-section="control-section">
+            Control
+          </button>
+          <button class="nav-button" data-section="stats-section">Stats</button>
+          <button class="nav-button" data-section="scenes-section">
+            Scenes
+          </button>
+          <button class="nav-button" data-section="ticker-section">
+            Ticker
+          </button>
+          <button class="nav-button" data-section="hypechat-section">
+            HypeChat
+          </button>
+          <button class="nav-button" data-section="developer-section">
+            Developer
+          </button>
+          <button class="nav-button" data-section="log-section">Log</button>
+        </nav>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="content">
+        <!-- Control Section -->
+        <section id="control-section" class="section expanded">
+          <div class="section-content">
+            <div class="card">
+              <div class="card-header">
+                <h2>Controls</h2>
+                <div class="card-actions compact-actions">
+                  <button id="testBtn" type="button">Ping Server</button>
+                  <button id="pauseBtn" type="button">Pause</button>
+                  <button id="clearBtn" type="button">Clear</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="sliders-group">
+                  <div class="slider-row">
+                    <label for="volumeSlider">Volume:</label>
+                    <input
+                      type="range"
+                      id="volumeSlider"
+                      min="0"
+                      max="100"
+                      value="100"
+                      step="1"
+                    />
+                    <span class="value" id="volumeValue">100%</span>
+                  </div>
+                  <div class="slider-row">
+                    <label for="stabilitySlider">Stability:</label>
+                    <input
+                      type="range"
+                      id="stabilitySlider"
+                      min="0"
+                      max="100"
+                      value="100"
+                      step="1"
+                    />
+                    <span class="value" id="stabilityValue">100%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="right-col">
-          <div class="pill" id="statusPill">
-            <span class="dot"></span>
-            <span id="status">Connecting...</span>
+        </section>
+
+        <!-- Stats Section -->
+        <section id="stats-section" class="section expanded">
+          <div class="section-content">
+            <div class="card">
+              <div class="card-header">
+                <h2>Stats</h2>
+                <div class="card-actions">
+                  <div class="pill" id="statusPill">
+                    <span class="dot"></span>
+                    <span id="status">Connecting...</span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body" id="statsBody">
+                <div id="stats" class="stats">No stats yet</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="content-row">
-        <div class="sliders-group">
-          <div class="slider-row">
-            <label for="volumeSlider">Volume:</label>
-            <input
-              type="range"
-              id="volumeSlider"
-              min="0"
-              max="100"
-              value="100"
-              step="1"
-            />
-            <span class="value" id="volumeValue">100%</span>
+        </section>
+
+        <!-- Scenes Section -->
+        <section id="scenes-section" class="section expanded">
+          <div class="section-content">
+            <div class="card">
+              <h2>Scenes</h2>
+              <div class="section-label">Groups</div>
+              <div class="button-grid">
+                <button id="successBtn">Success</button>
+                <button id="failureBtn">Failure</button>
+              </div>
+              <div class="section-label">Highlights</div>
+              <div class="button-grid">
+                <button id="bamSuccessBtn">Bam Success</button>
+                <button id="bamUhOhBtn">Bam UhOh</button>
+                <button id="watermarkBtn">Watermark</button>
+                <button id="headbladeBtn">Headblade</button>
+                <button id="confettiBtn">Confetti</button>
+                <button id="dvdBounceBtn">DVD Bounce</button>
+                <button id="xJasonBtn">X Jason</button>
+                <button id="ssbmSuccessBtn">SSBM Success</button>
+                <button id="ssbmFailBtn">SSBM Fail</button>
+              </div>
+              <div class="section-label">Glitch</div>
+              <div class="button-grid">
+                <button id="glitchBtn">Glitch</button>
+                <button id="glitchRepeaterBtn">Glitch Repeater</button>
+              </div>
+            </div>
           </div>
-          <div class="slider-row">
-            <label for="stabilitySlider">Stability:</label>
-            <input
-              type="range"
-              id="stabilitySlider"
-              min="0"
-              max="100"
-              value="100"
-              step="1"
-            />
-            <span class="value" id="stabilityValue">100%</span>
+        </section>
+
+        <!-- Ticker Section -->
+        <section id="ticker-section" class="section expanded">
+          <div class="section-content">
+            <div class="card">
+              <h2>Ticker</h2>
+              <div class="ticker-row">
+                <input
+                  id="tickerInput"
+                  type="text"
+                  placeholder="Enter ticker message"
+                />
+                <button id="tickerBtn">Send</button>
+              </div>
+            </div>
           </div>
-        </div>
-        <div id="stats" class="stats">No stats yet</div>
-      </div>
+        </section>
+
+        <!-- HypeChat Section -->
+        <section id="hypechat-section" class="section expanded">
+          <div class="section-content">
+            <div class="card">
+              <div class="card-header">
+                <h2>HypeChat</h2>
+                <div class="card-actions">
+                  <button id="hypeChatToggleBtn" type="button">Toggle</button>
+                </div>
+              </div>
+              <div class="card-body" id="hypeChatBody">
+                <div class="section-label">Message Rate</div>
+                <div id="messageRateSlider" class="nouislider-container"></div>
+                <div class="slider-labels">
+                  <div class="slider-label">
+                    <span class="label-text">Min:</span>
+                    <span class="label-value" id="minRateValue">200ms</span>
+                  </div>
+                  <div class="slider-label">
+                    <span class="label-text">Max:</span>
+                    <span class="label-value" id="maxRateValue">500ms</span>
+                  </div>
+                </div>
+                <div class="section-label">Message Burst Count</div>
+                <div id="burstCountSlider" class="nouislider-container"></div>
+                <div class="slider-labels">
+                  <div class="slider-label">
+                    <span class="label-text">Min:</span>
+                    <span class="label-value" id="minBurstValue">1</span>
+                  </div>
+                  <div class="slider-label">
+                    <span class="label-text">Max:</span>
+                    <span class="label-value" id="maxBurstValue">3</span>
+                  </div>
+                </div>
+                <div class="section-label">Lerp Factor</div>
+                <div class="slider-row">
+                  <input
+                    type="range"
+                    id="lerpFactorSlider"
+                    min="0.01"
+                    max="1"
+                    value="0.5"
+                    step="0.01"
+                  />
+                  <span class="value" id="lerpFactorValue">0.50</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Developer Section -->
+        <section id="developer-section" class="section expanded">
+          <div class="section-content">
+            <div class="card">
+              <div class="card-header">
+                <h2>Developer</h2>
+              </div>
+              <div class="card-body" id="developerBody">
+                <div class="section-label">Testing</div>
+                <div class="button-grid">
+                  <button id="tickerEmoteTestBtn" type="button">
+                    Ticker w/ Emotes
+                  </button>
+                  <button id="chatMessageTextBtn" type="button">
+                    Chat Text
+                  </button>
+                  <button id="newImageTestBtn" type="button">
+                    NewImage Test
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Log Section (marked for double-width) -->
+        <section
+          id="log-section"
+          class="section expanded"
+          data-double-width="true"
+        >
+          <div class="section-content">
+            <div class="card">
+              <h2>Log</h2>
+              <div id="log" class="log"></div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
-    <div class="grid">
-      <div class="card">
-        <h2>Effects</h2>
-        <div class="section-label">Groups</div>
-        <div class="button-grid">
-          <button id="successBtn">Success</button>
-          <button id="failureBtn">Failure</button>
-        </div>
-        <div class="section-label">Highlights</div>
-        <div class="button-grid">
-          <button id="bamSuccessBtn">Bam Success</button>
-          <button id="bamUhOhBtn">Bam UhOh</button>
-          <button id="watermarkBtn">Watermark</button>
-          <button id="headbladeBtn">Headblade</button>
-          <button id="confettiBtn">Confetti</button>
-          <button id="dvdBounceBtn">DVD Bounce</button>
-          <button id="xJasonBtn">X Jason</button>
-          <button id="ssbmSuccessBtn">SSBM Success</button>
-          <button id="ssbmFailBtn">SSBM Fail</button>
-        </div>
-      </div>
 
-      <div class="card">
-        <h2>Ticker</h2>
-        <div class="ticker-row">
-          <input
-            id="tickerInput"
-            type="text"
-            placeholder="Enter ticker message"
-          />
-          <button id="tickerBtn">Send</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>HypeChat</h2>
-        <div class="button-grid">
-          <button id="hypeChatToggleBtn">Toggle</button>
-        </div>
-        <div class="section-label">Message Rate</div>
-        <div id="messageRateSlider" class="nouislider-container"></div>
-        <div class="slider-labels">
-          <div class="slider-label">
-            <span class="label-text">Min:</span>
-            <span class="label-value" id="minRateValue">200ms</span>
-          </div>
-          <div class="slider-label">
-            <span class="label-text">Max:</span>
-            <span class="label-value" id="maxRateValue">500ms</span>
-          </div>
-        </div>
-        <div class="section-label">Message Burst Count</div>
-        <div id="burstCountSlider" class="nouislider-container"></div>
-        <div class="slider-labels">
-          <div class="slider-label">
-            <span class="label-text">Min:</span>
-            <span class="label-value" id="minBurstValue">1</span>
-          </div>
-          <div class="slider-label">
-            <span class="label-text">Max:</span>
-            <span class="label-value" id="maxBurstValue">3</span>
-          </div>
-        </div>
-        <div class="section-label">Lerp Factor</div>
-        <div class="slider-row">
-          <input
-            type="range"
-            id="lerpFactorSlider"
-            min="0.01"
-            max="1"
-            value="0.5"
-            step="0.01"
-          />
-          <span class="value" id="lerpFactorValue">0.50</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Developer</h2>
-        <div class="section-label">Testing</div>
-        <div class="button-grid">
-          <button id="tickerEmoteTestBtn">Ticker w/ Emotes</button>
-          <button id="richTextTestBtn">RichText Test</button>
-          <button id="chatMessageTextBtn">Chat Text</button>
-          <button id="newImageTestBtn">NewImage Test</button>
-        </div>
-        <div class="section-label">Logging</div>
-        <div class="setting-row">
-          <label for="logLevelSelect">Log Level:</label>
-          <select id="logLevelSelect">
-            <option value="0">DEBUG</option>
-            <option value="1" selected>INFO</option>
-            <option value="2">WARN</option>
-            <option value="3">ERROR</option>
-            <option value="4">NONE</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <div id="log" class="log"></div>
     <script type="module" src="/src/dashboard/index.ts"></script>
   </body>
 </html>

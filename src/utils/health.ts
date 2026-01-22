@@ -1,12 +1,11 @@
-import type { Element } from "../elements/Element";
+import type { Element } from "../elements/primitives/Element";
 import { EventBus } from "../core/EventBus";
 
 export type HealthSnapshot = {
   timestamp: number;
   fps: number;
   frameMsAvg: number;
-  effectsLoading: number;
-  effectsPlaying: number;
+  activeScenes: number;
   wsReadyState: number | null;
   memory: {
     totalCreated: number;
@@ -97,8 +96,7 @@ export class Health {
   }
 
   snapshot(extra: {
-    effectsLoading: number;
-    effectsPlaying: number;
+    activeScenes: number;
     wsReadyState: number | null;
   }): HealthSnapshot {
     // Build per-class counts, only including active elements
@@ -113,8 +111,7 @@ export class Health {
       timestamp: Date.now(),
       fps: Number(this.fps.toFixed(1)),
       frameMsAvg: Number(this.emaFrameMs.toFixed(2)),
-      effectsLoading: extra.effectsLoading,
-      effectsPlaying: extra.effectsPlaying,
+      activeScenes: extra.activeScenes,
       wsReadyState: extra.wsReadyState,
       memory: {
         totalCreated: this.totalCreated,

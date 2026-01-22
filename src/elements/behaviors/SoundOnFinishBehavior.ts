@@ -1,5 +1,5 @@
-import { Element } from "../Element";
-import { SoundElement } from "../SoundElement";
+import { Element } from "../primitives/Element";
+import { SoundElement } from "../primitives/SoundElement";
 
 interface SoundOnFinishConfig {
   volume?: number;

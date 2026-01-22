@@ -1,5 +1,5 @@
-import { Element } from "../Element";
-import { TransformElement } from "../TransformElement";
+import { Element } from "../primitives/Element";
+import { TransformElement } from "../primitives/TransformElement";
 
 interface ScreenBounceConfig {
   screenWidth: number;
@@ -26,9 +26,7 @@ export class ScreenBounceBehavior extends Element {
     return this.parent instanceof TransformElement ? this.parent : null;
   }
 
-  override update(deltaTime: number): void {
-    super.update(deltaTime);
-
+  protected override updateSelf(deltaTime: number): void {
     const target = this.target;
     if (!target) {
       return;

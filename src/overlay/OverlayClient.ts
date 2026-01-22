@@ -1,10 +1,10 @@
 import { WebSocketClient } from "../core/WebSocketClient";
 import { Health } from "../utils/health";
-import { SceneManager } from "../core/SceneManager";
+import { SceneManager } from "./SceneManager";
 import { logger } from "../utils/logger";
 import { OverlayController } from "./OverlayController";
 import { configProps } from "../core/configProps";
-import type { WsMessage } from "../server/ws-types";
+import type { WsMessage } from "../types/ws-messages";
 
 export class OverlayClient {
   private wsClient: WebSocketClient;
@@ -18,7 +18,7 @@ export class OverlayClient {
   constructor() {
     // Initialize canvas
     const canvas = document.getElementById(
-      "canvas"
+      "canvas",
     ) as HTMLCanvasElement | null;
     if (!canvas) {
       throw new Error("Canvas element not found");
@@ -35,7 +35,7 @@ export class OverlayClient {
 
     // Initialize managers and client
     this.wsClient = new WebSocketClient(
-      `ws://${window.location.host}/overlay-ws`
+      `ws://${window.location.host}/overlay-ws`,
     );
     this.sceneManager = new SceneManager();
     this.health = new Health();
