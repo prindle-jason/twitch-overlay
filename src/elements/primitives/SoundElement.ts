@@ -1,7 +1,7 @@
 import { Element } from "./Element";
 import { getSound } from "../../utils/assets/SoundLoader";
 import { EventBus } from "../../core/EventBus";
-import { globalSettings } from "../../overlay/OverlaySettings";
+import { globalSettings } from "../../overlay/GlobalSettingsStore";
 
 export class SoundElement extends Element {
   soundUrl: string;

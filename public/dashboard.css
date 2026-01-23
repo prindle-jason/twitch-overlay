@@ -300,6 +300,25 @@ select {
   background: #10131b;
 }
 
+/* ========================================
+   Instability Section Styling
+   ======================================== */
+
+.countdown-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+#instabilityToggleBtn.toggle-on {
+  border-color: var(--success);
+  background: rgba(61, 213, 152, 0.12);
+}
+
 input[type="text"],
 select {
   padding: var(--spacing-sm) var(--spacing-md);

@@ -33,6 +33,7 @@ export class DashboardController {
     this.hookSceneButtons(ui);
     this.hookUtilityButtons(ui);
     this.hookSliders(ui);
+    ui.onInstabilityToggle(() => this.toggleInstability());
   }
 
   private hookSceneButtons(ui: DashboardUI): void {
@@ -147,6 +148,18 @@ export class DashboardController {
 
   private togglePause(): void {
     const settings: GlobalSettings = { target: "global", togglePause: true };
+    const msg: SetSettingsMessage = {
+      type: "set-settings",
+      settings,
+    };
+    this.sendMessage(msg);
+  }
+
+  private toggleInstability(): void {
+    const settings: GlobalSettings = {
+      target: "global",
+      toggleInstability: true,
+    };
     const msg: SetSettingsMessage = {
       type: "set-settings",
       settings,

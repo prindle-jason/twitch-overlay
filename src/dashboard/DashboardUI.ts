@@ -1,5 +1,5 @@
 import type { StatsResponseMessage } from "../types/ws-messages";
-import type { HypeChatSettings } from "../types/settings";
+import type { GlobalSettings, HypeChatSettings } from "../types/settings";
 import type { SidebarManager } from "./SidebarManager";
 
 type ButtonCallback = () => void;
@@ -14,6 +14,8 @@ export class DashboardUI {
   private volumeValueEl: HTMLElement;
   private stabilitySliderEl: HTMLInputElement;
   private stabilityValueEl: HTMLElement;
+  private instabilityToggleBtnEl: HTMLButtonElement | null = null;
+  private instabilityCountdownEl: HTMLElement | null = null;
   // HypeChat slider elements
   private messageRateSliderEl: HTMLElement | null = null;
   private minRateValueEl: HTMLElement | null = null;
@@ -31,6 +33,15 @@ export class DashboardUI {
   private currentLerpFactor: number = 0.5;
   private hypeChatChangeHandler: (() => void) | null = null;
 
+  private sliderDragState = {
+    stability: false,
+    volume: false,
+  };
+
+  private countdownBaseMs: number | null = null;
+  private countdownBaseTs: number = 0;
+  private countdownTimer: ReturnType<typeof setInterval> | null = null;
+
   private buttonCallbacks = new Map<string, ButtonCallback>();
   private sliderCallbacks = new Map<string, SliderCallback>();
 
@@ -43,6 +54,12 @@ export class DashboardUI {
     this.volumeValueEl = this.getEl("volumeValue");
     this.stabilitySliderEl = this.getEl("stabilitySlider") as HTMLInputElement;
     this.stabilityValueEl = this.getEl("stabilityValue");
+    this.instabilityToggleBtnEl = document.getElementById(
+      "instabilityToggleBtn",
+    ) as HTMLButtonElement | null;
+    this.instabilityCountdownEl = document.getElementById(
+      "instabilityCountdown",
+    );
     // Optional HypeChat UI elements (may not exist in all builds)
     this.messageRateSliderEl = document.getElementById("messageRateSlider");
     this.minRateValueEl = document.getElementById("minRateValue");
@@ -73,12 +90,49 @@ export class DashboardUI {
       if (callback) callback(value);
     });
 
+    // Track drag state for volume
+    const setVolDragging = (v: boolean) => (this.sliderDragState.volume = v);
+    this.volumeSliderEl.addEventListener("mousedown", () =>
+      setVolDragging(true),
+    );
+    this.volumeSliderEl.addEventListener("touchstart", () =>
+      setVolDragging(true),
+    );
+    this.volumeSliderEl.addEventListener("mouseup", () =>
+      setVolDragging(false),
+    );
+    this.volumeSliderEl.addEventListener("mouseleave", () =>
+      setVolDragging(false),
+    );
+    this.volumeSliderEl.addEventListener("touchend", () =>
+      setVolDragging(false),
+    );
+
     this.stabilitySliderEl.addEventListener("input", () => {
       const value = Number(this.stabilitySliderEl.value);
       this.stabilityValueEl.textContent = `${value}%`;
       const callback = this.sliderCallbacks.get("stability");
       if (callback) callback(value);
     });
+
+    // Track drag state for stability
+    const setStabDragging = (v: boolean) =>
+      (this.sliderDragState.stability = v);
+    this.stabilitySliderEl.addEventListener("mousedown", () =>
+      setStabDragging(true),
+    );
+    this.stabilitySliderEl.addEventListener("touchstart", () =>
+      setStabDragging(true),
+    );
+    this.stabilitySliderEl.addEventListener("mouseup", () =>
+      setStabDragging(false),
+    );
+    this.stabilitySliderEl.addEventListener("mouseleave", () =>
+      setStabDragging(false),
+    );
+    this.stabilitySliderEl.addEventListener("touchend", () =>
+      setStabDragging(false),
+    );
 
     // Lerp factor: update display only (no controller wiring)
     if (this.lerpFactorSliderEl && this.lerpFactorValueEl) {
@@ -164,6 +218,30 @@ export class DashboardUI {
     handler: SliderCallback,
   ): void {
     this.sliderCallbacks.set(sliderId, handler);
+  }
+
+  onInstabilityToggle(handler: ButtonCallback): void {
+    if (!this.instabilityToggleBtnEl) return;
+    this.buttonCallbacks.set("instabilityToggleBtn", handler);
+    this.instabilityToggleBtnEl.addEventListener("click", handler);
+  }
+
+  applyGlobalSettings(settings: GlobalSettings): void {
+    if (typeof settings.masterVolume === "number") {
+      if (!this.sliderDragState.volume) {
+        const volPercent = Math.round(settings.masterVolume * 100);
+        this.volumeSliderEl.value = `${volPercent}`;
+        this.volumeValueEl.textContent = `${volPercent}%`;
+      }
+    }
+
+    if (typeof settings.stability === "number") {
+      if (!this.sliderDragState.stability) {
+        const stabilityPercent = Math.round(settings.stability);
+        this.stabilitySliderEl.value = `${stabilityPercent}`;
+        this.stabilityValueEl.textContent = `${stabilityPercent}%`;
+      }
+    }
   }
 
   getTickerInput(): string {
@@ -308,5 +386,70 @@ export class DashboardUI {
     sidebar.onChange(({ sectionId, expanded }) => {
       applyState(sectionId, expanded);
     });
+  }
+
+  applyInstabilityState(
+    enabled: boolean,
+    timeUntilNextEventMs: number | null,
+  ): void {
+    if (this.instabilityToggleBtnEl) {
+      this.instabilityToggleBtnEl.classList.toggle("toggle-on", enabled);
+      this.instabilityToggleBtnEl.textContent = enabled
+        ? "Disable Instability"
+        : "Enable Instability";
+    }
+
+    this.countdownBaseMs = timeUntilNextEventMs;
+    this.countdownBaseTs = performance.now();
+
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
+    }
+
+    const applyDisplay = (ms: number | null) => {
+      if (!this.instabilityCountdownEl) return;
+      this.instabilityCountdownEl.textContent = this.formatDuration(ms);
+      this.instabilityCountdownEl.classList.toggle("text-muted", !enabled);
+    };
+
+    if (!enabled) {
+      // Hold the value steady while disabled; no ticking
+      applyDisplay(timeUntilNextEventMs);
+      return;
+    }
+
+    const update = () => {
+      if (!this.instabilityCountdownEl) return;
+      const remaining = this.computeRemainingMs();
+      this.instabilityCountdownEl.textContent = this.formatDuration(remaining);
+      this.instabilityCountdownEl.classList.toggle("text-muted", !enabled);
+    };
+
+    update();
+    // Update locally every 250ms for smooth countdown
+    this.countdownTimer = setInterval(update, 250);
+  }
+
+  private computeRemainingMs(): number | null {
+    if (this.countdownBaseMs == null) return null;
+    const elapsed = performance.now() - this.countdownBaseTs;
+    const v = Math.max(0, this.countdownBaseMs - elapsed);
+    return v;
+  }
+
+  private formatDuration(ms: number | null): string {
+    if (ms == null || !Number.isFinite(ms)) return "—";
+    const totalSeconds = ms / 1000;
+    if (totalSeconds < 60) {
+      return `${totalSeconds.toFixed(1)}s`;
+    }
+    const total = Math.floor(totalSeconds);
+    const s = total % 60;
+    const m = Math.floor((total / 60) % 60);
+    const h = Math.floor(total / 3600);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    if (h >= 1) return `${h}:${pad(m)}:${pad(s)}`;
+    return `${m}:${pad(s)}`;
   }
 }

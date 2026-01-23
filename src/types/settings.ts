@@ -29,6 +29,7 @@ export interface GlobalSettings {
   target: "global";
   masterVolume?: number;
   stability?: number;
+  toggleInstability?: boolean;
   togglePause?: boolean;
 }
 

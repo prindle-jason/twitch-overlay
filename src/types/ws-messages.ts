@@ -69,6 +69,24 @@ export interface SetSettingsMessage {
   settings: Settings;
 }
 
+// Settings broadcast message (dashboard-targeted)
+export interface SettingsBroadcastMessage {
+  type: "settings-broadcast";
+  settings: Settings;
+}
+
+// Instability runtime state broadcast (overlay -> dashboards)
+export interface InstabilityBroadcastMessage {
+  type: "instability-broadcast";
+  enabled: boolean;
+  timeUntilNextEventMs: number | null;
+}
+
+// Instability state request (dashboard -> overlay)
+export interface InstabilityRequestMessage {
+  type: "instability-request";
+}
+
 // Clear scenes message
 export interface ClearScenesMessage {
   type: "clear-scenes";
@@ -85,6 +103,9 @@ export type WsMessage =
   | SceneEventMessage
   | PoolEventMessage
   | SetSettingsMessage
+  | SettingsBroadcastMessage
+  | InstabilityBroadcastMessage
+  | InstabilityRequestMessage
   | ClearScenesMessage;
 
 /**

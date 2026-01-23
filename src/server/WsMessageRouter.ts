@@ -1,5 +1,6 @@
 import type { ClientRole, ClientSession } from "./ClientSession.js";
 import type { WsMessage } from "../types/ws-messages.js";
+import { logger } from "../utils/logger.js";
 
 /**
  * Result of message handling that determines what the WebSocketManager should do next.
@@ -86,6 +87,22 @@ export class WsMessageRouter {
 
       case "stats-response":
         if (session.role === "overlay") {
+          return broadcast(msg, "dashboard");
+        }
+        return none();
+
+      case "settings-broadcast":
+        return broadcast(msg, "dashboard");
+
+      case "instability-request":
+        if (session.role === "dashboard") {
+          return broadcast({ type: "instability-request" }, "overlay");
+        }
+        return none();
+
+      case "instability-broadcast":
+        if (session.role === "overlay") {
+          logger.info("[router] broadcasting instability state:", msg);
           return broadcast(msg, "dashboard");
         }
         return none();

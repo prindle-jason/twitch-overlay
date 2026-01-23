@@ -1,4 +1,3 @@
-import { globalSettings } from "./OverlaySettings";
 import {
   SceneElement,
   TriggerableSceneElement,
@@ -6,7 +5,7 @@ import {
 import { logger } from "../utils/logger";
 import { EventBus } from "../core/EventBus";
 import type { PoolType, SceneType } from "../types/SceneTypes";
-import type { GlobalSettings, Settings } from "../types/settings";
+import type { Settings } from "../types/settings";
 import { SceneFactory } from "./SceneFactory";
 
 /**
@@ -95,10 +94,6 @@ export class SceneManager {
     this.scenes.push(scene);
   }
 
-  applySettings(settings: GlobalSettings) {
-    globalSettings.applySettings(settings);
-  }
-
   /**
    * Configure an active scene by its type identifier.
    * Only applies to scenes currently managed; ignored otherwise.
@@ -124,9 +119,7 @@ export class SceneManager {
 
       switch (state) {
         case "READY":
-          if (!globalSettings.paused) {
-            scene.play();
-          }
+          scene.play();
           return true;
 
         case "PLAYING":

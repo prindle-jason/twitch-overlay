@@ -1,19 +1,23 @@
 import { WebSocketClient } from "../core/WebSocketClient";
 import { Health } from "../utils/health";
 import { SceneManager } from "./SceneManager";
+import { InstabilityManager } from "./InstabilityManager";
 import { logger } from "../utils/logger";
 import { OverlayController } from "./OverlayController";
 import { configProps } from "../core/configProps";
 import type { WsMessage } from "../types/ws-messages";
+import { EventBus } from "../core/EventBus";
 
 export class OverlayClient {
   private wsClient: WebSocketClient;
   private sceneManager: SceneManager;
+  private instabilityManager: InstabilityManager;
   private health: Health;
   private controller: OverlayController;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private lastFrame: number = performance.now();
+  private paused: boolean = false;
 
   constructor() {
     // Initialize canvas
@@ -38,8 +42,21 @@ export class OverlayClient {
       `ws://${window.location.host}/overlay-ws`,
     );
     this.sceneManager = new SceneManager();
+    this.instabilityManager = new InstabilityManager(this.sceneManager);
     this.health = new Health();
-    this.controller = new OverlayController(this.sceneManager, this.health);
+    this.controller = new OverlayController(
+      this.sceneManager,
+      this.health,
+      this.instabilityManager,
+    );
+
+    // Pause awareness: skip updates when globally paused
+    EventBus.on("global-paused", () => {
+      this.paused = true;
+    });
+    EventBus.on("global-resumed", () => {
+      this.paused = false;
+    });
   }
 
   start(): void {
@@ -84,7 +101,10 @@ export class OverlayClient {
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    this.sceneManager.update(this.ctx, deltaTime);
+    if (!this.paused) {
+      this.sceneManager.update(this.ctx, deltaTime);
+      this.instabilityManager.update(deltaTime);
+    }
 
     requestAnimationFrame(this.loop);
   };

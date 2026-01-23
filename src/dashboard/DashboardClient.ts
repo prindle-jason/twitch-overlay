@@ -13,7 +13,7 @@ export class DashboardClient {
 
   constructor() {
     this.wsClient = new WebSocketClient(
-      `ws://${window.location.host}/overlay-ws`
+      `ws://${window.location.host}/overlay-ws`,
     );
     this.ui = new DashboardUI();
     this.controller = new DashboardController(this.wsClient);
@@ -23,7 +23,7 @@ export class DashboardClient {
     clearInterval(this.statsInterval ?? undefined);
     this.statsInterval = setInterval(
       () => this.wsClient.send({ type: "get-stats" }),
-      this.statsPollMs
+      this.statsPollMs,
     );
     this.wsClient.send({ type: "get-stats" });
   }
@@ -39,6 +39,8 @@ export class DashboardClient {
       this.wsClient.send({ type: "hello", role: "dashboard" });
       this.ui.log("WS connected");
       this.startStatsPolling();
+      // Request current instability state on connect
+      this.wsClient.send({ type: "instability-request" });
     });
 
     this.wsClient.onDisconnected(() => {
@@ -50,6 +52,17 @@ export class DashboardClient {
     this.wsClient.onMessage((msg) => {
       if (msg.type === "stats-response") {
         this.ui.updateStats(msg.stats);
+      }
+
+      if (
+        msg.type === "settings-broadcast" &&
+        msg.settings.target === "global"
+      ) {
+        this.ui.applyGlobalSettings(msg.settings);
+      }
+
+      if (msg.type === "instability-broadcast") {
+        this.ui.applyInstabilityState(msg.enabled, msg.timeUntilNextEventMs);
       }
     });
 
@@ -66,7 +79,7 @@ export class DashboardClient {
     this.connect();
     this.heartbeatInterval = setInterval(
       () => this.wsClient.send({ type: "ping" }),
-      this.heartbeatIntervalMs
+      this.heartbeatIntervalMs,
     );
   }
 

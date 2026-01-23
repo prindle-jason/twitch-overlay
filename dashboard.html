@@ -20,6 +20,9 @@
           <button class="nav-button" data-section="control-section">
             Control
           </button>
+          <button class="nav-button" data-section="instability-section">
+            Instability
+          </button>
           <button class="nav-button" data-section="stats-section">Stats</button>
           <button class="nav-button" data-section="scenes-section">
             Scenes
@@ -65,6 +68,26 @@
                     />
                     <span class="value" id="volumeValue">100%</span>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Instability Section -->
+        <section id="instability-section" class="section expanded">
+          <div class="section-content">
+            <div class="card">
+              <div class="card-header">
+                <h2>Instability</h2>
+                <div class="card-actions">
+                  <button id="instabilityToggleBtn" type="button">
+                    Enable Instability
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="sliders-group">
                   <div class="slider-row">
                     <label for="stabilitySlider">Stability:</label>
                     <input
@@ -78,6 +101,8 @@
                     <span class="value" id="stabilityValue">100%</span>
                   </div>
                 </div>
+                <div class="section-label">Next event in:</div>
+                <div id="instabilityCountdown" class="countdown-value">—</div>
               </div>
             </div>
           </div>

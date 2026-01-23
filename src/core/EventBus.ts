@@ -1,4 +1,4 @@
-import type { EventType, EventDetailMap } from "../utils/EventTypes";
+import type { EventType, EventDetailMap } from "../types/EventTypes";
 
 /**
  * Singleton event bus for loosely-coupled communication between system components.
@@ -33,7 +33,7 @@ class EventBusImpl {
    */
   on<T extends EventType>(
     type: T,
-    listener: (detail: EventDetailMap[T]) => void
+    listener: (detail: EventDetailMap[T]) => void,
   ): void {
     const wrappedListener = (e: Event) => {
       const customEvent = e as CustomEvent<EventDetailMap[T]>;
@@ -52,7 +52,7 @@ class EventBusImpl {
    */
   off<T extends EventType>(
     type: T,
-    listener: (detail: EventDetailMap[T]) => void
+    listener: (detail: EventDetailMap[T]) => void,
   ): void {
     const wrappedListener = (listener as any).__wrapped;
     if (wrappedListener) {

@@ -13,7 +13,10 @@ export type LifecycleEventType = "element-created" | "element-finished";
 export type SettingsEventType =
   | "global-paused"
   | "global-resumed"
-  | "global-volume-changed";
+  | "global-volume-changed"
+  | "global-stability-changed"
+  | "instability-toggled"
+  | "instability-state-changed";
 
 /**
  * All known event types in the system.
@@ -29,6 +32,13 @@ export interface EventDetailMap {
   "global-paused": { paused: true };
   "global-resumed": { paused: false };
   "global-volume-changed": { masterVolume: number };
+  "global-stability-changed": { stability: number };
+  "instability-toggled": { instabilityEnabled: boolean };
+  "instability-state-changed": {
+    instabilityEnabled: boolean;
+    timeUntilNextEventMs: number | null;
+    stability: number;
+  };
 }
 
 /**
