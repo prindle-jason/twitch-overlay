@@ -4,6 +4,9 @@ resources/
 # Asset source files (not needed for runtime)
 sources/
 
+# Video files (too large for version control)
+public/videos/
+
 # Dependencies
 node_modules/
 npm-debug.log*

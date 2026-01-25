@@ -37,6 +37,7 @@ export class SceneFactory {
     headblade: (p) => new Scenes.HeadbladeScene(p as any),
     ticker: (p) => new Scenes.TickerScene(p as any),
     xJason: (p) => new Scenes.XJasonScene(),
+    brainrot: (p) => new Scenes.BrainrotScene(),
 
     // Triggerable pools
     hypeChat: (p) => new Scenes.HypeChatScene(p as Record<string, unknown>),

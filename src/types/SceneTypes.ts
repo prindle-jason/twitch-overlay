@@ -18,7 +18,8 @@ export type SceneType =
   | "hypeChat"
   | "dvdBounce"
   | "glitch"
-  | "glitchRepeater";
+  | "glitchRepeater"
+  | "brainrot";
 
 /**
  * Pool identifier type
