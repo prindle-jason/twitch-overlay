@@ -27,8 +27,6 @@ export class XJasonScene extends SceneElement {
   private readonly imageIntervalRange: Range = { min: 300, max: 1000 };
   private readonly imageDurationRange: Range = { min: 1200, max: 1600 };
   private readonly imageWidthRange: Range = { min: 250, max: 1500 };
-  //private readonly imageWidth = 560;
-  //private readonly imageHeight = 120;
 
   constructor() {
     super();
@@ -69,25 +67,23 @@ export class XJasonScene extends SceneElement {
       })),
     );
 
-    //const popup = new TimedImageElement(option.imageKey, duration);
-    const popup = new ImageElement({ imageUrl: option.imageUrl });
-    popup.setDuration(duration);
-
-    await popup.init();
-
-    const width = getRandomInRange(this.imageWidthRange);
-    popup.setScale(width / popup.getWidth());
-    //popup.setScale(this.imageHeight / (popup.getHeight() ?? 1));
-    popup.x = Math.random() * (this.W - popup.getWidth());
-    popup.y = Math.random() * (this.H - popup.getHeight());
+    const popup = new ImageElement({
+      imageUrl: option.imageUrl,
+      width: getRandomInRange(this.imageWidthRange),
+      scaleStrategy: "fit",
+      duration: duration,
+    });
 
     const imageBlurConfig = { fadeTime: 0.4, maxBlur: 16 };
     popup.addChild(new JitterBehavior({ jitterAmount: 6 }));
     popup.addChild(new FadeInOutBehavior({ fadeTime: 0.4 }));
     popup.addChild(new BlurInOutBehavior(imageBlurConfig));
 
+    await popup.init();
+
+    popup.x = Math.random() * (this.W - popup.getWidth()!);
+    popup.y = Math.random() * (this.H - popup.getHeight()!);
+
     this.addChild(popup);
-    // Manually trigger play for dynamically spawned children
-    //popup.play();
   }
 }

@@ -59,7 +59,6 @@ export class TickerScene extends SceneElement {
       columns: 0,
       gap: 4,
       alignItems: "center",
-      imageHeight: this.emoteHeight,
     });
 
     for (const part of parts) {
@@ -75,7 +74,10 @@ export class TickerScene extends SceneElement {
           }),
         );
       } else {
-        const img = new ImageElement({ imageUrl: part.content });
+        const img = new ImageElement({
+          imageUrl: part.content,
+          height: this.emoteHeight,
+        });
         this.tickerTextGrid.addChild(img);
       }
     }

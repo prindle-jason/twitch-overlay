@@ -2,6 +2,10 @@ import type { LifecycleState } from "../../types/LifecycleStates";
 import { logger } from "../../utils/logger";
 import { EventBus } from "../../core/EventBus";
 
+export interface ElementConfig {
+  duration?: number;
+}
+
 /**
  * Base node in the overlay tree.
  * Manages parent/child links, lifecycle transitions, and event hooks so subclasses focus on rendering/logic.
@@ -32,12 +36,13 @@ export abstract class Element {
   // ---------------------------------------------------------------------------------
   protected parent: Element | null = null;
   protected children: Element[] = [];
-  protected duration: number = -1;
+  protected duration!: number;
   protected elapsed = 0;
   protected state: LifecycleState = "NEW";
 
-  constructor(config: Record<string, unknown> = {}) {
-    Object.assign(this, config);
+  constructor(config: ElementConfig = {}) {
+    this.duration = config.duration ?? -1;
+
     EventBus.emit("element-created", {
       ctor: this.constructor.name,
       instance: this,

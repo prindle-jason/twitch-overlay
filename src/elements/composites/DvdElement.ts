@@ -4,7 +4,6 @@ import { ScreenBounceBehavior } from "../behaviors/ScreenBounceBehavior";
 import { ScreenCornerDetectionBehavior } from "../behaviors/ScreenCornerDetectionBehavior";
 import { HueCycleBehavior } from "../behaviors/HueCycleBehavior";
 import { pickRandomByWeight } from "../../utils/random";
-import { calculateScaleForMax } from "../../utils/dimensions";
 import { configProps } from "../../core/configProps";
 import { localImages } from "../../utils/assets/images";
 import { localSounds } from "../../utils/assets/sounds";
@@ -71,33 +70,23 @@ export class DvdElement extends Element {
     return this.hasHitCorner;
   }
 
-  setMaxSize(newMaxSize: number): void {
-    this.maxSize = newMaxSize;
-    this.updateDimensions();
-  }
-
-  private updateDimensions(): void {
-    const scale = calculateScaleForMax(
-      this.imageElement.getWidth(),
-      this.imageElement.getHeight(),
-      this.maxSize,
-    );
-    this.imageElement.setScale(scale);
-  }
-
   play(): void {
     const { W, H } = configProps.canvas;
 
-    this.updateDimensions();
-    this.imageElement.x = Math.random() * (W - this.imageElement.getWidth());
-    this.imageElement.y = Math.random() * (H - this.imageElement.getHeight());
+    this.imageElement.x = Math.random() * (W - this.imageElement.getWidth()!);
+    this.imageElement.y = Math.random() * (H - this.imageElement.getHeight()!);
 
     super.play();
   }
 
   private createImage(option: DvdOption): void {
     const { W, H } = configProps.canvas;
-    this.imageElement = new ImageElement({ imageUrl: option.imageUrl });
+    this.imageElement = new ImageElement({
+      imageUrl: option.imageUrl,
+      width: this.maxSize,
+      height: this.maxSize,
+      scaleStrategy: "fit",
+    });
 
     const velocity = Math.random() + 2;
     const bounceBehavior = new ScreenBounceBehavior({

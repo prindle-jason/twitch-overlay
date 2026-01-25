@@ -67,10 +67,10 @@ abstract class ConvergingSlideScene extends SceneElement {
     if (this.bottomLeftImage) {
       this.bottomLeftImage.addChild(
         new TranslateBehavior({
-          startX: 0 - this.bottomLeftImage.getWidth(),
+          startX: 0 - this.bottomLeftImage.getWidth()!,
           startY: this.H,
           endX: 0,
-          endY: this.H - this.bottomLeftImage.getHeight(),
+          endY: this.H - this.bottomLeftImage.getHeight()!,
           fadeTime: this.fadeTime,
         }),
       );
@@ -81,8 +81,8 @@ abstract class ConvergingSlideScene extends SceneElement {
         new TranslateBehavior({
           startX: this.W,
           startY: this.H,
-          endX: this.W - this.bottomRightImage.getWidth(),
-          endY: this.H - this.bottomRightImage.getHeight(),
+          endX: this.W - this.bottomRightImage.getWidth()!,
+          endY: this.H - this.bottomRightImage.getHeight()!,
           fadeTime: this.fadeTime,
         }),
       );

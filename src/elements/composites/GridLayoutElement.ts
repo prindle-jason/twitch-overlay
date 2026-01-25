@@ -1,13 +1,10 @@
 import { TransformElement } from "../primitives/TransformElement";
 import { Element } from "../primitives/Element";
-import { logger } from "../../utils/logger";
-import { ImageElement } from "../primitives/ImageElement";
 
 interface GridLayoutConfig {
   columns?: number; // Number of columns (default: auto-wrap based on children)
   gap?: number; // Gap between cells in pixels (default: 0)
   alignItems?: "start" | "center" | "end"; // Vertical alignment within row (default: center)
-  imageHeight?: number; // Target height for ImageElement children (scales proportionally)
 }
 
 /**
@@ -18,14 +15,12 @@ export class GridLayoutElement extends TransformElement {
   columns: number;
   gap: number;
   alignItems: "start" | "center" | "end";
-  imageHeight?: number;
 
   constructor(config: GridLayoutConfig = {}) {
     super();
     this.columns = config.columns ?? 0; // 0 = single row (all children in one row)
     this.gap = config.gap ?? 0;
     this.alignItems = config.alignItems ?? "center";
-    this.imageHeight = config.imageHeight;
   }
 
   async init(): Promise<void> {
@@ -33,23 +28,8 @@ export class GridLayoutElement extends TransformElement {
   }
 
   override play(): void {
-    // Scale images if imageHeight is configured
-    if (this.imageHeight !== undefined) {
-      for (const img of this.getChildrenOfType(ImageElement)) {
-        const h = img.getHeight() ?? 0;
-        if (h > 0) {
-          img.setScale(this.imageHeight! / h);
-        }
-      }
-    }
     this.calculateLayout();
     super.play();
-  }
-
-  private scaleImages(): void {
-    // const imageChildren = this.getChildrenOfType(TransformElement).filter(
-    //   (child) => child.constructor.name === "ImageElement"
-    // );
   }
 
   override addChild(child: Element): void {

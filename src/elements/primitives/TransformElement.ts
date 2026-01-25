@@ -1,15 +1,43 @@
-import { Element } from "./Element";
+import { ScaleConfig } from "../../utils/dimensions";
+import { Element, ElementConfig } from "./Element";
+
+export interface TransformElementConfig extends ElementConfig {
+  x?: number;
+  y?: number;
+  opacity?: number;
+  scale?: ScaleConfig;
+  rotation?: number;
+  filter?: string;
+  width?: number | null;
+  height?: number | null;
+}
 
 export abstract class TransformElement extends Element {
-  x = 0;
-  y = 0;
-  opacity = 1;
-  scaleX = 1;
-  scaleY = 1;
-  rotation = 0;
-  filter = "none";
+  x!: number;
+  y!: number;
+  opacity!: number;
+  scaleX!: number;
+  scaleY!: number;
+  rotation!: number;
+  filter!: string;
   private width: number | null = null;
   private height: number | null = null;
+
+  constructor(config: TransformElementConfig = {}) {
+    super(config);
+
+    // Handle scale
+    this.setScale(config.scale ?? 1);
+
+    // Apply remaining properties
+    this.x = config.x ?? 0;
+    this.y = config.y ?? 0;
+    this.opacity = config.opacity ?? 1;
+    this.rotation = config.rotation ?? 0;
+    this.filter = config.filter ?? "none";
+    this.setWidth(config.width ?? null);
+    this.setHeight(config.height ?? null);
+  }
 
   getWidth(): number | null {
     return this.width;
@@ -19,9 +47,14 @@ export abstract class TransformElement extends Element {
     return this.height;
   }
 
-  setScale(scale: number) {
-    this.scaleX = scale;
-    this.scaleY = scale;
+  setScale(scale: ScaleConfig): void {
+    if (typeof scale === "number") {
+      this.scaleX = scale;
+      this.scaleY = scale;
+    } else {
+      if (scale.x !== undefined) this.scaleX = scale.x;
+      if (scale.y !== undefined) this.scaleY = scale.y;
+    }
   }
 
   setWidth(width: number | null) {

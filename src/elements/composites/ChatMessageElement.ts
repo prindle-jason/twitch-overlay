@@ -2,7 +2,7 @@ import { TransformElement } from "../primitives/TransformElement";
 import { GridLayoutElement } from "./GridLayoutElement";
 import { TextElement } from "../primitives/TextElement";
 import { ImageElement } from "../primitives/ImageElement";
-import type { ChatMessage, Emote, Badge } from "../../utils/chat/chatTypes";
+import type { ChatMessage, Emote } from "../../utils/chat/chatTypes";
 import { logger } from "../../utils/logger";
 
 interface ChatMessageElementConfig {
@@ -18,11 +18,6 @@ interface ChatMessageElementConfig {
   badgeGap?: number;
 }
 
-interface PendingScale {
-  image: ImageElement;
-  targetHeight: number;
-}
-
 /**
  * Renders a chat message (badges + username + message parts) as a single-row grid.
  */
@@ -30,7 +25,6 @@ export class ChatMessageElement extends TransformElement {
   private chat: ChatMessage;
   //private config: ChatMessageElementConfig;
   private grid: GridLayoutElement | null = null;
-  private pendingScales: PendingScale[] = [];
 
   private fontSize: number;
   private font: string;
@@ -85,8 +79,6 @@ export class ChatMessageElement extends TransformElement {
   }
 
   override play(): void {
-    // Scale images after they're initialized
-    this.scaleImages();
     super.play();
   }
 
@@ -107,8 +99,11 @@ export class ChatMessageElement extends TransformElement {
     });
 
     for (const badge of this.chat.badges) {
-      const img = new ImageElement({ imageUrl: badge.imageUrl });
-      this.pendingScales.push({ image: img, targetHeight: this.badgeHeight });
+      const img = new ImageElement({
+        imageUrl: badge.imageUrl,
+        height: this.badgeHeight,
+        scaleStrategy: "fit",
+      });
       logger.debug("[ChatMessageElement] Adding badge image", {
         url: badge.imageUrl,
       });
@@ -177,8 +172,11 @@ export class ChatMessageElement extends TransformElement {
       }
 
       // Add emote
-      const img = new ImageElement({ imageUrl: nextEmote.imageUrl });
-      this.pendingScales.push({ image: img, targetHeight: this.emoteHeight });
+      const img = new ImageElement({
+        imageUrl: nextEmote.imageUrl,
+        height: this.emoteHeight,
+        scaleStrategy: "fit",
+      });
       logger.debug("[ChatMessageElement] Adding emote image", {
         emoteName: nextEmote.name,
         url: nextEmote.imageUrl,
@@ -205,18 +203,6 @@ export class ChatMessageElement extends TransformElement {
         }),
       );
     }
-  }
-
-  private scaleImages(): void {
-    for (const { image, targetHeight } of this.pendingScales) {
-      const h = image.getHeight() ?? 0;
-      if (h > 0) {
-        image.setScale(targetHeight / h);
-      } else {
-        logger.warn("[ChatMessageElement] Image has invalid height:", h);
-      }
-    }
-    this.pendingScales = [];
   }
 
   override finish(): void {

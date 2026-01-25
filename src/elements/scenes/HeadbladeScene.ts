@@ -49,14 +49,19 @@ export class HeadbladeScene extends SceneElement {
   private spawnHeadblade() {
     const key =
       this.imageUrls[Math.floor(Math.random() * this.imageUrls.length)];
-    //const img = new ImageElement({ imageKey: key });
-    const img = new ImageElement({ imageUrl: key });
-    img.x = Math.random() * this.W;
-    img.y = -50;
+
     const scale = 0.5 * Math.random() + 0.25;
-    img.scaleX = scale;
-    img.scaleY = scale;
-    img.rotation = Math.random() * Math.PI * 2;
+    const x = Math.random() * this.W;
+    const y = -50;
+    const rotation = Math.random() * Math.PI * 2;
+
+    const img = new ImageElement({
+      imageUrl: key,
+      x: x,
+      y: y,
+      scale: scale,
+      rotation: rotation,
+    });
 
     img.addChild(
       new GravityBehavior({
@@ -75,7 +80,7 @@ export class HeadbladeScene extends SceneElement {
       }),
     );
 
-    img.init();
+    //img.init();
 
     this.addChild(img);
   }

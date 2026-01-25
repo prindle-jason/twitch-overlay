@@ -16,7 +16,7 @@ interface CenteredImageSceneCfg {
 
 abstract class CenteredImageScene extends SceneElement {
   private cfg: CenteredImageSceneCfg;
-  private image: ImageElement | null = null;
+  private imageElement: ImageElement | null = null;
   private soundElement: SoundElement | null = null;
   private fadeTime: number;
 
@@ -27,9 +27,11 @@ abstract class CenteredImageScene extends SceneElement {
   }
 
   override async init(): Promise<void> {
-    this.image = new ImageElement({ imageUrl: this.cfg.imageUrl });
-    this.image.addChild(new FadeInOutBehavior({ fadeTime: this.fadeTime }));
-    this.addChild(this.image);
+    this.imageElement = new ImageElement({ imageUrl: this.cfg.imageUrl });
+    this.imageElement.addChild(
+      new FadeInOutBehavior({ fadeTime: this.fadeTime }),
+    );
+    this.addChild(this.imageElement);
 
     if (this.cfg.soundUrl) {
       this.soundElement = new SoundElement(this.cfg.soundUrl);
@@ -45,8 +47,10 @@ abstract class CenteredImageScene extends SceneElement {
   }
 
   override play(): void {
-    this.image!.x = (this.W - this.image!.getWidth()) / 2;
-    this.image!.y = (this.H - this.image!.getHeight()) / 2;
+    if (this.imageElement) {
+      this.imageElement.x = (this.W - this.imageElement.getWidth()!) / 2;
+      this.imageElement.y = (this.H - this.imageElement.getHeight()!) / 2;
+    }
 
     if (this.cfg.duration) {
       this.duration = this.cfg.duration;
@@ -60,7 +64,7 @@ abstract class CenteredImageScene extends SceneElement {
   override finish(): void {
     super.finish();
     // Clear element references to prevent memory leaks
-    this.image = null;
+    this.imageElement = null;
     this.soundElement = null;
   }
 }

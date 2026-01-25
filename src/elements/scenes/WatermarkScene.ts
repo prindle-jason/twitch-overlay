@@ -36,7 +36,11 @@ export class WatermarkScene extends SceneElement {
   }
 
   override async init(): Promise<void> {
-    this.image = new ImageElement({ imageUrl: this.watermarkUrl });
+    this.image = new ImageElement({
+      imageUrl: this.watermarkUrl,
+      width: this.W,
+      height: this.H,
+    });
     this.image.addChild(new FadeInOutBehavior({ fadeTime: this.fadeTime }));
     this.addChild(this.image);
     await super.init();
@@ -44,10 +48,10 @@ export class WatermarkScene extends SceneElement {
 
   override play(): void {
     // Scale to cover the full canvas area
-    this.image.scaleX = this.W / this.image.getWidth();
+    /*this.image.scaleX = this.W / this.image.getWidth();
     this.image.scaleY = this.H / this.image.getHeight();
     this.image.x = 0;
-    this.image.y = 0;
+    this.image.y = 0;*/
 
     super.play();
   }

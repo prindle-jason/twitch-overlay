@@ -1,25 +1,49 @@
-import { TransformElement } from "./TransformElement";
+import { TransformElement, TransformElementConfig } from "./TransformElement";
 import { logger } from "../../utils/logger";
 import { ImageLoader } from "../../utils/assets/ImageLoader";
+import {
+  calculateImageScale,
+  type ImageScaleStrategy,
+} from "../../utils/dimensions";
 import { Sequence } from "../../utils/timing/Sequence";
 import { SequenceElement } from "../composites/SequenceElement";
 
-interface NewImageElementConfig {
-  imageUrl: string;
-  scale?: number;
-  scaleX?: number;
-  scaleY?: number;
-}
+type ImageElementConfig =
+  | ({
+      imageUrl: string;
+      scaleStrategy: "stretch";
+      width: number;
+      height: number;
+    } & TransformElementConfig)
+  | ({
+      imageUrl: string;
+      scaleStrategy?: "fit" | "fill" | "none";
+    } & TransformElementConfig);
 
 /**
  * Unified image element that handles both static and animated images.
  * Detects format from extension, falls back to Content-Type header.
  * Static images use HTMLImageElement, animated use decoded frames.
  * Uses offscreen canvas for rendering so transforms work correctly.
+ *
+ * Scale behavior:
+ * - If scale is explicitly provided (scale/scaleX/scaleY), it takes precedence
+ * - If width/height provided, apply scaleStrategy to calculate scale
+ * - If nothing provided, use natural dimensions
+ *
+ * Scale strategies:
+ * - 'fit': Scale to fit inside bounds, maintain aspect ratio (default)
+ * - 'fill': Scale to fill bounds completely, maintain aspect ratio
+ * - 'stretch': Scale to exact dimensions, ignore aspect ratio (requires both width and height)
+ * - 'none': No auto-scaling, use natural dimensions
  */
 export class ImageElement extends TransformElement {
-  private imageUrl: string;
+  private imageUrl!: string;
+  private scaleStrategy: ImageScaleStrategy;
+  private hasExplicitScale = false;
   private isAnimated: boolean = false;
+  private naturalWidth!: number;
+  private naturalHeight!: number;
 
   // Static image
   private staticImage: HTMLImageElement | null = null;
@@ -29,65 +53,63 @@ export class ImageElement extends TransformElement {
   private frameCanvas: HTMLCanvasElement | null = null;
   private frameCtx: CanvasRenderingContext2D | null = null;
 
-  constructor(config: NewImageElementConfig) {
-    super();
+  constructor(config: ImageElementConfig) {
+    super(config);
     this.imageUrl = config.imageUrl;
+    this.scaleStrategy = config.scaleStrategy ?? "none";
 
-    if (config.scale !== undefined) {
-      this.setScale(config.scale);
-    }
-    if (config.scaleX !== undefined) {
-      this.scaleX = config.scaleX;
-    }
-    if (config.scaleY !== undefined) {
-      this.scaleY = config.scaleY;
-    }
+    // Check for explicit scale after super
+    const s = config.scale;
+    this.hasExplicitScale =
+      typeof s === "number" ||
+      (typeof s === "object" &&
+        s !== null &&
+        (s.x !== undefined || s.y !== undefined));
   }
 
   override async init(): Promise<void> {
-    logger.debug("[NewImageElement] init() loading", { url: this.imageUrl });
+    logger.debug("[ImageElement] init() loading", { url: this.imageUrl });
 
     const loaded = await ImageLoader.load(this.imageUrl);
 
     this.isAnimated = loaded.isAnimated;
 
     if (this.isAnimated) {
-      this.sequenceElement = new SequenceElement(
-        loaded.image as Sequence<ImageData>,
-      );
+      const sequence = loaded.image as Sequence<ImageData>;
+      this.naturalWidth = sequence.getCurrent()!.width;
+      this.naturalHeight = sequence.getCurrent()!.height;
+
+      this.sequenceElement = new SequenceElement(sequence);
       this.addChild(this.sequenceElement);
       this.initFrameCanvas();
     } else {
       this.staticImage = loaded.image as HTMLImageElement;
+      this.naturalWidth = this.staticImage.naturalWidth;
+      this.naturalHeight = this.staticImage.naturalHeight;
     }
 
+    this.validateScaleStrategy();
+
+    this.applyAutoScale();
+
+    this.setWidth(this.naturalWidth * this.scaleX);
+    this.setHeight(this.naturalHeight * this.scaleY);
     await super.init();
   }
 
-  //   override update(deltaTime: number): void {
-  //     // SequenceElement updates itself as a child
-  //     super.update(deltaTime);
-  //   }
+  /**
+   * Validates scale strategy and falls back if requirements aren't met.
+   */
+  private validateScaleStrategy(): void {
+    const hasWidth = super.getWidth() !== null;
+    const hasHeight = super.getHeight() !== null;
 
-  override getWidth(): number {
-    if (this.isAnimated) {
-      const frame = this.sequenceElement?.getCurrent();
-      if (!frame) return -1;
-      return frame.width * this.scaleX;
-    } else {
-      if (!this.staticImage) return -1;
-      return this.staticImage.naturalWidth * this.scaleX;
-    }
-  }
-
-  override getHeight(): number {
-    if (this.isAnimated) {
-      const frame = this.sequenceElement?.getCurrent();
-      if (!frame) return -1;
-      return frame.height * this.scaleY;
-    } else {
-      if (!this.staticImage) return -1;
-      return this.staticImage.naturalHeight * this.scaleY;
+    if (this.scaleStrategy === "stretch" && (!hasWidth || !hasHeight)) {
+      logger.warn(
+        "[ImageElement] stretch strategy requires both width and height; falling back to none",
+        { url: this.imageUrl },
+      );
+      this.scaleStrategy = "none";
     }
   }
 
@@ -127,6 +149,47 @@ export class ImageElement extends TransformElement {
       );
     }
     this.frameCtx = ctx;
+  }
+
+  private applyAutoScale(): void {
+    if (this.hasExplicitScale) {
+      return;
+    }
+
+    if (this.getWidth() === null && this.getHeight() === null) {
+      logger.debug(
+        "[ImageElement] No dimensions provided, using natural size",
+        {
+          url: this.imageUrl,
+        },
+      );
+      this.setScale(1);
+      return;
+    }
+
+    // If no dimensions configured, use natural dimensions (scale = 1)
+    //const configWidth = this.getWidth();
+    //const configHeight = this.getHeight();
+
+    logger.debug("[ImageElement] applyAutoScale check", {
+      url: this.imageUrl,
+      hasExplicitScale: this.hasExplicitScale,
+      configWidth: this.getWidth(),
+      configHeight: this.getHeight(),
+      naturalWidth: this.naturalWidth,
+      naturalHeight: this.naturalHeight,
+      strategy: this.scaleStrategy,
+    });
+
+    const scale = calculateImageScale({
+      configWidth: this.getWidth(),
+      configHeight: this.getHeight(),
+      naturalWidth: this.naturalWidth!,
+      naturalHeight: this.naturalHeight!,
+      strategy: this.scaleStrategy,
+    });
+
+    this.setScale(scale);
   }
 
   override finish(): void {
