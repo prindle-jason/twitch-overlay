@@ -3,7 +3,7 @@ import { globalSettings } from "./GlobalSettingsStore";
 import { EventBus } from "../core/EventBus";
 import type { SceneManager } from "./SceneManager";
 import { pickRandom } from "../utils/random";
-import type { PoolType } from "../types/SceneTypes";
+import type { PoolType, SceneType } from "../types/SceneTypes";
 
 /**
  * InstabilityManager orchestrates scheduled chaotic events based on stability.
@@ -29,14 +29,20 @@ export class InstabilityManager {
 
   private readonly sceneManager: SceneManager;
 
-  // Ticker messages for instability events
-  private readonly instabilityTickerMessages = [
-    "SYSTEM UNSTABLE",
-    "REALITY GLITCHING",
-    "ANOMALY DETECTED",
-    "CHAOS UNLEASHED",
-    "EQUILIBRIUM LOST",
+  // Glyph pools used to generate glitchy ticker strings
+  private readonly glitchPrefixes = [
+    "0x",
+    "crc=",
+    "ptr@",
+    "seg=",
+    "hdr=",
+    "off@",
+    "pkt#",
+    "blk:",
+    "ts=",
   ];
+
+  private readonly glitchChars = "0123456789ABCDEF!@#$%^&*()-_=+[]{}<>?/|~";
 
   constructor(sceneManager: SceneManager) {
     this.sceneManager = sceneManager;
@@ -160,8 +166,7 @@ export class InstabilityManager {
 
     // Fire event if time reached
     if (this.timeUntilNextEvent <= 0) {
-      const chaos = 100 - globalSettings.stability;
-      this.triggerInstabilityEvent(chaos);
+      this.triggerInstabilityEvent(globalSettings.stability);
       this.scheduleNextEvent();
       return true;
     }
@@ -177,31 +182,33 @@ export class InstabilityManager {
   }
 
   /**
-   * Trigger an instability event based on current chaos level.
+   * Trigger an instability event based on current stability level.
    * Event type is determined at fire time (not predetermined).
    */
-  private triggerInstabilityEvent(chaos: number): void {
-    // Select which type of event based on chaos intensity
+  private triggerInstabilityEvent(stability: number): void {
+    // Select which type of event based on stability level
     const roll = Math.random() * 100;
 
-    if (chaos >= 80) {
-      // High chaos: all effects possible
+    if (stability <= 20) {
+      // Very unstable: all effects possible
       if (roll < 30) this.spawnGlitchScene();
       else if (roll < 50) this.spawnGlitchRepeater();
       else if (roll < 70) this.spawnInstabilityTicker();
       else this.spawnRandomScene();
-    } else if (chaos >= 50) {
-      // Medium chaos: mostly spawning
+    } else if (stability <= 50) {
+      // Moderately unstable: mostly spawning
       if (roll < 25) this.spawnGlitchScene();
       else if (roll < 50) this.spawnGlitchRepeater();
       else this.spawnInstabilityTicker();
     } else {
-      // Low chaos: subtle effects
+      // Mostly stable: subtle effects
       if (roll < 50) this.spawnInstabilityTicker();
       else this.spawnGlitchScene();
     }
 
-    logger.info(`[instability] Triggered event at chaos level ${chaos}`);
+    logger.info(
+      `[instability] Triggered event at stability level ${stability}`,
+    );
   }
 
   /**
@@ -225,10 +232,27 @@ export class InstabilityManager {
    */
   private spawnInstabilityTicker(): void {
     logger.info("[instability] Spawning instability ticker");
-    const message = pickRandom(this.instabilityTickerMessages);
+    const message = this.generateInstabilityTickerMessage();
     this.sceneManager.handleSceneEvent("ticker", {
       cleanMessage: message,
     });
+  }
+
+  private generateInstabilityTickerMessage(): string {
+    const prefix = Math.random() < 0.7 ? pickRandom(this.glitchPrefixes) : "";
+    const targetLength = 33 + Math.floor(Math.random() * 16); // 33-48 chars of body
+    let body = "";
+
+    while (body.length < targetLength) {
+      body += this.randomGlitchChar();
+    }
+
+    return `${prefix}${body.slice(0, targetLength)}`;
+  }
+
+  private randomGlitchChar(): string {
+    const idx = Math.floor(Math.random() * this.glitchChars.length);
+    return this.glitchChars[idx];
   }
 
   /**
@@ -246,5 +270,19 @@ export class InstabilityManager {
    */
   isEnabled(): boolean {
     return this.enabled;
+  }
+
+  /**
+   * Manually trigger an instability event (called from dashboard).
+   * If sceneType is "ticker", spawns an instability ticker.
+   * Otherwise does nothing (reserved for future expansion).
+   */
+  triggerManualEvent(sceneType?: SceneType): void {
+    if (sceneType === "ticker") {
+      logger.info("[instability] Manual ticker event triggered");
+      this.spawnInstabilityTicker();
+    } else if (sceneType) {
+      logger.warn(`[instability] Unsupported manual sceneType: ${sceneType}`);
+    }
   }
 }

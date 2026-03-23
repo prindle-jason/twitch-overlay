@@ -81,8 +81,16 @@ export class OverlayController {
       this.handleClearScenes();
     }
 
-    if (msg.type === "instability-request") {
+    if (msg.type === "instability-event") {
+      this.handleInstabilityEvent(msg);
+    }
+  }
+
+  private handleInstabilityEvent(msg: any): void {
+    if (msg.event === "request") {
       this.handleInstabilityRequest();
+    } else if (msg.event === "spawn") {
+      this.instabilityManager.triggerManualEvent(msg.sceneType);
     }
   }
 

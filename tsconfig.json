@@ -6,6 +6,6 @@
     "noEmit": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/elements/scenes/TickerScene.ts_backup"],
   "exclude": ["node_modules", "dist"]
 }

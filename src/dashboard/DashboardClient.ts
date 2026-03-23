@@ -40,7 +40,7 @@ export class DashboardClient {
       this.ui.log("WS connected");
       this.startStatsPolling();
       // Request current instability state on connect
-      this.wsClient.send({ type: "instability-request" });
+      this.wsClient.send({ type: "instability-event", event: "request" });
     });
 
     this.wsClient.onDisconnected(() => {

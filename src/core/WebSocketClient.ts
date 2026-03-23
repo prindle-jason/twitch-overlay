@@ -23,8 +23,8 @@ export class WebSocketClient {
 
   constructor(url: string, options: WebSocketClientOptions = {}) {
     this.url = url;
-    this.reconnectInitialDelay = options.reconnectInitialDelay ?? 500;
-    this.reconnectMaxDelay = options.reconnectMaxDelay ?? 10000;
+    this.reconnectInitialDelay = options.reconnectInitialDelay ?? 2000;
+    this.reconnectMaxDelay = options.reconnectMaxDelay ?? 2000;
     this.reconnectDelay = this.reconnectInitialDelay;
   }
 
@@ -63,10 +63,6 @@ export class WebSocketClient {
         this.reconnectTimeout = setTimeout(
           () => this.connect(),
           this.reconnectDelay,
-        );
-        this.reconnectDelay = Math.min(
-          this.reconnectMaxDelay,
-          this.reconnectDelay * 2,
         );
       };
 

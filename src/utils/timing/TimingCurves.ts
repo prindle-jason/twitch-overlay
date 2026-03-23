@@ -8,6 +8,7 @@ function clamp01(x: number): number {
 
 /** Fade in from 0→1 over fadeTime, then hold at 1 */
 function fadeIn(t: number, fadeTime = 0.25): number {
+  fadeTime = Math.min(1, fadeTime);
   if (t < fadeTime) {
     return t / fadeTime;
   } else {
@@ -17,6 +18,7 @@ function fadeIn(t: number, fadeTime = 0.25): number {
 
 /** Fade in from 0→1, hold, then fade out to 0 (creates an envelope) */
 function fadeInOut(t: number, fadeTime = 0.25): number {
+  fadeTime = Math.min(0.5, fadeTime);
   if (t < fadeTime) {
     return t / fadeTime;
   } else if (t > 1 - fadeTime) {
@@ -105,7 +107,7 @@ export enum TimingCurve {
 export function applyTiming(
   t: number,
   timingFn: TimingCurve = TimingCurve.FADE_IN_OUT,
-  fadeTime: number = 0.25
+  fadeTime: number = 0.25,
 ): number {
   t = clamp01(t);
   switch (timingFn) {

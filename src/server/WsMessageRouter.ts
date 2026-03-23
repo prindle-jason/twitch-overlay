@@ -94,9 +94,9 @@ export class WsMessageRouter {
       case "settings-broadcast":
         return broadcast(msg, "dashboard");
 
-      case "instability-request":
+      case "instability-event":
         if (session.role === "dashboard") {
-          return broadcast({ type: "instability-request" }, "overlay");
+          return broadcast(msg, "overlay");
         }
         return none();
 

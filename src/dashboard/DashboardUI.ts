@@ -15,6 +15,7 @@ export class DashboardUI {
   private stabilitySliderEl: HTMLInputElement;
   private stabilityValueEl: HTMLElement;
   private instabilityToggleBtnEl: HTMLButtonElement | null = null;
+  private instabilitySpawnBtnEl: HTMLButtonElement | null = null;
   private instabilityCountdownEl: HTMLElement | null = null;
   // HypeChat slider elements
   private messageRateSliderEl: HTMLElement | null = null;
@@ -56,6 +57,9 @@ export class DashboardUI {
     this.stabilityValueEl = this.getEl("stabilityValue");
     this.instabilityToggleBtnEl = document.getElementById(
       "instabilityToggleBtn",
+    ) as HTMLButtonElement | null;
+    this.instabilitySpawnBtnEl = document.getElementById(
+      "instabilitySpawnBtn",
     ) as HTMLButtonElement | null;
     this.instabilityCountdownEl = document.getElementById(
       "instabilityCountdown",
@@ -224,6 +228,12 @@ export class DashboardUI {
     if (!this.instabilityToggleBtnEl) return;
     this.buttonCallbacks.set("instabilityToggleBtn", handler);
     this.instabilityToggleBtnEl.addEventListener("click", handler);
+  }
+
+  onInstabilitySpawn(handler: ButtonCallback): void {
+    if (!this.instabilitySpawnBtnEl) return;
+    this.buttonCallbacks.set("instabilitySpawnBtn", handler);
+    this.instabilitySpawnBtnEl.addEventListener("click", handler);
   }
 
   applyGlobalSettings(settings: GlobalSettings): void {

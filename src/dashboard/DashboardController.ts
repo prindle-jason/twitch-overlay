@@ -34,6 +34,7 @@ export class DashboardController {
     this.hookUtilityButtons(ui);
     this.hookSliders(ui);
     ui.onInstabilityToggle(() => this.toggleInstability());
+    ui.onInstabilitySpawn(() => this.spawnInstabilityTicker());
   }
 
   private hookSceneButtons(ui: DashboardUI): void {
@@ -58,9 +59,7 @@ export class DashboardController {
       this.dispatchSceneEvent("dvdBounce"),
     );
     ui.onButtonClick("xJasonBtn", () => this.dispatchSceneEvent("xJason"));
-    ui.onButtonClick("brainrotBtn", () =>
-      this.dispatchSceneEvent("brainrot"),
-    );
+    ui.onButtonClick("brainrotBtn", () => this.dispatchSceneEvent("brainrot"));
     ui.onButtonClick("glitchBtn", () => this.dispatchSceneEvent("glitch"));
     ui.onButtonClick("glitchRepeaterBtn", () =>
       this.dispatchSceneEvent("glitchRepeater"),
@@ -166,6 +165,15 @@ export class DashboardController {
     const msg: SetSettingsMessage = {
       type: "set-settings",
       settings,
+    };
+    this.sendMessage(msg);
+  }
+
+  private spawnInstabilityTicker(): void {
+    const msg: any = {
+      type: "instability-event",
+      event: "spawn",
+      sceneType: "ticker",
     };
     this.sendMessage(msg);
   }

@@ -82,9 +82,12 @@ export interface InstabilityBroadcastMessage {
   timeUntilNextEventMs: number | null;
 }
 
-// Instability state request (dashboard -> overlay)
-export interface InstabilityRequestMessage {
-  type: "instability-request";
+// Instability event message (dashboard -> overlay)
+export interface InstabilityEventMessage {
+  type: "instability-event";
+  event: "request" | "spawn";
+  stability?: number;
+  sceneType?: SceneType;
 }
 
 // Clear scenes message
@@ -105,7 +108,7 @@ export type WsMessage =
   | SetSettingsMessage
   | SettingsBroadcastMessage
   | InstabilityBroadcastMessage
-  | InstabilityRequestMessage
+  | InstabilityEventMessage
   | ClearScenesMessage;
 
 /**

@@ -3,6 +3,7 @@ import { VideoElement } from "../primitives/VideoElement";
 import { pickRandomByWeight } from "../../utils/random";
 import { localVideos } from "../../utils/assets/videos";
 import { positionCorner } from "../../utils/positioning";
+import { FadeInOutBehavior } from "../behaviors/FadeInOutBehavior";
 
 interface VideoOption {
   weight: number;
@@ -12,6 +13,7 @@ interface VideoOption {
   scale: number;
   muted?: boolean;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  loopCount: number;
 }
 
 const VIDEO_OPTIONS: readonly VideoOption[] = [
@@ -23,6 +25,7 @@ const VIDEO_OPTIONS: readonly VideoOption[] = [
     muted: false,
     position: "bottom-right",
     scale: 0.25,
+    loopCount: 1,
   },
   {
     weight: 1,
@@ -32,6 +35,7 @@ const VIDEO_OPTIONS: readonly VideoOption[] = [
     muted: false,
     position: "bottom-left",
     scale: 0.25,
+    loopCount: 3,
   },
 ];
 
@@ -76,11 +80,30 @@ export class BrainrotScene extends SceneElement {
       height: option.height,
       scale: option.scale,
       muted: option.muted,
-      loop: false,
+      loopCount: option.loopCount,
     });
 
     this.addChild(this.videoElement);
     await super.init();
+  }
+
+  override play(): void {
+    super.play();
+    const videoDuration = this.videoElement.getDuration();
+    this.videoElement.addChild(
+      new FadeInOutBehavior({
+        fadeMode: "absolute",
+        fadeMs: 5000,
+        duration: Math.min(videoDuration, this.duration),
+      }),
+    );
+  }
+
+  protected override updateSelf(deltaTime: number): void {
+    // Finish the scene when the video completes all loops
+    if (this.videoElement.getState() === "FINISHED") {
+      this.finish();
+    }
   }
 
   override finish(): void {
