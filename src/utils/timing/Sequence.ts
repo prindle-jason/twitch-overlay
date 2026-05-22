@@ -84,4 +84,8 @@ export class Sequence<T> {
     this.currentItemRemaining =
       this.items.length > 0 ? this.items[0].duration : 0;
   }
+
+  clone(): Sequence<T> {
+    return new Sequence(this.items, this.isLooped);
+  }
 }

@@ -25,7 +25,7 @@ export class ImageLoader {
     const cached = this.cache.get(url);
     if (cached) {
       logger.debug("[ImageLoader] cache hit", { url });
-      return cached;
+      return cached.then(ImageLoader.cloneIfAnimated);
     }
 
     logger.debug("[ImageLoader] cache miss, loading image", { url });
@@ -39,7 +39,12 @@ export class ImageLoader {
       this.cache.delete(url);
     });
 
-    return loadPromise;
+    return loadPromise.then(ImageLoader.cloneIfAnimated);
+  }
+
+  private static cloneIfAnimated(loaded: LoadedImage): LoadedImage {
+    if (!loaded.isAnimated || !loaded.image) return loaded;
+    return { ...loaded, image: (loaded.image as Sequence<ImageData>).clone() };
   }
 
   private static async loadUncached(url: string): Promise<LoadedImage> {

@@ -31,6 +31,13 @@ const DVD_OPTIONS: readonly DvdOption[] = [
     imageUrl: localImages.netflixLogo,
     soundUrl: localSounds.netflixSound,
   },
+  {
+    // Pedro
+    weight: 5,
+    imageUrl:
+      "https://cdn.betterttv.net/emote/662475f6407bff50d709a67d/3x.webp",
+    soundUrl: localSounds.yippee,
+  },
   { weight: 1, imageUrl: localImages.thxLogo, soundUrl: localSounds.thxSound },
 ];
 
