@@ -1,25 +1,46 @@
 import { SceneElement } from "./SceneElement";
 import { EllipseElement } from "../primitives/EllipseElement";
+import { ImageElement } from "../primitives/ImageElement";
 import { GravityBehavior } from "../behaviors/GravityBehavior";
 import { TiltBehavior } from "../behaviors/TiltBehavior";
 import { SchedulerElement } from "../composites/SchedulerElement";
+import { TransformElement } from "../primitives/TransformElement";
+import { SoundElement } from "../primitives/SoundElement";
+import { SoundOnPlayBehavior } from "../behaviors/SoundOnPlayBehavior";
 
 interface ConfettiConfig {
   count?: number;
   duration?: number;
+  imageUrls?: string[];
+  soundUrl?: string;
 }
 
 export class ConfettiScene extends SceneElement {
   readonly type = "confetti" as const;
   private readonly particleCount: number;
   private readonly spawnDurationMs: number;
+  private readonly imageUrls: string[];
+  private readonly soundUrl?: string;
   private readonly bufferMs = 3000;
 
   constructor(cfg: ConfettiConfig = {}) {
     super();
     this.particleCount = cfg.count ?? 150;
     this.spawnDurationMs = cfg.duration ?? 3000;
+    this.imageUrls = (cfg.imageUrls ?? []).filter(
+      (url): url is string => typeof url === "string" && url.trim().length > 0,
+    );
+    this.soundUrl =
+      typeof cfg.soundUrl === "string" && cfg.soundUrl.trim().length > 0
+        ? cfg.soundUrl
+        : undefined;
     this.duration = this.spawnDurationMs + this.bufferMs;
+
+    if (this.soundUrl) {
+      const sound = new SoundElement(this.soundUrl);
+      sound.addChild(new SoundOnPlayBehavior());
+      this.addChild(sound);
+    }
 
     const interval = this.spawnDurationMs / this.particleCount;
     this.addChild(
@@ -32,14 +53,7 @@ export class ConfettiScene extends SceneElement {
   }
 
   private spawnParticle(): void {
-    const particle = new EllipseElement({
-      x: Math.random() * this.W,
-      y: -10,
-      radiusX: Math.random() * 10 + 4,
-      radiusY: (Math.random() * 10 + 4) * 0.3,
-      color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-      rotation: Math.random() * Math.PI * 2,
-    });
+    const particle = this.createParticle();
 
     particle.addChild(
       new GravityBehavior({
@@ -61,11 +75,38 @@ export class ConfettiScene extends SceneElement {
     this.addChild(particle);
   }
 
+  private createParticle(): EllipseElement | ImageElement {
+    if (this.imageUrls.length > 0) {
+      const imageUrl =
+        this.imageUrls[Math.floor(Math.random() * this.imageUrls.length)];
+
+      return new ImageElement({
+        imageUrl,
+        x: Math.random() * this.W,
+        y: -10,
+        width: 60,
+        height: 60,
+        scaleStrategy: "fit",
+        rotation: Math.random() * Math.PI * 2,
+      });
+    }
+
+    const radiusX = Math.random() * 10 + 4;
+    return new EllipseElement({
+      x: Math.random() * this.W,
+      y: -10,
+      radiusX,
+      radiusY: radiusX * 0.3,
+      color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+      rotation: Math.random() * Math.PI * 2,
+    });
+  }
+
   protected override updateSelf(deltaTime: number): void {
     // Remove particles that have left the screen
     this.children = this.children.filter((child) => {
       if (
-        child instanceof EllipseElement &&
+        child instanceof TransformElement &&
         child.isOffScreen(this.W, this.H)
       ) {
         child.finish();

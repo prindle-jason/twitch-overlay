@@ -32,14 +32,4 @@ export class EllipseElement extends TransformElement {
     ctx.ellipse(0, 0, this.radiusX, this.radiusY, 0, 0, Math.PI * 2);
     ctx.fill();
   }
-
-  isOffScreen(screenWidth: number, screenHeight: number): boolean {
-    const margin = Math.max(this.radiusX, this.radiusY) + 10;
-    return (
-      this.x < -margin ||
-      this.x > screenWidth + margin ||
-      this.y < -margin ||
-      this.y > screenHeight + margin
-    );
-  }
 }

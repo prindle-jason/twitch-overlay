@@ -261,6 +261,13 @@ export class DashboardUI {
     return input?.value.trim() || "";
   }
 
+  getSelectedDvdType(): string {
+    const select = document.getElementById(
+      "dvdTypeSelect",
+    ) as HTMLSelectElement | null;
+    return select?.value?.trim() || "";
+  }
+
   // Initialize the dual-thumb Message Rate slider via module import (UI only)
   private async initializeHypeChatSlider(): Promise<void> {
     try {

@@ -42,7 +42,7 @@ export class SceneFactory {
 
     // Triggerable pools
     hypeChat: (p) => new Scenes.HypeChatScene(p as Record<string, unknown>),
-    dvdBounce: (p) => new Scenes.PooledDvdScene(),
+    dvdBounce: (p) => new Scenes.PooledDvdScene(p),
     // Glitch scenes
     glitch: (p) => new Scenes.GlitchScene(),
     glitchRepeater: (p) => new Scenes.GlitchRepeaterScene(p as any),

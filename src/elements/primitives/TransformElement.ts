@@ -98,4 +98,14 @@ export abstract class TransformElement extends Element {
   protected override drawSelf(ctx: CanvasRenderingContext2D): void {
     // Default: no-op; subclasses decide what to render
   }
+
+  isOffScreen(screenWidth: number, screenHeight: number): boolean {
+    const margin = 100;
+    return (
+      this.x < -margin ||
+      this.x > screenWidth + margin ||
+      this.y < -margin ||
+      this.y > screenHeight + margin
+    );
+  }
 }

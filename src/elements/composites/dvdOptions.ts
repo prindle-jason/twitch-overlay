@@ -2,6 +2,17 @@ import { localImages } from "../../utils/assets/images";
 import { localSounds } from "../../utils/assets/sounds";
 import type { PoolType, SceneType } from "../../types/SceneTypes";
 
+export type DvdType =
+  | "dvd"
+  | "bluRay"
+  | "netflix"
+  | "thx"
+  | "gamecube"
+  | "ps1"
+  | "pedro"
+  | "prndddX"
+  | "headblade";
+
 export type DvdCornerHitEffect =
   | {
       kind: "scene";
@@ -27,6 +38,7 @@ export const DEFAULT_DVD_CORNER_HIT_EFFECT: DvdCornerHitEffect = {
 };
 
 export interface DvdOption {
+  type: DvdType;
   weight: number;
   imageUrl: string;
   maxSize?: number;
@@ -35,16 +47,29 @@ export interface DvdOption {
 
 export const DVD_OPTIONS: readonly DvdOption[] = [
   {
+    type: "dvd",
     // 175
     weight: 50,
     imageUrl: localImages.dvdLogo,
+    cornerHitEffect: {
+      kind: "scene",
+      sceneType: "confetti",
+      payload: { soundUrl: localSounds.partyHorn },
+    },
   },
   {
+    type: "bluRay",
     // 19
     weight: 10,
     imageUrl: localImages.bluRayLogo,
+    cornerHitEffect: {
+      kind: "scene",
+      sceneType: "confetti",
+      payload: { soundUrl: localSounds.yippee },
+    },
   },
   {
+    type: "netflix",
     // 5
     weight: 2,
     imageUrl: localImages.netflixLogo,
@@ -54,6 +79,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
     },
   },
   {
+    type: "thx",
     // 1
     weight: 1,
     imageUrl: localImages.thxLogo,
@@ -63,6 +89,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
     },
   },
   {
+    type: "gamecube",
     // 5
     weight: 10,
     imageUrl: localImages.gamecubeLogo,
@@ -73,6 +100,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
     },
   },
   {
+    type: "ps1",
     // 5
     weight: 10,
     imageUrl: localImages.ps1Logo,
@@ -83,6 +111,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
     },
   },
   {
+    type: "pedro",
     // Pedro
     // 5
     weight: 10,
@@ -90,11 +119,20 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
     imageUrl:
       "https://cdn.betterttv.net/emote/662475f6407bff50d709a67d/3x.webp",
     cornerHitEffect: {
-      kind: "sound",
-      soundUrl: localSounds.prndddo,
+      kind: "scene",
+      sceneType: "confetti",
+      payload: {
+        count: 3000,
+        duration: 15 * 1000,
+        imageUrls: [
+          "https://cdn.betterttv.net/emote/662475f6407bff50d709a67d/3x.webp",
+        ],
+        soundUrl: localSounds.prndddo,
+      },
     },
   },
   {
+    type: "prndddX",
     // prndddX
     // 5
     weight: 1,
@@ -107,6 +145,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
     },
   },
   {
+    type: "headblade",
     weight: 1,
     maxSize: 60,
     imageUrl: localImages.hb1,
@@ -116,6 +155,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
     },
   },
   //   {
+  //     type: "example",
   //     imageUrl: localImages.bubSuccess,
   //     weight: 20,
   //     cornerHitEffect: {
@@ -124,3 +164,10 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   //     },
   //   },
 ];
+
+export function isDvdType(value: unknown): value is DvdType {
+  return (
+    typeof value === "string" &&
+    DVD_OPTIONS.some((option) => option.type === value)
+  );
+}

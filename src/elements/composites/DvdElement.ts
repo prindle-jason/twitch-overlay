@@ -12,6 +12,7 @@ import {
   DVD_OPTIONS,
   type DvdCornerHitEffect,
   type DvdOption,
+  type DvdType,
 } from "./dvdOptions";
 
 /**
@@ -25,23 +26,19 @@ export class DvdElement extends Element {
   private imageElement!: ImageElement;
   private soundElement: SoundElement | null = null;
   private hasHitCorner = false;
+  private requestedType?: DvdType;
   private handleSoundEnded = (): void => {
     this.soundElement?.offEnded(this.handleSoundEnded);
     this.finish();
   };
 
-  constructor() {
+  constructor(requestedType?: DvdType) {
     super({ duration: 30 * 60 * 1000 });
+    this.requestedType = requestedType;
   }
 
   async init(): Promise<void> {
-    // Pick a random DVD option
-    const option = pickRandomByWeight(
-      DVD_OPTIONS.map((opt) => ({
-        weight: opt.weight,
-        item: opt,
-      })),
-    );
+    const option = this.pickOption();
 
     this.cornerHitEffect =
       option.cornerHitEffect ?? DEFAULT_DVD_CORNER_HIT_EFFECT;
@@ -54,6 +51,24 @@ export class DvdElement extends Element {
       this.addChild(this.soundElement);
     }
     await super.init();
+  }
+
+  private pickOption(): DvdOption {
+    if (this.requestedType) {
+      const matched = DVD_OPTIONS.find(
+        (option) => option.type === this.requestedType,
+      );
+      if (matched) {
+        return matched;
+      }
+    }
+
+    return pickRandomByWeight(
+      DVD_OPTIONS.map((opt) => ({
+        weight: opt.weight,
+        item: opt,
+      })),
+    );
   }
 
   getHasHitCorner(): boolean {

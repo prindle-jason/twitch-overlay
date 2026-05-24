@@ -55,9 +55,16 @@ export class DashboardController {
       this.dispatchSceneEvent("watermark"),
     );
     ui.onButtonClick("confettiBtn", () => this.dispatchSceneEvent("confetti"));
-    ui.onButtonClick("dvdBounceBtn", () =>
+    ui.onButtonClick("dvdBounceScenesBtn", () =>
       this.dispatchSceneEvent("dvdBounce"),
     );
+    ui.onButtonClick("dvdBounceDvdBtn", () =>
+      this.dispatchSceneEvent("dvdBounce"),
+    );
+    ui.onButtonClick("dvdSelectedBtn", () => {
+      const dvdType = ui.getSelectedDvdType();
+      this.dispatchSceneEvent("dvdBounce", dvdType ? { dvdType } : {});
+    });
     ui.onButtonClick("xJasonBtn", () => this.dispatchSceneEvent("xJason"));
     ui.onButtonClick("brainrotBtn", () => this.dispatchSceneEvent("brainrot"));
     ui.onButtonClick("nyanFollowerBtn", () =>

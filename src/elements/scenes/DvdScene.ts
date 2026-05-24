@@ -1,7 +1,11 @@
 import { EventBus } from "../../core/EventBus";
 import { TriggerableSceneElement } from "./SceneElement";
 import { DvdElement } from "../composites/DvdElement";
-import type { DvdCornerHitEffect } from "../composites/dvdOptions";
+import {
+  isDvdType,
+  type DvdCornerHitEffect,
+  type DvdType,
+} from "../composites/dvdOptions";
 import type { SpawnIntentDetail } from "../../types/EventTypes";
 
 /**
@@ -11,6 +15,7 @@ import type { SpawnIntentDetail } from "../../types/EventTypes";
  */
 export class DvdScene extends TriggerableSceneElement {
   readonly type = "dvdBounce" as const;
+  private readonly initialRequestedType?: DvdType;
 
   private handleDvdHitCorner = ({ instance }: { instance: unknown }): void => {
     if (this.getState() === "FINISHED") {
@@ -32,9 +37,10 @@ export class DvdScene extends TriggerableSceneElement {
     }
   };
 
-  constructor() {
+  constructor(payload?: unknown) {
     super();
     this.duration = -1;
+    this.initialRequestedType = this.getRequestedType(payload);
   }
 
   override async init() {
@@ -43,13 +49,22 @@ export class DvdScene extends TriggerableSceneElement {
     }
 
     EventBus.on("dvd-hit-corner", this.handleDvdHitCorner);
-    this.addChild(new DvdElement());
+    this.addChild(new DvdElement(this.initialRequestedType));
     await super.init();
   }
 
   handleTrigger(payload?: unknown): void {
-    //Add a new DVD
-    this.addChild(new DvdElement());
+    const requestedType = this.getRequestedType(payload);
+    this.addChild(new DvdElement(requestedType));
+  }
+
+  private getRequestedType(payload: unknown): DvdType | undefined {
+    if (!payload || typeof payload !== "object") {
+      return undefined;
+    }
+
+    const dvdType = (payload as Record<string, unknown>).dvdType;
+    return isDvdType(dvdType) ? dvdType : undefined;
   }
 
   override finish(): void {
