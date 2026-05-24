@@ -60,6 +60,9 @@ export class DashboardController {
     );
     ui.onButtonClick("xJasonBtn", () => this.dispatchSceneEvent("xJason"));
     ui.onButtonClick("brainrotBtn", () => this.dispatchSceneEvent("brainrot"));
+    ui.onButtonClick("nyanFollowerBtn", () =>
+      this.dispatchSceneEvent("nyanFollower"),
+    );
     ui.onButtonClick("glitchBtn", () => this.dispatchSceneEvent("glitch"));
     ui.onButtonClick("glitchRepeaterBtn", () =>
       this.dispatchSceneEvent("glitchRepeater"),

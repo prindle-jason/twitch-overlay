@@ -1,6 +1,8 @@
+import { EventBus } from "../../core/EventBus";
 import { TriggerableSceneElement } from "./SceneElement";
-import { ConfettiScene } from "./ConfettiScene";
 import { DvdElement } from "../composites/DvdElement";
+import type { DvdCornerHitEffect } from "../composites/dvdOptions";
+import type { SpawnIntentDetail } from "../../types/EventTypes";
 
 /**
  * DvdScene manages multiple DVD logos that bounce around the screen.
@@ -10,12 +12,37 @@ import { DvdElement } from "../composites/DvdElement";
 export class DvdScene extends TriggerableSceneElement {
   readonly type = "dvdBounce" as const;
 
+  private handleDvdHitCorner = ({ instance }: { instance: unknown }): void => {
+    if (this.getState() === "FINISHED") {
+      return;
+    }
+
+    if (!(instance instanceof DvdElement)) {
+      return;
+    }
+
+    if (!this.getChildrenOfType(DvdElement).includes(instance)) {
+      return;
+    }
+
+    const effect = instance.getCornerHitEffect();
+    const spawnIntent = this.toSpawnIntent(effect);
+    if (spawnIntent) {
+      EventBus.emit("spawn-intent", spawnIntent);
+    }
+  };
+
   constructor() {
     super();
     this.duration = -1;
   }
 
   override async init() {
+    if (this.getState() !== "NEW") {
+      return;
+    }
+
+    EventBus.on("dvd-hit-corner", this.handleDvdHitCorner);
     this.addChild(new DvdElement());
     await super.init();
   }
@@ -25,16 +52,34 @@ export class DvdScene extends TriggerableSceneElement {
     this.addChild(new DvdElement());
   }
 
-  private spawnConfetti(): void {
-    this.addChild(new ConfettiScene());
+  override finish(): void {
+    EventBus.off("dvd-hit-corner", this.handleDvdHitCorner);
+    super.finish();
   }
 
-  protected override updateSelf(deltaTime: number): void {
-    // Check for finished DVDs that have hit a corner and spawn confetti before they are removed
-    this.getChildrenOfType(DvdElement).forEach((dvd) => {
-      if (dvd.getState() === "FINISHED" && dvd.getHasHitCorner()) {
-        this.spawnConfetti();
+  private toSpawnIntent(effect: DvdCornerHitEffect): SpawnIntentDetail | null {
+    switch (effect.kind) {
+      case "scene": {
+        return {
+          kind: "scene",
+          sceneType: effect.sceneType,
+          payload: effect.payload,
+        };
       }
-    });
+
+      case "pool": {
+        return {
+          kind: "pool",
+          poolType: effect.poolType,
+          payload: effect.payload,
+        };
+      }
+
+      case "none":
+        return null;
+
+      case "sound":
+        return null;
+    }
   }
 }

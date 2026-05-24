@@ -3,6 +3,8 @@ import { getSound } from "../../utils/assets/SoundLoader";
 import { EventBus } from "../../core/EventBus";
 import { globalSettings } from "../../overlay/GlobalSettingsStore";
 
+type SoundEndedListener = () => void;
+
 export class SoundElement extends Element {
   soundUrl: string;
   sound: HTMLAudioElement | null = null;
@@ -14,6 +16,10 @@ export class SoundElement extends Element {
 
   // Event handlers stored for cleanup on finish()
   private volumeChangeHandler = this.changeVolume.bind(this);
+  private endedListeners = new Set<SoundEndedListener>();
+  private soundEndedHandler = () => {
+    this.endedListeners.forEach((listener) => listener());
+  };
 
   constructor(soundUrl: string) {
     super();
@@ -22,6 +28,7 @@ export class SoundElement extends Element {
 
   async init() {
     this.sound = await getSound(this.soundUrl);
+    this.sound.addEventListener("ended", this.soundEndedHandler);
 
     // Subscribe to global settings events
     EventBus.on("global-volume-changed", this.volumeChangeHandler);
@@ -32,6 +39,16 @@ export class SoundElement extends Element {
   /** Get the underlying HTMLAudioElement for direct event listening. */
   getSound(): HTMLAudioElement | null {
     return this.sound;
+  }
+
+  /** Subscribe to this SoundElement's natural audio completion event. */
+  onEnded(listener: SoundEndedListener): void {
+    this.endedListeners.add(listener);
+  }
+
+  /** Unsubscribe from this SoundElement's natural audio completion event. */
+  offEnded(listener: SoundEndedListener): void {
+    this.endedListeners.delete(listener);
   }
 
   /** Update sound volume based on current master volume setting. */
@@ -88,6 +105,11 @@ export class SoundElement extends Element {
   override finish(): void {
     // Unsubscribe from global events
     EventBus.off("global-volume-changed", this.volumeChangeHandler);
+
+    if (this.sound) {
+      this.sound.removeEventListener("ended", this.soundEndedHandler);
+    }
+    this.endedListeners.clear();
 
     this.stopSound();
     super.finish();

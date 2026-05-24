@@ -5,6 +5,7 @@ import {
 import { logger } from "../utils/logger";
 import { EventBus } from "../core/EventBus";
 import type { PoolType, SceneType } from "../types/SceneTypes";
+import type { SpawnIntentDetail } from "../types/EventTypes";
 import type { Settings } from "../types/settings";
 import { SceneFactory } from "./SceneFactory";
 
@@ -29,6 +30,17 @@ export class SceneManager {
   private scenes: SceneElement[] = [];
   private handleGlobalPaused = () => this.pauseAllScenes();
   private handleGlobalResumed = () => this.resumeAllScenes();
+  private handleSpawnIntent = (detail: SpawnIntentDetail) => {
+    switch (detail.kind) {
+      case "scene":
+        this.handleSceneEvent(detail.sceneType, detail.payload);
+        return;
+
+      case "pool":
+        this.handlePoolEvent(detail.poolType, detail.payload);
+        return;
+    }
+  };
   /**
    * Registry of scene types that are persistent and should be triggered
    * in-place if already active. When adding a new triggerable scene, include its
@@ -39,6 +51,7 @@ export class SceneManager {
   constructor() {
     EventBus.on("global-paused", this.handleGlobalPaused);
     EventBus.on("global-resumed", this.handleGlobalResumed);
+    EventBus.on("spawn-intent", this.handleSpawnIntent);
   }
 
   /**

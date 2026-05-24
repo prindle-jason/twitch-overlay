@@ -1,4 +1,5 @@
 import type { Element } from "../elements/primitives/Element";
+import type { PoolType, SceneType } from "./SceneTypes";
 
 /**
  * Lifecycle events emitted by Element instances via EventBus.
@@ -19,9 +20,31 @@ export type SettingsEventType =
   | "instability-state-changed";
 
 /**
+ * Internal spawn requests emitted by scene translators.
+ */
+export type SpawnIntentDetail =
+  | {
+      kind: "scene";
+      sceneType: SceneType;
+      payload?: Record<string, unknown>;
+    }
+  | {
+      kind: "pool";
+      poolType: PoolType;
+      payload?: Record<string, unknown>;
+    };
+
+export type InternalEventType = "spawn-intent";
+export type DvdInternalEventType = "dvd-hit-corner";
+
+/**
  * All known event types in the system.
  */
-export type EventType = LifecycleEventType | SettingsEventType;
+export type EventType =
+  | LifecycleEventType
+  | SettingsEventType
+  | InternalEventType
+  | DvdInternalEventType;
 
 /**
  * Event detail payloads for each event type.
@@ -39,6 +62,8 @@ export interface EventDetailMap {
     timeUntilNextEventMs: number | null;
     stability: number;
   };
+  "spawn-intent": SpawnIntentDetail;
+  "dvd-hit-corner": { ctor: string; instance: Element };
 }
 
 /**

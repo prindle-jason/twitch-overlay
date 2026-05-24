@@ -19,7 +19,8 @@ export type SceneType =
   | "dvdBounce"
   | "glitch"
   | "glitchRepeater"
-  | "brainrot";
+  | "brainrot"
+  | "nyanFollower";
 
 /**
  * Pool identifier type

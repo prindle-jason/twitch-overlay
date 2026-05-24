@@ -14,6 +14,7 @@ export { XJasonScene } from "./XJasonScene";
 export { HypeChatScene } from "./HypeChatScene";
 export { DvdScene as PooledDvdScene } from "./DvdScene";
 export { BrainrotScene } from "./BrainrotScene";
+export { NyanFollowerScene } from "./NyanFollowerScene";
 
 // Test scenes
 export { ChatMessageTestScene } from "./test/ChatMessageTestScene";

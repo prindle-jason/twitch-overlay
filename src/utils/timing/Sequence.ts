@@ -12,7 +12,7 @@ export class Sequence<T> {
 
   constructor(
     items: Array<{ item: T; duration: number }>,
-    isLooped: boolean = true
+    isLooped: boolean = true,
   ) {
     this.items = items;
     this.isLooped = isLooped;

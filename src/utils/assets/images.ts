@@ -25,8 +25,13 @@ export const localImages = {
   viewerDiscretion: "/images/watermarks/viewerDiscretionWatermark.png",
 
   // DvdScene
-  dvdLogo: "/images/dvdLogo.png",
-  bluRayLogo: "/images/bluRayLogo.png",
-  netflixLogo: "/images/netflix-logo.png",
-  thxLogo: "/images/thx-logo.svg",
+  bluRayLogo: "/images/dvd/bluRay.png",
+  dvdLogo: "/images/dvd/dvd.png",
+  gamecubeLogo: "/images/dvd/gamecube.svg",
+  netflixLogo: "/images/dvd/netflix.png",
+  ps1Logo: "/images/dvd/ps1.svg",
+  thxLogo: "/images/dvd/thx.svg",
+
+  // NyanFollowerScene
+  nyanCat: "/images/OriginalNyan.webp",
 } as const;

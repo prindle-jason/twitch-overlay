@@ -5,41 +5,14 @@ import { ScreenCornerDetectionBehavior } from "../behaviors/ScreenCornerDetectio
 import { HueCycleBehavior } from "../behaviors/HueCycleBehavior";
 import { pickRandomByWeight } from "../../utils/random";
 import { configProps } from "../../core/configProps";
-import { localImages } from "../../utils/assets/images";
-import { localSounds } from "../../utils/assets/sounds";
+import { EventBus } from "../../core/EventBus";
 import { Element } from "../primitives/Element";
-
-interface DvdOption {
-  weight: number;
-  imageUrl: string;
-  soundUrl: string;
-}
-
-const DVD_OPTIONS: readonly DvdOption[] = [
-  {
-    weight: 175,
-    imageUrl: localImages.dvdLogo,
-    soundUrl: localSounds.partyHorn,
-  },
-  {
-    weight: 19,
-    imageUrl: localImages.bluRayLogo,
-    soundUrl: localSounds.yippee,
-  },
-  {
-    weight: 5,
-    imageUrl: localImages.netflixLogo,
-    soundUrl: localSounds.netflixSound,
-  },
-  {
-    // Pedro
-    weight: 5,
-    imageUrl:
-      "https://cdn.betterttv.net/emote/662475f6407bff50d709a67d/3x.webp",
-    soundUrl: localSounds.yippee,
-  },
-  { weight: 1, imageUrl: localImages.thxLogo, soundUrl: localSounds.thxSound },
-];
+import {
+  DEFAULT_DVD_CORNER_HIT_EFFECT,
+  DVD_OPTIONS,
+  type DvdCornerHitEffect,
+  type DvdOption,
+} from "./dvdOptions";
 
 /**
  * DvdElement represents a single logo bouncing around the screen.
@@ -47,13 +20,18 @@ const DVD_OPTIONS: readonly DvdOption[] = [
  */
 export class DvdElement extends Element {
   // Limits the maximum width/height of the logo while maintaining aspect ratio
-  private maxSize = 128;
+  private maxSize = 100;
+  private cornerHitEffect!: DvdCornerHitEffect;
   private imageElement!: ImageElement;
-  private soundElement!: SoundElement;
+  private soundElement: SoundElement | null = null;
   private hasHitCorner = false;
+  private handleSoundEnded = (): void => {
+    this.soundElement?.offEnded(this.handleSoundEnded);
+    this.finish();
+  };
 
   constructor() {
-    super();
+    super({ duration: 30 * 60 * 1000 });
   }
 
   async init(): Promise<void> {
@@ -65,16 +43,25 @@ export class DvdElement extends Element {
       })),
     );
 
+    this.cornerHitEffect =
+      option.cornerHitEffect ?? DEFAULT_DVD_CORNER_HIT_EFFECT;
+
     this.createImage(option);
 
-    this.soundElement = new SoundElement(option.soundUrl);
-    this.soundElement.baseVolume = 0.4;
-    this.addChild(this.soundElement);
+    if (this.cornerHitEffect.kind === "sound") {
+      this.soundElement = new SoundElement(this.cornerHitEffect.soundUrl);
+      this.soundElement.baseVolume = 0.4;
+      this.addChild(this.soundElement);
+    }
     await super.init();
   }
 
   getHasHitCorner(): boolean {
     return this.hasHitCorner;
+  }
+
+  getCornerHitEffect(): DvdCornerHitEffect {
+    return this.cornerHitEffect;
   }
 
   play(): void {
@@ -88,10 +75,11 @@ export class DvdElement extends Element {
 
   private createImage(option: DvdOption): void {
     const { W, H } = configProps.canvas;
+    const maxSize = option.maxSize ?? this.maxSize;
     this.imageElement = new ImageElement({
       imageUrl: option.imageUrl,
-      width: this.maxSize,
-      height: this.maxSize,
+      width: maxSize,
+      height: maxSize,
       scaleStrategy: "fit",
     });
 
@@ -127,21 +115,27 @@ export class DvdElement extends Element {
     this.hasHitCorner = true;
     this.imageElement.finish();
 
-    const audio = this.soundElement.getSound();
-    if (audio) {
-      audio.addEventListener(
-        "ended",
-        () => {
-          this.finish();
-        },
-        { once: true },
-      );
+    EventBus.emit("dvd-hit-corner", {
+      ctor: this.constructor.name,
+      instance: this,
+    });
+
+    if (this.cornerHitEffect.kind !== "sound" || !this.soundElement) {
+      this.finish();
+      return;
     }
+
+    this.soundElement.onEnded(this.handleSoundEnded);
     this.soundElement.playSound();
   }
 
   override finish(): void {
+    if (this.soundElement) {
+      this.soundElement.offEnded(this.handleSoundEnded);
+    }
+
     super.finish();
+
     // Clear element references to prevent memory leaks
     this.imageElement = null as any;
     this.soundElement = null as any;
