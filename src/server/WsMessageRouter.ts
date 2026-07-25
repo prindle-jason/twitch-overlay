@@ -110,6 +110,7 @@ export class WsMessageRouter {
       case "clear-scenes":
       case "pool-event":
       case "scene-event":
+      case "custom-event":
       case "set-settings":
         return broadcast(msg, "overlay");
 

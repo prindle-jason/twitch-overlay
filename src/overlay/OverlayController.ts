@@ -5,12 +5,14 @@ import { WebSocketClient } from "../core/WebSocketClient";
 import { EventBus } from "../core/EventBus";
 import { logger } from "../utils/logger";
 import { globalSettings } from "./GlobalSettingsStore";
+import { DataSceneFactory } from "../systems/DataSceneFactory";
 import type {
   WsMessage,
   StatsResponseMessage,
   SceneEventMessage,
   SetSettingsMessage,
   PoolEventMessage,
+  CustomEventMessage,
 } from "../types/ws-messages";
 
 export class OverlayController {
@@ -84,6 +86,10 @@ export class OverlayController {
     if (msg.type === "instability-event") {
       this.handleInstabilityEvent(msg);
     }
+
+    if (msg.type === "custom-event") {
+      this.handleCustomEvent(msg);
+    }
   }
 
   private handleInstabilityEvent(msg: any): void {
@@ -156,6 +162,27 @@ export class OverlayController {
 
   private handleInstabilityRequest(): void {
     this.sendInstabilityBroadcast();
+  }
+
+  private async handleCustomEvent(msg: CustomEventMessage): Promise<void> {
+    try {
+      logger.debug("[overlay] handling custom-event");
+      const factory = new DataSceneFactory();
+      const rootElements = await factory.createScene(msg.payload);
+
+      if (rootElements.size === 0) {
+        logger.warn("[overlay] No root elements created from custom-event");
+        return;
+      }
+
+      this.sceneManager.handleCustomEvent(rootElements);
+
+      logger.info("[overlay] custom-event scene loaded and started", {
+        elementCount: rootElements.size,
+      });
+    } catch (error) {
+      logger.error("[overlay] Error handling custom-event", { error });
+    }
   }
 
   private sendInstabilityBroadcast(): void {

@@ -36,6 +36,7 @@ export type SpawnIntentDetail =
 
 export type InternalEventType = "spawn-intent";
 export type DvdInternalEventType = "dvd-hit-corner";
+export type SchedulerInternalEventType = "scheduler-fired";
 
 /**
  * All known event types in the system.
@@ -44,7 +45,8 @@ export type EventType =
   | LifecycleEventType
   | SettingsEventType
   | InternalEventType
-  | DvdInternalEventType;
+  | DvdInternalEventType
+  | SchedulerInternalEventType;
 
 /**
  * Event detail payloads for each event type.
@@ -64,6 +66,7 @@ export interface EventDetailMap {
   };
   "spawn-intent": SpawnIntentDetail;
   "dvd-hit-corner": { ctor: string; instance: Element };
+  "scheduler-fired": { tick: number; totalTicks: number };
 }
 
 /**

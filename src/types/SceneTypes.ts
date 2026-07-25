@@ -23,7 +23,8 @@ export type SceneType =
   | "glitchRepeater"
   | "video"
   | "nyanFollower"
-  | "sideSlide";
+  | "sideSlide"
+  | "dataDriven";
 
 /**
  * Pool identifier type

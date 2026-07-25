@@ -95,6 +95,12 @@ export interface ClearScenesMessage {
   type: "clear-scenes";
 }
 
+// Custom/data-driven event message
+export interface CustomEventMessage {
+  type: "custom-event";
+  payload: Record<string, unknown>;
+}
+
 // Discriminated union of all message types
 export type WsMessage =
   | HelloMessage
@@ -109,7 +115,8 @@ export type WsMessage =
   | SettingsBroadcastMessage
   | InstabilityBroadcastMessage
   | InstabilityEventMessage
-  | ClearScenesMessage;
+  | ClearScenesMessage
+  | CustomEventMessage;
 
 /**
  * Union of all valid message type literals, derived from WsMessage.

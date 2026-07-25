@@ -14,6 +14,82 @@ import { localImages } from "../utils/assets/images";
 
 const STORAGE_KEY = "dashboard-section-state";
 
+// Embedded data-driven scene config for testing
+const DATA_SCENE_CONFIG = {
+  "type": "custom-event",
+  "root-elements": ["audio1", "waveScheduler1", "starburst1"],
+  "elements": [
+    {
+      "type": "audio",
+      "id": "audio1",
+      "payload": {
+        "audioUrl": "path/to/intro.wav",
+        "children": [
+          {
+            "type": "sound-on-play"
+          }
+        ]
+      }
+    },
+    {
+      "type": "radial-spawner",
+      "id": "starburst1",
+      "payload": {
+        "schedulerId": "waveScheduler1",
+        "spawnTemplateIds": ["bouncingImage1", "bouncingImage2"],
+        "countPerWave": 10,
+        "spawnVelocity": 3
+      }
+    },
+    {
+      "type": "scheduler",
+      "id": "waveScheduler1",
+      "payload": {
+        "interval": 2000,
+        "count": 5
+      }
+    },
+    {
+      "type": "image",
+      "id": "bouncingImage1",
+      "payload": {
+        "imageUrl": "path/to/image1.png",
+        "scale": 1,
+        "duration": { "min": 3000, "max": 5000 },
+        "children": [
+          {
+            "type": "velocity",
+            "children": [
+              {
+                "type": "screen-bounce"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "image",
+      "id": "bouncingImage2",
+      "payload": {
+        "imageUrl": "path/to/image2.png",
+        "scale": 1,
+        "duration": { "min": 3000, "max": 5000 },
+        "children": [
+          {
+            "type": "velocity",
+            "children": [
+              {
+                "type": "screen-bounce"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+};
+
 export class DashboardController {
   private settingsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private hypeChatDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -34,6 +110,7 @@ export class DashboardController {
     this.hookSceneButtons(ui);
     this.hookUtilityButtons(ui);
     this.hookSliders(ui);
+    this.hookDevButtons(ui);
     ui.onInstabilityToggle(() => this.toggleInstability());
     ui.onInstabilitySpawn(() => this.spawnInstabilityTicker());
   }
@@ -187,6 +264,10 @@ export class DashboardController {
     );
   }
 
+  private hookDevButtons(ui: DashboardUI): void {
+    ui.onButtonClick("dataSceneTestBtn", () => this.loadDataScene());
+  }
+
   private hookSliders(ui: DashboardUI): void {
     ui.onSliderChange("volume", () => this.debouncedSendSettings());
     ui.onSliderChange("stability", () => this.debouncedSendSettings());
@@ -289,6 +370,17 @@ export class DashboardController {
       };
       this.sendMessage(msg);
     }, 200);
+  }
+
+  private async loadDataScene(): Promise<void> {
+    try {
+      this.sendMessage({
+        type: "custom-event",
+        payload: DATA_SCENE_CONFIG,
+      });
+    } catch (error) {
+      logger.error("[DashboardController] Error sending data scene", { error });
+    }
   }
 
   /**
