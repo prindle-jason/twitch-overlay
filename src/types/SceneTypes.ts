@@ -11,6 +11,8 @@ export type SceneType =
   | "watermark"
   | "confetti"
   | "headblade"
+  | "imageLines"
+  | "imageWave"
   | "ticker"
   | "xJason"
   | "chatMessageTest"
@@ -19,8 +21,9 @@ export type SceneType =
   | "dvdBounce"
   | "glitch"
   | "glitchRepeater"
-  | "brainrot"
-  | "nyanFollower";
+  | "video"
+  | "nyanFollower"
+  | "sideSlide";
 
 /**
  * Pool identifier type

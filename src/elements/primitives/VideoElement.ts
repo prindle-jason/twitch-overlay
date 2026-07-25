@@ -6,11 +6,19 @@ export interface VideoElementConfig extends TransformElementConfig {
   muted?: boolean;
 }
 
+export interface VideoSourceCrop {
+  sx: number;
+  sy: number;
+  sw: number;
+  sh: number;
+}
+
 export class VideoElement extends TransformElement {
   private video: HTMLVideoElement;
   private videoUrl: string;
   private remainingLoops: number;
   private muted: boolean;
+  private sourceCrop: VideoSourceCrop | null = null;
   // Only true if the video was actively playing when paused
   private paused = false;
 
@@ -67,6 +75,17 @@ export class VideoElement extends TransformElement {
     this.paused = false;
   }
 
+  getNaturalSize(): { w: number; h: number } {
+    return {
+      w: this.video.videoWidth,
+      h: this.video.videoHeight,
+    };
+  }
+
+  setSourceCrop(crop: VideoSourceCrop | null): void {
+    this.sourceCrop = crop;
+  }
+
   // getVideo(): HTMLVideoElement {
   //   return this.video;
   // }
@@ -74,6 +93,12 @@ export class VideoElement extends TransformElement {
   protected override drawSelf(ctx: CanvasRenderingContext2D): void {
     const width = this.getWidth() ?? this.video.videoWidth;
     const height = this.getHeight() ?? this.video.videoHeight;
+
+    if (this.sourceCrop) {
+      const { sx, sy, sw, sh } = this.sourceCrop;
+      ctx.drawImage(this.video, sx, sy, sw, sh, 0, 0, width, height);
+      return;
+    }
 
     ctx.drawImage(this.video, 0, 0, width, height);
   }

@@ -27,7 +27,9 @@
           <button class="nav-button" data-section="scenes-section">
             Scenes
           </button>
-          <button class="nav-button" data-section="dvd-section">DVD</button>
+          <button class="nav-button" data-section="selection-section">
+            Selection
+          </button>
           <button class="nav-button" data-section="ticker-section">
             Ticker
           </button>
@@ -146,15 +148,13 @@
               <div class="button-grid">
                 <button id="bamSuccessBtn">Bam Success</button>
                 <button id="bamUhOhBtn">Bam UhOh</button>
-                <button id="watermarkBtn">Watermark</button>
                 <button id="headbladeBtn">Headblade</button>
                 <button id="confettiBtn">Confetti</button>
-                <button id="dvdBounceScenesBtn">Random DVD</button>
                 <button id="xJasonBtn">X Jason</button>
                 <button id="ssbmSuccessBtn">SSBM Success</button>
                 <button id="ssbmFailBtn">SSBM Fail</button>
-                <button id="brainrotBtn">Brainrot</button>
                 <button id="nyanFollowerBtn">Nyan</button>
+                <button id="imageLinesBtn">Image Lines</button>
               </div>
               <div class="section-label">Glitch</div>
               <div class="button-grid">
@@ -165,30 +165,36 @@
           </div>
         </section>
 
-        <!-- DVD Section -->
-        <section id="dvd-section" class="section expanded">
+        <!-- Selection Section -->
+        <section id="selection-section" class="section expanded">
           <div class="section-content">
             <div class="card">
-              <h2>DVD</h2>
-              <div class="section-label">Quick Trigger</div>
-              <div class="button-grid">
-                <button id="dvdBounceDvdBtn">Random DVD</button>
-              </div>
-
-              <div class="section-label">Specific DVD</div>
-              <div class="ticker-row">
-                <select id="dvdTypeSelect">
-                  <option value="dvd">DVD Logo</option>
-                  <option value="bluRay">Blu-ray</option>
-                  <option value="netflix">Netflix</option>
-                  <option value="thx">THX</option>
-                  <option value="gamecube">GameCube</option>
-                  <option value="ps1">PS1</option>
-                  <option value="pedro">Pedro</option>
-                  <option value="prndddX">prndddX</option>
-                  <option value="headblade">Headblade</option>
-                </select>
-                <button id="dvdSelectedBtn">Trigger Selected</button>
+              <h2>Scene Selection</h2>
+              <div class="selection-list">
+                <div class="selection-row">
+                  <span class="selection-type">DVD</span>
+                  <button id="dvdRandomBtn" type="button">Random</button>
+                  <select id="dvdTypeSelect"></select>
+                  <button id="dvdSelectedBtn" type="button">
+                    Trigger Selected
+                  </button>
+                </div>
+                <div class="selection-row">
+                  <span class="selection-type">Watermark</span>
+                  <button id="watermarkRandomBtn" type="button">Random</button>
+                  <select id="watermarkSelect"></select>
+                  <button id="watermarkSelectedBtn" type="button">
+                    Trigger Selected
+                  </button>
+                </div>
+                <div class="selection-row">
+                  <span class="selection-type">Video</span>
+                  <button id="videoRandomBtn" type="button">Random</button>
+                  <select id="videoSelect"></select>
+                  <button id="videoSelectedBtn" type="button">
+                    Trigger Selected
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -273,6 +279,15 @@
               <div class="card-body" id="developerBody">
                 <div class="section-label">Testing</div>
                 <div class="button-grid">
+                  <button id="imageLinesTopBottomBtn" type="button">
+                    ImageLines Top/Bottom
+                  </button>
+                  <button id="imageLinesMultiRowsBtn" type="button">
+                    ImageLines Multi Rows
+                  </button>
+                  <button id="imageLinesWaveBtn" type="button">
+                    ImageLines Bottom Wave
+                  </button>
                   <button id="tickerEmoteTestBtn" type="button">
                     Ticker w/ Emotes
                   </button>
@@ -282,6 +297,7 @@
                   <button id="newImageTestBtn" type="button">
                     NewImage Test
                   </button>
+                  <button id="sideSlideBtn" type="button">Side Slide</button>
                 </div>
               </div>
             </div>

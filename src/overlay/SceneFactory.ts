@@ -2,6 +2,11 @@ import type { SceneElement } from "../elements/scenes/SceneElement";
 import type { PoolType, SceneType } from "../types/SceneTypes";
 import { pickRandom } from "../utils/random";
 import * as Scenes from "../elements/scenes";
+import {
+  VIDEO_PRESETS,
+  type VideoScenePayload,
+} from "../elements/scenes/videoOptions";
+import type { WatermarkScenePayload } from "../elements/scenes/watermarkOptions";
 
 /**
  * Factory function type for creating scenes. The payload shape depends on the
@@ -32,13 +37,23 @@ export class SceneFactory {
     ssbmFail: (p) => new Scenes.SsbmFailScene(),
     bamSuccess: (p) => new Scenes.BamSuccessScene(),
     bamUhOh: (p) => new Scenes.BamFailureScene(),
-    watermark: (p) => new Scenes.WatermarkScene(p as any),
+    watermark: (p) => new Scenes.WatermarkScene(p as WatermarkScenePayload),
     confetti: (p) => new Scenes.ConfettiScene(p as any),
     headblade: (p) => new Scenes.HeadbladeScene(p as any),
+    imageLines: (p) => new Scenes.ImageLinesScene(p as any),
+    imageWave: (p) => new Scenes.ImageWaveScene(p as any),
     ticker: (p) => new Scenes.TickerScene(p as any),
     xJason: (p) => new Scenes.XJasonScene(),
-    brainrot: (p) => new Scenes.BrainrotScene(),
+    video: (p) => {
+      const presetKeys = Object.keys(VIDEO_PRESETS) as Array<
+        keyof typeof VIDEO_PRESETS
+      >;
+      const randomKey = pickRandom(presetKeys);
+      const payload = (p ?? { videoKey: randomKey }) as VideoScenePayload;
+      return new Scenes.VideoScene(payload);
+    },
     nyanFollower: (p) => new Scenes.NyanFollowerScene(p as any),
+    sideSlide: (p) => new Scenes.SideSlideScene(p as any),
 
     // Triggerable pools
     hypeChat: (p) => new Scenes.HypeChatScene(p as Record<string, unknown>),

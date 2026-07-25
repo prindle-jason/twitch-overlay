@@ -177,6 +177,11 @@ h2 {
   flex-basis: 1060px;
 }
 
+/* Selection section is double width */
+#selection-section {
+  flex-basis: 1060px;
+}
+
 /* ========================================
    Sections & Cards
    ======================================== */
@@ -430,6 +435,32 @@ input[type="range"]::-moz-range-thumb:hover {
   flex-shrink: 0;
 }
 
+.selection-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.selection-row {
+  display: grid;
+  grid-template-columns: 120px 100px minmax(180px, 280px) 150px;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.selection-row select {
+  width: 100%;
+  max-width: 280px;
+}
+
+.selection-type {
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
 .section-label {
   margin: var(--spacing-md) 0 var(--spacing-sm);
   font-size: 0.85rem;
@@ -638,6 +669,15 @@ input[type="range"]::-moz-range-thumb:hover {
 
   .button-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .selection-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .selection-type {
+    margin-bottom: 2px;
   }
 
   .slider-row {

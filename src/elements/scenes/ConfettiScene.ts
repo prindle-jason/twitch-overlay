@@ -13,6 +13,7 @@ interface ConfettiConfig {
   duration?: number;
   imageUrls?: string[];
   soundUrl?: string;
+  imageHeight?: number;
 }
 
 export class ConfettiScene extends SceneElement {
@@ -21,6 +22,7 @@ export class ConfettiScene extends SceneElement {
   private readonly spawnDurationMs: number;
   private readonly imageUrls: string[];
   private readonly soundUrl?: string;
+  private readonly imageHeight: number;
   private readonly bufferMs = 3000;
 
   constructor(cfg: ConfettiConfig = {}) {
@@ -34,6 +36,7 @@ export class ConfettiScene extends SceneElement {
       typeof cfg.soundUrl === "string" && cfg.soundUrl.trim().length > 0
         ? cfg.soundUrl
         : undefined;
+    this.imageHeight = cfg.imageHeight ?? 60;
     this.duration = this.spawnDurationMs + this.bufferMs;
 
     if (this.soundUrl) {
@@ -59,14 +62,14 @@ export class ConfettiScene extends SceneElement {
       new GravityBehavior({
         velocityY: Math.random() * 50 + 25,
         velocityX: (Math.random() - 0.5) * 100,
-        gravity: 300 + Math.random() * 200,
+        gravity: 200 + Math.random() * 200,
         drag: 0.02,
       }),
     );
 
     particle.addChild(
       new TiltBehavior({
-        rotationSpeed: (Math.random() - 0.5) * 6,
+        rotationSpeed: (Math.random() - 0.5) * 12,
         wobbleAmount: Math.random() * 0.5,
         wobbleSpeed: Math.random() * 3 + 1,
       }),
@@ -84,8 +87,8 @@ export class ConfettiScene extends SceneElement {
         imageUrl,
         x: Math.random() * this.W,
         y: -10,
-        width: 60,
-        height: 60,
+        width: this.imageHeight,
+        height: this.imageHeight,
         scaleStrategy: "fit",
         rotation: Math.random() * Math.PI * 2,
       });

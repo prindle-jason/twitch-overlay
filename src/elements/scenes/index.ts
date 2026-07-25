@@ -9,12 +9,15 @@ export {
 export { WatermarkScene } from "./WatermarkScene";
 export { ConfettiScene } from "./ConfettiScene";
 export { HeadbladeScene } from "./HeadbladeScene";
+export { ImageLinesScene } from "./ImageLinesScene";
+export { ImageWaveScene } from "./ImageWaveScene";
 export { TickerScene } from "./TickerScene";
 export { XJasonScene } from "./XJasonScene";
 export { HypeChatScene } from "./HypeChatScene";
 export { DvdScene as PooledDvdScene } from "./DvdScene";
-export { BrainrotScene } from "./BrainrotScene";
+export { VideoScene } from "./VideoScene";
 export { NyanFollowerScene } from "./NyanFollowerScene";
+export { SideSlideScene } from "./SideSlideScene";
 
 // Test scenes
 export { ChatMessageTestScene } from "./test/ChatMessageTestScene";

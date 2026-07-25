@@ -30,8 +30,24 @@ export const localImages = {
   gamecubeLogo: "/images/dvd/gamecube.svg",
   netflixLogo: "/images/dvd/netflix.png",
   ps1Logo: "/images/dvd/ps1.svg",
+  ps2Logo: "/images/dvd/ps2.png",
   thxLogo: "/images/dvd/thx.svg",
+  discordLogo: "/images/dvd/discord.svg",
 
   // NyanFollowerScene
   nyanCat: "/images/OriginalNyan.webp",
+
+  // Friend emotes
+  ashBeakL: "/images/friendEmotes/ashBeakL.gif",
+  ashBeakR: "/images/friendEmotes/ashBeakR.gif",
+  ashMicroEgg: "/images/friendEmotes/ashMicroEgg.png",
+  duckWaddle: "/images/friendEmotes/duckWaddle.gif",
+  kathyWink: "/images/friendEmotes/kathyWink.png",
+  lemOIIA: "/images/friendEmotes/lemOIIA.gif",
+  meghWoah: "/images/friendEmotes/meghWoah.gif",
+  meteorWave: "/images/friendEmotes/meteorWave.gif",
+  papiJam: "/images/friendEmotes/papiJam.gif",
+  silasBlickyFlipped: "/images/friendEmotes/silasBlickyFlipped.gif",
+  thasixSeven: "/images/friendEmotes/thasixSeven.gif",
+  thasixOhai: "/images/friendEmotes/thasixOhai.gif",
 } as const;

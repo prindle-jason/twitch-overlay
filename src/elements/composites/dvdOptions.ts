@@ -9,9 +9,11 @@ export type DvdType =
   | "thx"
   | "gamecube"
   | "ps1"
+  | "ps2"
   | "pedro"
   | "prndddX"
-  | "headblade";
+  | "headblade"
+  | "discord";
 
 export type DvdCornerHitEffect =
   | {
@@ -48,8 +50,7 @@ export interface DvdOption {
 export const DVD_OPTIONS: readonly DvdOption[] = [
   {
     type: "dvd",
-    // 175
-    weight: 50,
+    weight: 100,
     imageUrl: localImages.dvdLogo,
     cornerHitEffect: {
       kind: "scene",
@@ -59,8 +60,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "bluRay",
-    // 19
-    weight: 10,
+    weight: 20,
     imageUrl: localImages.bluRayLogo,
     cornerHitEffect: {
       kind: "scene",
@@ -70,8 +70,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "netflix",
-    // 5
-    weight: 2,
+    weight: 5,
     imageUrl: localImages.netflixLogo,
     cornerHitEffect: {
       kind: "sound",
@@ -80,8 +79,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "thx",
-    // 1
-    weight: 1,
+    weight: 2,
     imageUrl: localImages.thxLogo,
     cornerHitEffect: {
       kind: "sound",
@@ -90,8 +88,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "gamecube",
-    // 5
-    weight: 10,
+    weight: 2,
     imageUrl: localImages.gamecubeLogo,
     maxSize: 60,
     cornerHitEffect: {
@@ -101,8 +98,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "ps1",
-    // 5
-    weight: 10,
+    weight: 5,
     imageUrl: localImages.ps1Logo,
     maxSize: 60,
     cornerHitEffect: {
@@ -111,10 +107,18 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
     },
   },
   {
+    type: "ps2",
+    weight: 5,
+    imageUrl: localImages.ps2Logo,
+    maxSize: 60,
+    cornerHitEffect: {
+      kind: "sound",
+      soundUrl: localSounds.ps2Sound,
+    },
+  },
+  {
     type: "pedro",
-    // Pedro
-    // 5
-    weight: 10,
+    weight: 1,
     maxSize: 60,
     imageUrl:
       "https://cdn.betterttv.net/emote/662475f6407bff50d709a67d/3x.webp",
@@ -122,7 +126,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
       kind: "scene",
       sceneType: "confetti",
       payload: {
-        count: 3000,
+        count: 300,
         duration: 15 * 1000,
         imageUrls: [
           "https://cdn.betterttv.net/emote/662475f6407bff50d709a67d/3x.webp",
@@ -133,8 +137,6 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "prndddX",
-    // prndddX
-    // 5
     weight: 1,
     maxSize: 60,
     imageUrl:
@@ -152,6 +154,16 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
     cornerHitEffect: {
       kind: "scene",
       sceneType: "headblade",
+    },
+  },
+  {
+    type: "discord",
+    weight: 2,
+    imageUrl: localImages.discordLogo,
+    maxSize: 60,
+    cornerHitEffect: {
+      kind: "sound",
+      soundUrl: localSounds.discordSound,
     },
   },
   //   {

@@ -1,6 +1,9 @@
 import type { StatsResponseMessage } from "../types/ws-messages";
 import type { GlobalSettings, HypeChatSettings } from "../types/settings";
 import type { SidebarManager } from "./SidebarManager";
+import { DVD_OPTIONS } from "../elements/composites/dvdOptions";
+import { VIDEO_PRESETS } from "../elements/scenes/videoOptions";
+import { WATERMARK_OPTIONS } from "../elements/scenes/watermarkOptions";
 
 type ButtonCallback = () => void;
 type SliderCallback = (value: number) => void;
@@ -78,6 +81,47 @@ export class DashboardUI {
 
     this.initializeSliders();
     this.initializeHypeChatSlider();
+    this.initializeSelects();
+  }
+
+  private initializeSelects(): void {
+    const dvdOptions = DVD_OPTIONS.map((option) => ({
+      value: option.type,
+      label: option.type,
+    }));
+    this.populateSelect("dvdTypeSelect", dvdOptions);
+
+    const videoOptions = Object.entries(VIDEO_PRESETS).map(([key, preset]) => ({
+      value: key,
+      label: preset.label,
+    }));
+    this.populateSelect("videoSelect", videoOptions);
+
+    const watermarkOptions = Object.entries(WATERMARK_OPTIONS).map(
+      ([key, preset]) => ({
+        value: key,
+        label: preset.label,
+      }),
+    );
+    this.populateSelect("watermarkSelect", watermarkOptions);
+  }
+
+  private populateSelect(
+    id: string,
+    options: Array<{ value: string; label: string }>,
+  ): void {
+    const select = document.getElementById(id) as HTMLSelectElement | null;
+    if (!select) {
+      return;
+    }
+
+    select.innerHTML = "";
+    for (const option of options) {
+      const optionEl = document.createElement("option");
+      optionEl.value = option.value;
+      optionEl.textContent = option.label;
+      select.appendChild(optionEl);
+    }
   }
 
   private getEl(id: string): HTMLElement {
@@ -264,6 +308,20 @@ export class DashboardUI {
   getSelectedDvdType(): string {
     const select = document.getElementById(
       "dvdTypeSelect",
+    ) as HTMLSelectElement | null;
+    return select?.value?.trim() || "";
+  }
+
+  getSelectedVideoKey(): string {
+    const select = document.getElementById(
+      "videoSelect",
+    ) as HTMLSelectElement | null;
+    return select?.value?.trim() || "";
+  }
+
+  getSelectedWatermarkKey(): string {
+    const select = document.getElementById(
+      "watermarkSelect",
     ) as HTMLSelectElement | null;
     return select?.value?.trim() || "";
   }

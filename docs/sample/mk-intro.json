@@ -1,0 +1,41 @@
+{
+  "type": "custom-event",
+  "root-element": "starburst1",
+  "elements": [
+    {
+      "type": "starburst",
+      "id": "starburst1",
+      "payload": {
+        "count": 50,
+        "duration": { "min": 3000, "max": 5000 },
+        "spawnerId": "radial1",
+        "elementIds": ["dvd1"]
+      }
+    },
+    {
+      "type": "radial-spawner",
+      "id": "radial1",
+      "payload": {
+        "waves": 5,
+        "count": 10,
+        "delay": 1000,
+        "velocity": 3
+      }
+    },
+    {
+      "type": "dvd",
+      "id": "dvd1",
+      "payload": {
+        "option": "prndddX",
+        "children": ["screenBounce1"]
+      }
+    },
+    {
+      "type": "screen-bounce",
+      "id": "screenBounce1",
+      "payload": {
+        "velocity": 5
+      }
+    }
+  ]
+}

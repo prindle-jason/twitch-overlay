@@ -10,6 +10,7 @@ import type {
 } from "../types/ws-messages";
 import type { GlobalSettings, HypeChatSettings } from "../types/settings";
 import { logger } from "../utils/logger";
+import { localImages } from "../utils/assets/images";
 
 const STORAGE_KEY = "dashboard-section-state";
 
@@ -51,14 +52,18 @@ export class DashboardController {
     ui.onButtonClick("headbladeBtn", () =>
       this.dispatchSceneEvent("headblade"),
     );
-    ui.onButtonClick("watermarkBtn", () =>
+    ui.onButtonClick("watermarkRandomBtn", () =>
       this.dispatchSceneEvent("watermark"),
     );
+    ui.onButtonClick("watermarkSelectedBtn", () => {
+      const watermarkKey = ui.getSelectedWatermarkKey();
+      this.dispatchSceneEvent(
+        "watermark",
+        watermarkKey ? { watermarkKey } : {},
+      );
+    });
     ui.onButtonClick("confettiBtn", () => this.dispatchSceneEvent("confetti"));
-    ui.onButtonClick("dvdBounceScenesBtn", () =>
-      this.dispatchSceneEvent("dvdBounce"),
-    );
-    ui.onButtonClick("dvdBounceDvdBtn", () =>
+    ui.onButtonClick("dvdRandomBtn", () =>
       this.dispatchSceneEvent("dvdBounce"),
     );
     ui.onButtonClick("dvdSelectedBtn", () => {
@@ -66,10 +71,59 @@ export class DashboardController {
       this.dispatchSceneEvent("dvdBounce", dvdType ? { dvdType } : {});
     });
     ui.onButtonClick("xJasonBtn", () => this.dispatchSceneEvent("xJason"));
-    ui.onButtonClick("brainrotBtn", () => this.dispatchSceneEvent("brainrot"));
+    ui.onButtonClick("videoRandomBtn", () => this.dispatchSceneEvent("video"));
+    ui.onButtonClick("videoSelectedBtn", () => {
+      const videoKey = ui.getSelectedVideoKey();
+      this.dispatchSceneEvent("video", videoKey ? { videoKey } : {});
+    });
     ui.onButtonClick("nyanFollowerBtn", () =>
       this.dispatchSceneEvent("nyanFollower"),
     );
+    ui.onButtonClick("imageLinesBtn", () => {
+      this.dispatchSceneEvent("imageLines", {
+        variant: "topBottom",
+        imageUrls: [
+          "/images/headblade/hb1.png",
+          "/images/watermarks/hypercam.png",
+          "/images/dvd/ps2.png",
+        ],
+        speedPxPerSec: 260,
+        imageHeight: 84,
+        gapPx: 28,
+      });
+    });
+    ui.onButtonClick("imageLinesTopBottomBtn", () => {
+      this.dispatchSceneEvent("imageLines", {
+        variant: "topBottom",
+        imageUrls: [localImages.papiJam],
+        speedPxPerSec: 260,
+        imageHeight: 84,
+        gapPx: 28,
+      });
+    });
+    ui.onButtonClick("imageLinesMultiRowsBtn", () => {
+      this.dispatchSceneEvent("imageLines", {
+        variant: "multiRows",
+        imageUrls: [localImages.thasixSeven],
+        speedPxPerSec: 240,
+        imageHeight: 72,
+        gapPx: 24,
+        rowCount: 6,
+      });
+    });
+    ui.onButtonClick("imageLinesWaveBtn", () => {
+      this.dispatchSceneEvent("imageWave", {
+        imageUrl: localImages.duckWaddle,
+        duration: 9000,
+        spawnDuration: 4000,
+        count: 8,
+        imageHeight: 180,
+        waveAmplitudePx: 5,
+        wavePeriodPx: 64,
+        waveRollAmountPx: 3,
+        waveCrestSharpness: 0.22,
+      });
+    });
     ui.onButtonClick("glitchBtn", () => this.dispatchSceneEvent("glitch"));
     ui.onButtonClick("glitchRepeaterBtn", () =>
       this.dispatchSceneEvent("glitchRepeater"),
@@ -84,6 +138,15 @@ export class DashboardController {
     );
     ui.onButtonClick("newImageTestBtn", () =>
       this.dispatchSceneEvent("newImageTest"),
+    );
+    ui.onButtonClick("sideSlideBtn", () =>
+      this.dispatchSceneEvent("sideSlide", {
+        imageUrl: localImages.silasBlickyFlipped,
+        rows: 7,
+        rowDelaySec: 0.25,
+        slideDurationSec: 1.5,
+        rowGapPx: 8,
+      }),
     );
     ui.onButtonClick("tickerBtn", () => {
       const message = ui.getTickerInput();

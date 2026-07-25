@@ -1,32 +1,119 @@
-export type CornerPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
-
 export interface Position {
   x: number;
   y: number;
 }
 
-/**
- * Calculate position for an element anchored to a corner of the canvas.
- * @param corner - Which corner to anchor to
- * @param width - Width of the element
- * @param height - Height of the element
- * @param canvasW - Canvas width
- * @param canvasH - Canvas height
- * @param padding - Distance from edge in pixels
- */
-export function positionCorner(
-  corner: CornerPosition,
+export type Alignment =
+  | "top-left"
+  | "top"
+  | "top-right"
+  | "left"
+  | "center"
+  | "right"
+  | "bottom-left"
+  | "bottom"
+  | "bottom-right";
+
+export interface Insets {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export type InsetConfig =
+  | number
+  | {
+      top?: number;
+      right?: number;
+      bottom?: number;
+      left?: number;
+    };
+
+export interface PositionOffset {
+  x?: number;
+  y?: number;
+}
+
+export interface ElementPosition {
+  align: Alignment;
+  inset?: InsetConfig;
+  offset?: PositionOffset;
+}
+
+function normalizeInsets(inset?: InsetConfig): Insets {
+  if (typeof inset === "number") {
+    return {
+      top: inset,
+      right: inset,
+      bottom: inset,
+      left: inset,
+    };
+  }
+
+  return {
+    top: inset?.top ?? 0,
+    right: inset?.right ?? 0,
+    bottom: inset?.bottom ?? 0,
+    left: inset?.left ?? 0,
+  };
+}
+
+export function resolveElementPosition(
+  position: ElementPosition,
   width: number,
   height: number,
   canvasW: number,
   canvasH: number,
-  padding = 20,
 ): Position {
-  const positions: Record<CornerPosition, Position> = {
-    'bottom-right': { x: canvasW - width - padding, y: canvasH - height - padding },
-    'bottom-left': { x: padding, y: canvasH - height - padding },
-    'top-right': { x: canvasW - width - padding, y: padding },
-    'top-left': { x: padding, y: padding },
-  };
-  return positions[corner];
+  const inset = normalizeInsets(position.inset);
+  const offsetX = position.offset?.x ?? 0;
+  const offsetY = position.offset?.y ?? 0;
+
+  const centeredX = (canvasW - width) / 2;
+  const centeredY = (canvasH - height) / 2;
+
+  switch (position.align) {
+    case "top-left":
+      return { x: inset.left + offsetX, y: inset.top + offsetY };
+
+    case "top":
+      return { x: centeredX + offsetX, y: inset.top + offsetY };
+
+    case "top-right":
+      return {
+        x: canvasW - width - inset.right + offsetX,
+        y: inset.top + offsetY,
+      };
+
+    case "left":
+      return { x: inset.left + offsetX, y: centeredY + offsetY };
+
+    case "center":
+      return { x: centeredX + offsetX, y: centeredY + offsetY };
+
+    case "right":
+      return {
+        x: canvasW - width - inset.right + offsetX,
+        y: centeredY + offsetY,
+      };
+
+    case "bottom-left":
+      return {
+        x: inset.left + offsetX,
+        y: canvasH - height - inset.bottom + offsetY,
+      };
+
+    case "bottom":
+      return {
+        x: centeredX + offsetX,
+        y: canvasH - height - inset.bottom + offsetY,
+      };
+
+    case "bottom-right":
+      return {
+        x: canvasW - width - inset.right + offsetX,
+        y: canvasH - height - inset.bottom + offsetY,
+      };
+  }
 }

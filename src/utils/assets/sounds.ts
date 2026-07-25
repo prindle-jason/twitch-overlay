@@ -18,10 +18,21 @@ export const localSounds = {
   netflixSound: "/audio/dvd/netflix.mp3",
   prndddo: "/audio/dvd/prndddo.wav",
   ps1Sound: "/audio/dvd/playstation1.mp3",
+  ps2Sound: "/audio/dvd/ps2.mp3",
   thxSound: "/audio/dvd/thx.mp3",
+  discordSound: "/audio/dvd/discord.mp3",
 
   // NyanFollowerScene
   // Replace with dedicated nyan audio assets when available.
   nyanMusic: "/audio/nyanFollower.mp3",
   nyanStar: "/audio/yippee.mp3",
+
+  // Friend sounds
+  ashShaun: "/audio/friends/did-you-see-shaun.mp3",
+  meghHoa: "/audio/friends/meghHoa.mp3",
+  silasRobotHouse: "/audio/friends/robot-house.mp3",
+  mkInsane: "/audio/friends/oh-my-god-shes-insane.mp3",
+
+  // Watermark sounds
+  jojoToBeContinued: "/audio/watermarks/jojo-to-be-continued.mp3",
 } as const;
