@@ -46,6 +46,7 @@ export const localImages = {
   lemOIIA: "/images/friendEmotes/lemOIIA.gif",
   meghWoah: "/images/friendEmotes/meghWoah.gif",
   meteorWave: "/images/friendEmotes/meteorWave.gif",
+  mkHamster: "/images/friendEmotes/mkHamster.gif",
   papiJam: "/images/friendEmotes/papiJam.gif",
   silasBlickyFlipped: "/images/friendEmotes/silasBlickyFlipped.gif",
   thasixSeven: "/images/friendEmotes/thasixSeven.gif",

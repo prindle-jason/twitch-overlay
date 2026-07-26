@@ -13,7 +13,8 @@ export type DvdType =
   | "pedro"
   | "prndddX"
   | "headblade"
-  | "discord";
+  | "discord"
+  | "hamster";
 
 export type DvdCornerHitEffect =
   | {
@@ -50,7 +51,7 @@ export interface DvdOption {
 export const DVD_OPTIONS: readonly DvdOption[] = [
   {
     type: "dvd",
-    weight: 100,
+    weight: 150,
     imageUrl: localImages.dvdLogo,
     cornerHitEffect: {
       kind: "scene",
@@ -60,7 +61,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "bluRay",
-    weight: 20,
+    weight: 30,
     imageUrl: localImages.bluRayLogo,
     cornerHitEffect: {
       kind: "scene",
@@ -70,7 +71,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "netflix",
-    weight: 5,
+    weight: 10,
     imageUrl: localImages.netflixLogo,
     cornerHitEffect: {
       kind: "sound",
@@ -79,7 +80,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "thx",
-    weight: 2,
+    weight: 3,
     imageUrl: localImages.thxLogo,
     cornerHitEffect: {
       kind: "sound",
@@ -88,7 +89,7 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "gamecube",
-    weight: 2,
+    weight: 5,
     imageUrl: localImages.gamecubeLogo,
     maxSize: 60,
     cornerHitEffect: {
@@ -158,12 +159,22 @@ export const DVD_OPTIONS: readonly DvdOption[] = [
   },
   {
     type: "discord",
-    weight: 2,
+    weight: 1,
     imageUrl: localImages.discordLogo,
     maxSize: 60,
     cornerHitEffect: {
       kind: "sound",
       soundUrl: localSounds.discordSound,
+    },
+  },
+  {
+    type: "hamster",
+    weight: 1,
+    imageUrl: localImages.mkHamster,
+    maxSize: 60,
+    cornerHitEffect: {
+      kind: "sound",
+      soundUrl: localSounds.mkInsane,
     },
   },
   //   {
