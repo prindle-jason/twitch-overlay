@@ -1,3 +1,4 @@
+import { DataElement } from "../data-elements/primitives/DataElement";
 import type { Element } from "../elements/primitives/Element";
 import type { PoolType, SceneType } from "./SceneTypes";
 
@@ -5,7 +6,11 @@ import type { PoolType, SceneType } from "./SceneTypes";
  * Lifecycle events emitted by Element instances via EventBus.
  * Used for diagnostics, memory tracking, and debugging.
  */
-export type LifecycleEventType = "element-created" | "element-finished";
+export type LifecycleEventType =
+  | "element-created"
+  | "element-finished"
+  | "data-element-created"
+  | "data-element-finished";
 
 /**
  * Settings events emitted when overlay configuration changes.
@@ -54,6 +59,9 @@ export type EventType =
 export interface EventDetailMap {
   "element-created": { ctor: string; instance: Element };
   "element-finished": { ctor: string; instance: Element };
+  "data-element-created": { ctor: string; instance: DataElement };
+  "data-element-finished": { ctor: string; instance: DataElement };
+
   "global-paused": { paused: true };
   "global-resumed": { paused: false };
   "global-volume-changed": { masterVolume: number };

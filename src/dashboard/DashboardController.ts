@@ -14,80 +14,34 @@ import { localImages } from "../utils/assets/images";
 
 const STORAGE_KEY = "dashboard-section-state";
 
-// Embedded data-driven scene config for testing
+// Embedded data-driven scene config for testing - simplified sound-only
 const DATA_SCENE_CONFIG = {
   "type": "custom-event",
-  "root-elements": ["audio1", "waveScheduler1", "starburst1"],
-  "elements": [
-    {
-      "type": "audio",
-      "id": "audio1",
-      "payload": {
-        "audioUrl": "path/to/intro.wav",
-        "children": [
-          {
-            "type": "sound-on-play"
-          }
-        ]
-      }
-    },
-    {
-      "type": "radial-spawner",
-      "id": "starburst1",
-      "payload": {
-        "schedulerId": "waveScheduler1",
-        "spawnTemplateIds": ["bouncingImage1", "bouncingImage2"],
-        "countPerWave": 10,
-        "spawnVelocity": 3
-      }
-    },
-    {
-      "type": "scheduler",
-      "id": "waveScheduler1",
-      "payload": {
-        "interval": 2000,
-        "count": 5
-      }
-    },
-    {
-      "type": "image",
-      "id": "bouncingImage1",
-      "payload": {
-        "imageUrl": "path/to/image1.png",
-        "scale": 1,
-        "duration": { "min": 3000, "max": 5000 },
-        "children": [
-          {
-            "type": "velocity",
+  "scene": {
+    "elementType": "DataSceneElement",
+    "payload": {
+      "childEventListeners": [
+        {
+          "event": "sound-ended",
+          "action": "finish"
+        }
+      ],
+      "children": [
+        {
+          "elementType": "DataSoundElement",
+          "id": "sound1",
+          "payload": {
+            "audioUrl": "/audio/friends/oh-my-god-shes-insane.mp3",
             "children": [
               {
-                "type": "screen-bounce"
+                "elementType": "DataSoundOnPlayBehavior"
               }
             ]
           }
-        ]
-      }
-    },
-    {
-      "type": "image",
-      "id": "bouncingImage2",
-      "payload": {
-        "imageUrl": "path/to/image2.png",
-        "scale": 1,
-        "duration": { "min": 3000, "max": 5000 },
-        "children": [
-          {
-            "type": "velocity",
-            "children": [
-              {
-                "type": "screen-bounce"
-              }
-            ]
-          }
-        ]
-      }
+        }
+      ]
     }
-  ]
+  }
 };
 
 export class DashboardController {

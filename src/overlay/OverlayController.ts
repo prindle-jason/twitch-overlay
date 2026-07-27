@@ -168,18 +168,16 @@ export class OverlayController {
     try {
       logger.debug("[overlay] handling custom-event");
       const factory = new DataSceneFactory();
-      const rootElements = await factory.createScene(msg.payload);
+      const scene = await factory.createScene(msg.payload);
 
-      if (rootElements.size === 0) {
-        logger.warn("[overlay] No root elements created from custom-event");
+      if (!scene) {
+        logger.warn("[overlay] No scene created from custom-event");
         return;
       }
 
-      this.sceneManager.handleCustomEvent(rootElements);
+      await this.sceneManager.handleCustomScene(scene);
 
-      logger.info("[overlay] custom-event scene loaded and started", {
-        elementCount: rootElements.size,
-      });
+      logger.info("[overlay] custom-event scene loaded and initialized");
     } catch (error) {
       logger.error("[overlay] Error handling custom-event", { error });
     }

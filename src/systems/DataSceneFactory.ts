@@ -1,61 +1,63 @@
-import { Element } from "../elements/primitives/Element";
+import { DataElement } from "../data-elements/primitives/DataElement";
 import { logger } from "../utils/logger";
 import { ElementRegistry } from "./ElementRegistry";
-import { SceneConfig, ElementConfig, ElementWithChildren } from "../types/SceneConfig";
+import { ElementConfig, ElementWithChildren } from "../types/SceneConfig";
+// Import data elements index to auto-register all element types
+import "../data-elements";
 
 export class DataSceneFactory {
-  private elementMap: Map<string, Element> = new Map();
+  private elementMap: Map<string, DataElement> = new Map();
 
   /**
    * Create a scene from JSON configuration
-   * Returns map of root element IDs to instances
+   * Returns the created scene element (NOT initialized yet)
+   * The hierarchy is already built; init() will cascade from the scene
    */
-  async createScene(config: any): Promise<Map<string, Element>> {
+  async createScene(config: any): Promise<DataElement | null> {
     logger.debug("[DataSceneFactory] Creating scene from config");
 
-    ElementRegistry.registerDefaults();
-
-    // First pass: create all elements and store by ID
-    const elements = config.elements || [];
-    for (const elementConfig of elements) {
-      this.createElementRecursive(elementConfig);
+    const sceneConfig = config.scene;
+    if (!sceneConfig || !sceneConfig.elementType) {
+      logger.warn("[DataSceneFactory] Config missing scene.elementType");
+      return null;
     }
 
-    // Second pass: resolve references and init
-    const rootElements = new Map<string, Element>();
-    const rootElementIds = config["root-elements"] || [];
-    for (const rootId of rootElementIds) {
-      const element = this.elementMap.get(rootId);
-      if (element) {
-        await element.init();
-        rootElements.set(rootId, element);
-      } else {
-        logger.warn(`[DataSceneFactory] Root element not found: ${rootId}`);
+    // Create the scene element and its children
+    const scene = this.createElementRecursive(sceneConfig);
+
+    if (!scene) {
+      logger.warn("[DataSceneFactory] Failed to create scene element");
+      return null;
+    }
+
+    // Pass element map to spawners so they can resolve templates in their init()
+    for (const element of this.elementMap.values()) {
+      const spawner = element as any;
+      if (spawner.elementMap === undefined) {
+        spawner.elementMap = this.elementMap;
       }
     }
 
     logger.debug("[DataSceneFactory] Scene created successfully", {
+      sceneType: sceneConfig.elementType,
       elementCount: this.elementMap.size,
-      rootElements: rootElementIds,
     });
 
-    return rootElements;
+    return scene;
   }
 
   /**
    * Recursively create element and its children
    */
-  private createElementRecursive(config: ElementConfig): Element | null {
-    if (!config.type) {
-      logger.warn("[DataSceneFactory] Element config missing type");
+  private createElementRecursive(config: ElementConfig): DataElement | null {
+    if (!config.elementType) {
+      logger.warn("[DataSceneFactory] Element config missing elementType");
       return null;
     }
 
     // Create the element
-    const payload = this.preparePayload(
-      config as ElementWithChildren,
-    );
-    const element = ElementRegistry.create(config.type, payload);
+    const payload = this.preparePayload(config as ElementWithChildren);
+    const element = ElementRegistry.create(config.elementType, payload);
 
     if (!element) {
       return null;
@@ -83,10 +85,15 @@ export class DataSceneFactory {
   }
 
   /**
-   * Prepare payload: resolve ID references and remove children
+   * Prepare payload: add config ID and resolve ID references, remove children
    */
   private preparePayload(config: ElementWithChildren): Record<string, unknown> {
     const payload = { ...config.payload } || {};
+
+    // Add ID from config (if present)
+    if (config.id) {
+      payload.id = config.id;
+    }
 
     // Remove children from payload (handled separately)
     delete payload.children;
@@ -105,17 +112,16 @@ export class DataSceneFactory {
     }
 
     // Resolve template IDs array
-    if (
-      payload.spawnTemplateIds &&
-      Array.isArray(payload.spawnTemplateIds)
-    ) {
-      const templates = payload.spawnTemplateIds.map((id: string) => {
-        const template = this.elementMap.get(id);
-        if (!template) {
-          logger.warn(`[DataSceneFactory] Template not found: ${id}`);
-        }
-        return template;
-      }).filter(Boolean);
+    if (payload.spawnTemplateIds && Array.isArray(payload.spawnTemplateIds)) {
+      const templates = payload.spawnTemplateIds
+        .map((id: string) => {
+          const template = this.elementMap.get(id);
+          if (!template) {
+            logger.warn(`[DataSceneFactory] Template not found: ${id}`);
+          }
+          return template;
+        })
+        .filter(Boolean);
       payload.templates = templates;
       delete payload.spawnTemplateIds;
     }

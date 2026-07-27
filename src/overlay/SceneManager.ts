@@ -2,14 +2,14 @@ import {
   SceneElement,
   TriggerableSceneElement,
 } from "../elements/scenes/SceneElement";
-import { DataDrivenScene } from "../data-elements/scenes/DataDrivenScene";
+import { DataSceneElement } from "../data-elements/scenes/DataSceneElement";
+import { DataElement } from "../data-elements/primitives/DataElement";
 import { logger } from "../utils/logger";
 import { EventBus } from "../core/EventBus";
 import type { PoolType, SceneType } from "../types/SceneTypes";
 import type { SpawnIntentDetail } from "../types/EventTypes";
 import type { Settings } from "../types/settings";
 import { SceneFactory } from "./SceneFactory";
-import type { Element } from "../elements/primitives/Element";
 
 /**
  * Orchestrates the lifecycle of active scenes: creation, triggering,
@@ -98,18 +98,18 @@ export class SceneManager {
   }
 
   /**
-   * Handle a custom/data-driven event: wrap root elements in a scene and add to manager.
-   * Elements are already initialized by the factory. The scene lifecycle handles play/update/finish.
+   * Handle a custom/data-driven scene: initialize and add to manager.
+   * Scene is fully constructed by the factory and ready for init cascade.
    */
-  handleCustomEvent(elements: Map<string, Element>): void {
-    if (elements.size === 0) {
-      logger.warn("[SceneManager] No elements in custom event");
+  async handleCustomScene(scene: DataElement): Promise<void> {
+    if (!scene) {
+      logger.warn("[SceneManager] No scene provided");
       return;
     }
 
-    const scene = new DataDrivenScene(elements);
-    this.addScene(scene);
-    logger.info(`[SceneManager] Custom event scene created with ${elements.size} root elements`);
+    await scene.init();
+    this.scenes.push(scene as any);
+    logger.info(`[SceneManager] Custom scene created and initialized`);
   }
 
   /**

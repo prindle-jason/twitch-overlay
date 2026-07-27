@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://prindle.dev/schemas/custom-scene.schema.json",
+  "title": "Custom Scene Message",
+  "description": "Schema for data-driven scene configuration messages. Element-specific validation is handled by ElementRegistry at runtime.",
+  "type": "object",
+  "required": ["type", "scene"],
+  "properties": {
+    "type": {
+      "const": "custom-event",
+      "description": "Message type identifier"
+    },
+    "scene": {
+      "$ref": "#/definitions/element",
+      "description": "Root scene element (typically DataSceneElement)"
+    }
+  },
+  "definitions": {
+    "element": {
+      "type": "object",
+      "required": ["elementType"],
+      "properties": {
+        "elementType": {
+          "type": "string",
+          "description": "Element class name (e.g., DataSoundElement, DataImageElement, DataSchedulerElement)"
+        },
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this element (used for referencing in spawnTemplateIds, etc.)"
+        },
+        "payload": {
+          "type": "object",
+          "description": "Element-specific configuration (shape depends on elementType)"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/element"
+          },
+          "description": "Child elements in the hierarchy"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

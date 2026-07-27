@@ -1,11 +1,11 @@
-import { Element } from "../../elements/primitives/Element";
+import { DataElement } from "../primitives/DataElement";
 import { Range, getRandomInRange } from "../../utils/random";
-import { EventBus } from "../../core/EventBus";
 import { logger } from "../../utils/logger";
 
 interface DataSchedulerConfig {
-  interval: number | Range;
+  interval?: number | Range;
   count?: number;
+  id?: string;
 }
 
 /**
@@ -13,7 +13,7 @@ interface DataSchedulerConfig {
  * Events are emitted via EventBus with type "scheduler-fired".
  * Designed for use in data-driven scenes with the radial spawner.
  */
-export class DataSchedulerElement extends Element {
+export class DataSchedulerElement extends DataElement {
   private intervalMin: number;
   private intervalMax: number;
   private count: number;
@@ -21,15 +21,16 @@ export class DataSchedulerElement extends Element {
   private nextInterval: number;
   private ticks: number = 0;
 
-  constructor(config: DataSchedulerConfig) {
-    super();
+  constructor(config: Partial<DataSchedulerConfig> = {}) {
+    super({ id: config.id });
 
-    if (typeof config.interval === "number") {
-      this.intervalMin = config.interval;
-      this.intervalMax = config.interval;
+    const interval = config.interval ?? 1000;
+    if (typeof interval === "number") {
+      this.intervalMin = interval;
+      this.intervalMax = interval;
     } else {
-      this.intervalMin = config.interval.min;
-      this.intervalMax = config.interval.max;
+      this.intervalMin = interval.min;
+      this.intervalMax = interval.max;
     }
 
     this.count = config.count ?? Infinity;
@@ -75,7 +76,7 @@ export class DataSchedulerElement extends Element {
         totalWaves: this.count,
       });
 
-      EventBus.emit("scheduler-fired", {
+      this.emitEvent("scheduler-fired", {
         tick: this.ticks,
         totalTicks: this.count,
       });
@@ -93,5 +94,20 @@ export class DataSchedulerElement extends Element {
 
   getTicks(): number {
     return this.ticks;
+  }
+
+  /**
+   * Clone this scheduler, preserving interval and count configuration.
+   */
+  override clone(): DataSchedulerElement {
+    const cloned = super.clone() as DataSchedulerElement;
+    cloned.intervalMin = this.intervalMin;
+    cloned.intervalMax = this.intervalMax;
+    cloned.count = this.count;
+    // Reset tick state for the clone
+    cloned.timeSinceLastTick = 0;
+    cloned.ticks = 0;
+    cloned.nextInterval = cloned.getRandomInterval();
+    return cloned;
   }
 }

@@ -1,74 +1,80 @@
 {
   "type": "custom-event",
-  "root-elements": ["audio1", "starburst1"],
-  "elements": [
-    {
-      "type": "audio",
-      "id": "audio1",
-      "payload": {
-        "audioUrl": "path/to/intro.wav",
-        "children": [
-          {
-            "type": "sound-on-play"
-          }
-        ]
-      }
-    },
-    {
-      "type": "radial-spawner",
-      "id": "starburst1",
-      "payload": {
-        "schedulerId": "waveScheduler1",
-        "spawnTemplateIds": ["bouncingImage1", "bouncingImage2"],
-        "countPerWave": 10,
-        "spawnVelocity": 3
-      }
-    },
-    {
-      "type": "scheduler",
-      "id": "waveScheduler1",
-      "payload": {
-        "interval": 2000,
-        "count": 5
-      }
-    },
-    {
-      "type": "image",
-      "id": "bouncingImage1",
-      "payload": {
-        "imageUrl": "path/to/image1.png",
-        "scale": 1,
-        "duration": { "min": 3000, "max": 5000 },
-        "children": [
-          {
-            "type": "velocity",
+  "scene": {
+    "elementType": "DataSceneElement",
+    "payload": {
+      "duration": 15000,
+      "children": [
+        {
+          "elementType": "DataSoundElement",
+          "id": "sound1",
+          "payload": {
+            "audioUrl": "/audio/friends/oh-my-god-shes-insane.mp3",
             "children": [
               {
-                "type": "screen-bounce"
+                "elementType": "DataSoundOnPlayBehavior"
               }
             ]
           }
-        ]
-      }
-    },
-    {
-      "type": "image",
-      "id": "bouncingImage2",
-      "payload": {
-        "imageUrl": "path/to/image2.png",
-        "scale": 1,
-        "duration": { "min": 3000, "max": 5000 },
-        "children": [
-          {
-            "type": "velocity",
+        },
+        {
+          "elementType": "DataRadialSpawnerElement",
+          "id": "spawner1",
+          "payload": {
+            "countPerWave": 10,
+            "spawnVelocity": 3,
+            "spawnTemplateIds": ["bouncingImage1", "bouncingImage2"],
             "children": [
               {
-                "type": "screen-bounce"
+                "elementType": "DataSchedulerElement",
+                "id": "waveScheduler1",
+                "payload": {
+                  "interval": 2000,
+                  "count": 5
+                }
               }
             ]
           }
-        ]
-      }
+        },
+        {
+          "elementType": "DataImageElement",
+          "id": "bouncingImage1",
+          "payload": {
+            "imageUrl": "images/dvd/dvd.png",
+            "scale": 1,
+            "duration": 3000,
+            "children": [
+              {
+                "elementType": "DataVelocityBehavior",
+                "children": [
+                  {
+                    "elementType": "DataScreenBounceBehavior"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "elementType": "DataImageElement",
+          "id": "bouncingImage2",
+          "payload": {
+            "imageUrl": "images/dvd/bluRay.png",
+            "scale": 1,
+            "duration": 3000,
+            "children": [
+              {
+                "elementType": "DataVelocityBehavior",
+                "children": [
+                  {
+                    "elementType": "DataScreenBounceBehavior"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
     }
-  ]
+  }
 }
