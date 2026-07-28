@@ -4,7 +4,7 @@
  * Import this file once to auto-register all available elements.
  */
 
-import { ElementRegistry } from "../systems/ElementRegistry";
+import { ElementRegistry } from "../data-systems/ElementRegistry";
 
 // Composites
 import { DataSchedulerElement } from "./composites/DataSchedulerElement";
@@ -12,7 +12,16 @@ import { DataRadialSpawnerElement } from "./composites/DataRadialSpawnerElement"
 
 // Primitives
 import { DataSoundElement } from "./primitives/DataSoundElement";
-import { DataImageElement } from "./primitives/DataImageElement";
+import {
+  DataImageElement,
+  DataStaticImageElement,
+  DataAnimatedImageElement,
+} from "./primitives/DataImageElement";
+import { DataSequenceElement } from "./primitives/DataSequenceElement";
+import { DataTransformElement } from "./primitives/DataTransformElement";
+
+// Factories
+import { DataImageElementFactory } from "../data-systems/DataImageElementFactory";
 
 // Behaviors
 import { DataVelocityBehavior } from "./behaviors/DataVelocityBehavior";
@@ -42,7 +51,16 @@ export function registerDataElements(): void {
 
   // Data-driven primitives
   ElementRegistry.register("DataSoundElement", DataSoundElement);
-  ElementRegistry.register("DataImageElement", DataImageElement);
+  // DataImageElement uses factory to detect static vs animated
+  ElementRegistry.register("DataImageElement", DataImageElementFactory.create);
+  // Subclasses available for explicit instantiation
+  ElementRegistry.register("DataStaticImageElement", DataStaticImageElement);
+  ElementRegistry.register(
+    "DataAnimatedImageElement",
+    DataAnimatedImageElement,
+  );
+  ElementRegistry.register("DataSequenceElement", DataSequenceElement);
+  ElementRegistry.register("DataTransformElement", DataTransformElement);
 
   // Data-driven scenes
   ElementRegistry.register("DataSceneElement", DataSceneElement);

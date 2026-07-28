@@ -5,7 +5,7 @@ import { WebSocketClient } from "../core/WebSocketClient";
 import { EventBus } from "../core/EventBus";
 import { logger } from "../utils/logger";
 import { globalSettings } from "./GlobalSettingsStore";
-import { DataSceneFactory } from "../systems/DataSceneFactory";
+import { DataSceneFactory } from "../data-systems/DataSceneFactory";
 import type {
   WsMessage,
   StatsResponseMessage,

@@ -1,0 +1,38 @@
+{
+  "type": "custom-event",
+  "scene": {
+    "elementType": "DataSceneElement",
+    "children": [
+      {
+        "elementType": "DataAnimatedImageElement",
+        "id": "anim-fit",
+        "imageUrl": "/images/friendEmotes/ashBeakL.gif",
+        "width": 300,
+        "height": 300,
+        "x": 20,
+        "y": 20,
+        "scaleStrategy": "fit"
+      },
+      {
+        "elementType": "DataAnimatedImageElement",
+        "id": "anim-fill",
+        "imageUrl": "/images/friendEmotes/duckWaddle.gif",
+        "width": 300,
+        "height": 300,
+        "x": 350,
+        "y": 20,
+        "scaleStrategy": "fill"
+      },
+      {
+        "elementType": "DataAnimatedImageElement",
+        "id": "anim-stretch",
+        "imageUrl": "/images/friendEmotes/lemOIIA.gif",
+        "width": 200,
+        "height": 600,
+        "x": 680,
+        "y": 20,
+        "scaleStrategy": "stretch"
+      }
+    ]
+  }
+}

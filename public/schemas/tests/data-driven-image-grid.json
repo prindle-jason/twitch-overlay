@@ -1,0 +1,98 @@
+{
+  "type": "custom-event",
+  "scene": {
+    "elementType": "DataSceneElement",
+    "children": [
+      {
+        "elementType": "DataStaticImageElement",
+        "id": "grid-1-1",
+        "imageUrl": "/images/blueRupee.png",
+        "width": 200,
+        "height": 200,
+        "x": 20,
+        "y": 20,
+        "scaleStrategy": "fit"
+      },
+      {
+        "elementType": "DataStaticImageElement",
+        "id": "grid-1-2",
+        "imageUrl": "/images/bobSuccess.png",
+        "width": 200,
+        "height": 200,
+        "x": 240,
+        "y": 20,
+        "scaleStrategy": "fit"
+      },
+      {
+        "elementType": "DataAnimatedImageElement",
+        "id": "grid-1-3",
+        "imageUrl": "/images/friendEmotes/ashBeakL.gif",
+        "width": 200,
+        "height": 200,
+        "x": 460,
+        "y": 20,
+        "scaleStrategy": "fit"
+      },
+      {
+        "elementType": "DataAnimatedImageElement",
+        "id": "grid-2-1",
+        "imageUrl": "/images/friendEmotes/duckWaddle.gif",
+        "width": 200,
+        "height": 200,
+        "x": 20,
+        "y": 240,
+        "scaleStrategy": "fill"
+      },
+      {
+        "elementType": "DataStaticImageElement",
+        "id": "grid-2-2",
+        "imageUrl": "/images/bubSuccess.png",
+        "width": 200,
+        "height": 200,
+        "x": 240,
+        "y": 240,
+        "scaleStrategy": "fit"
+      },
+      {
+        "elementType": "DataAnimatedImageElement",
+        "id": "grid-2-3",
+        "imageUrl": "/images/friendEmotes/lemOIIA.gif",
+        "width": 200,
+        "height": 200,
+        "x": 460,
+        "y": 240,
+        "scaleStrategy": "fit"
+      },
+      {
+        "elementType": "DataStaticImageElement",
+        "id": "grid-3-1",
+        "imageUrl": "/images/breakingNews.png",
+        "width": 200,
+        "height": 200,
+        "x": 20,
+        "y": 460,
+        "scaleStrategy": "stretch"
+      },
+      {
+        "elementType": "DataAnimatedImageElement",
+        "id": "grid-3-2",
+        "imageUrl": "/images/friendEmotes/meghWoah.gif",
+        "width": 200,
+        "height": 200,
+        "x": 240,
+        "y": 460,
+        "scaleStrategy": "fill"
+      },
+      {
+        "elementType": "DataStaticImageElement",
+        "id": "grid-3-3",
+        "imageUrl": "/images/dvd/dvd.png",
+        "width": 200,
+        "height": 200,
+        "x": 460,
+        "y": 460,
+        "scaleStrategy": "fit"
+      }
+    ]
+  }
+}

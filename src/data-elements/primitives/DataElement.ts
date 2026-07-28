@@ -67,9 +67,12 @@ export class DataElement {
     });
     child.setParent(this);
     if (this.sceneEventBus && typeof child.setSceneEventBus === "function") {
-      logger.warn(`[${this.constructor.name}] Injecting sceneEventBus into child`, {
-        childId: child.id,
-      });
+      // logger.warn(
+      //   `[${this.constructor.name}] Injecting sceneEventBus into child`,
+      //   {
+      //     childId: child.id,
+      //   },
+      // );
       child.setSceneEventBus(this.sceneEventBus);
     }
     this.children.push(child);
@@ -86,12 +89,12 @@ export class DataElement {
 
   /** Set the scene event bus; propagated to children. */
   setSceneEventBus(bus: SceneEventBus): void {
-    logger.warn(`[${this.constructor.name}] setSceneEventBus called`, { id: this.id });
+    //logger.warn(`[${this.constructor.name}] setSceneEventBus called`, { id: this.id });
     this.sceneEventBus = bus;
     this.children.forEach((child) => {
-      logger.warn(`[${this.constructor.name}] Propagating sceneEventBus to child`, {
-        childId: child.id,
-      });
+      // logger.warn(`[${this.constructor.name}] Propagating sceneEventBus to child`, {
+      //   childId: child.id,
+      // });
       child.setSceneEventBus(bus);
     });
   }
@@ -108,14 +111,11 @@ export class DataElement {
       );
 
       const eventHandler = (detail?: any) => {
-        logger.warn(
-          `[${this.constructor.name}] Event received on listener`,
-          {
-            event: listener.event,
-            sourceId: listener.sourceId,
-            detailSourceId: detail?.sourceId,
-          },
-        );
+        logger.warn(`[${this.constructor.name}] Event received on listener`, {
+          event: listener.event,
+          sourceId: listener.sourceId,
+          detailSourceId: detail?.sourceId,
+        });
 
         // Check sourceId filter if present
         if (listener.sourceId && detail?.sourceId !== listener.sourceId) {
@@ -155,14 +155,18 @@ export class DataElement {
 
         const actionFunc = (this as any)[listener.action];
         if (typeof actionFunc === "function") {
-          logger.warn(`[${this.constructor.name}] Calling action: ${listener.action}`);
+          logger.warn(
+            `[${this.constructor.name}] Calling action: ${listener.action}`,
+          );
           actionFunc.call(this);
         } else {
           logger.warn(
             `[${this.constructor.name}] No function found with name`,
             {
               action: listener.action,
-              available: Object.getOwnPropertyNames(Object.getPrototypeOf(this)),
+              available: Object.getOwnPropertyNames(
+                Object.getPrototypeOf(this),
+              ),
             },
           );
         }

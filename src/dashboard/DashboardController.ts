@@ -17,7 +17,18 @@ logger.setLevel(LogLevel.DEBUG);
 
 const STORAGE_KEY = "dashboard-section-state";
 
-const SCENE_CONFIG_URL = "/schemas/working-data-scene.json";
+const WORKING_SCENE_URL = "/schemas/working-data-scene.json";
+
+// Data image element test scenes (in order)
+const TEST_SCENES = [
+  "/schemas/tests/data-driven-animated-image-basic.json", // Test 1
+  "/schemas/tests/data-driven-animated-image-scaling.json", // Test 2
+  "/schemas/tests/data-driven-image-grid.json", // Test 3
+  "/schemas/tests/data-driven-static-image-basic.json", // Test 4
+  "/schemas/tests/data-driven-static-image-fill.json", // Test 5
+  "/schemas/tests/data-driven-static-image-fit.json", // Test 6
+  "/schemas/tests/data-driven-static-image-stretch.json", // Test 7
+];
 
 export class DashboardController {
   private settingsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -194,7 +205,18 @@ export class DashboardController {
   }
 
   private hookDevButtons(ui: DashboardUI): void {
-    ui.onButtonClick("dataSceneTestBtn", () => this.loadDataScene());
+    // Load default working scene
+    ui.onButtonClick("dataSceneTestBtn", () =>
+      this.loadScene(WORKING_SCENE_URL),
+    );
+
+    // Load individual test scenes
+    for (let i = 0; i < TEST_SCENES.length; i++) {
+      const testNum = i + 1;
+      const buttonId = `dataImageTest${testNum}Btn`;
+      const sceneUrl = TEST_SCENES[i];
+      ui.onButtonClick(buttonId, () => this.loadScene(sceneUrl));
+    }
   }
 
   private hookSliders(ui: DashboardUI): void {
@@ -301,9 +323,9 @@ export class DashboardController {
     }, 200);
   }
 
-  private async loadDataScene(): Promise<void> {
+  private async loadScene(url: string): Promise<void> {
     try {
-      const response = await fetch(SCENE_CONFIG_URL);
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to load scene config: ${response.statusText}`);
       }
