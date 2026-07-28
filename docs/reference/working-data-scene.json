@@ -5,9 +5,8 @@
     "payload": {
       "childEventListeners": [
         {
-          "event": "data-element-finished",
-          "action": "finish",
-          "sourceId": "sound1"
+          "event": "sound-ended",
+          "action": "finish"
         }
       ],
       "children": [
@@ -16,23 +15,9 @@
           "id": "sound1",
           "payload": {
             "audioUrl": "/audio/friends/oh-my-god-shes-insane.mp3",
-            "playCount": 3,
-            "childEventListeners": [
-              {
-                "event": "scheduler-fired",
-                "action": "play"
-              }
-            ],
             "children": [
               {
                 "elementType": "DataSoundOnPlayBehavior"
-              },
-              {
-                "elementType": "DataSchedulerElement",
-                "payload": {
-                  "interval": 1000,
-                  "count": 3
-                }
               }
             ]
           }

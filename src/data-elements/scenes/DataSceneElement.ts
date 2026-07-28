@@ -1,4 +1,5 @@
 import { DataElement, DataElementConfig } from "../primitives/DataElement";
+import { SceneEventBus } from "../core/SceneEventBus";
 import { logger } from "../../utils/logger";
 
 interface DataSceneElementConfig extends DataElementConfig {}
@@ -14,6 +15,10 @@ export class DataSceneElement extends DataElement {
   constructor(config: Partial<DataSceneElementConfig> = {}) {
     super(config);
     logger.warn("[DataScene] Created");
+
+    // Create scene-scoped event bus and inject into self
+    const sceneEventBus = new SceneEventBus();
+    this.setSceneEventBus(sceneEventBus);
   }
 
   override async init(): Promise<void> {

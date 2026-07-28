@@ -1,8 +1,8 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://prindle.dev/schemas/custom-scene.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prndddl.dev/schemas/custom-scene.schema.json",
   "title": "Custom Scene Message",
-  "description": "Schema for data-driven scene configuration messages. Element-specific validation is handled by ElementRegistry at runtime.",
+  "description": "Schema for data-driven scene configuration messages with element-specific validation",
   "type": "object",
   "required": ["type", "scene"],
   "properties": {
@@ -17,30 +17,23 @@
   },
   "definitions": {
     "element": {
-      "type": "object",
-      "required": ["elementType"],
-      "properties": {
-        "elementType": {
-          "type": "string",
-          "description": "Element class name (e.g., DataSoundElement, DataImageElement, DataSchedulerElement)"
+      "oneOf": [
+        {
+          "$ref": "https://prndddl.dev/schemas/elements/DataSceneElement.schema.json"
         },
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for this element (used for referencing in spawnTemplateIds, etc.)"
+        {
+          "$ref": "https://prndddl.dev/schemas/elements/DataImageElement.schema.json"
         },
-        "payload": {
-          "type": "object",
-          "description": "Element-specific configuration (shape depends on elementType)"
+        {
+          "$ref": "https://prndddl.dev/schemas/elements/DataSoundElement.schema.json"
         },
-        "children": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/element"
-          },
-          "description": "Child elements in the hierarchy"
+        {
+          "$ref": "https://prndddl.dev/schemas/elements/DataSchedulerElement.schema.json"
+        },
+        {
+          "$ref": "https://prndddl.dev/schemas/elements/DataSoundOnPlayBehavior.schema.json"
         }
-      },
-      "additionalProperties": false
+      ]
     }
   }
 }

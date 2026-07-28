@@ -98,7 +98,7 @@ export interface ClearScenesMessage {
 // Custom/data-driven event message
 export interface CustomEventMessage {
   type: "custom-event";
-  payload: Record<string, unknown>;
+  scene: Record<string, unknown>;
 }
 
 // Discriminated union of all message types

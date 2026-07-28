@@ -31,8 +31,8 @@ export class DataVelocityBehavior extends DataElement {
   override async init(): Promise<void> {
     logger.warn("[DataVelocity] init() called");
 
-    // Listen for collision events from sibling DataScreenBounceBehavior
-    this.parent?.addEventListener("velocity-collision", (detail: any) => {
+    // Listen for collision events from sibling DataScreenBounceBehavior on scene event bus
+    this.sceneEventBus?.on("velocity-collision", (detail: any) => {
       if (detail.axis === "x") {
         this.vx = detail.direction * Math.abs(this.vx);
         logger.warn("[DataVelocity] X velocity reversed", { vx: this.vx });

@@ -9,40 +9,15 @@ import type {
   PoolEventMessage,
 } from "../types/ws-messages";
 import type { GlobalSettings, HypeChatSettings } from "../types/settings";
-import { logger } from "../utils/logger";
+import { logger, LogLevel } from "../utils/logger";
 import { localImages } from "../utils/assets/images";
+
+// Enable debug logging
+logger.setLevel(LogLevel.DEBUG);
 
 const STORAGE_KEY = "dashboard-section-state";
 
-// Embedded data-driven scene config for testing - simplified sound-only
-const DATA_SCENE_CONFIG = {
-  "type": "custom-event",
-  "scene": {
-    "elementType": "DataSceneElement",
-    "payload": {
-      "childEventListeners": [
-        {
-          "event": "sound-ended",
-          "action": "finish"
-        }
-      ],
-      "children": [
-        {
-          "elementType": "DataSoundElement",
-          "id": "sound1",
-          "payload": {
-            "audioUrl": "/audio/friends/oh-my-god-shes-insane.mp3",
-            "children": [
-              {
-                "elementType": "DataSoundOnPlayBehavior"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  }
-};
+const SCENE_CONFIG_URL = "/schemas/working-data-scene.json";
 
 export class DashboardController {
   private settingsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -328,10 +303,12 @@ export class DashboardController {
 
   private async loadDataScene(): Promise<void> {
     try {
-      this.sendMessage({
-        type: "custom-event",
-        payload: DATA_SCENE_CONFIG,
-      });
+      const response = await fetch(SCENE_CONFIG_URL);
+      if (!response.ok) {
+        throw new Error(`Failed to load scene config: ${response.statusText}`);
+      }
+      const config = await response.json();
+      this.sendMessage(config);
     } catch (error) {
       logger.error("[DashboardController] Error sending data scene", { error });
     }

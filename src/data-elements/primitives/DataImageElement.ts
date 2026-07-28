@@ -1,15 +1,13 @@
-import { DataElement } from "../primitives/DataElement";
+import { DataElement, DataElementConfig } from "../primitives/DataElement";
 import { ImageElement } from "../../elements/primitives/ImageElement";
 import { logger } from "../../utils/logger";
 
-interface DataImageElementConfig {
+interface DataImageElementConfig extends DataElementConfig {
   imageUrl?: string;
   scaleStrategy?: "fit" | "fill" | "stretch" | "none";
   scale?: number | { x?: number; y?: number };
   width?: number;
   height?: number;
-  duration?: number;
-  id?: string;
 }
 
 /**
@@ -36,17 +34,28 @@ export class DataImageElement extends DataElement {
     if (config.height !== undefined) imageConfig.height = config.height;
 
     this.imageElement = new ImageElement(imageConfig);
-    this.addChild(this.imageElement as any);
+    //this.addChild(this.imageElement as any);
   }
 
   override async init(): Promise<void> {
     logger.warn("[DataImage] init() called");
+    await this.imageElement?.init();
     await super.init();
   }
 
   override play(): void {
     logger.warn("[DataImage] play() called");
+    this.imageElement?.play();
     super.play();
+  }
+
+  override drawSelf(ctx: CanvasRenderingContext2D): void {
+    this.imageElement?.drawSelf(ctx);
+  }
+
+  override finish(): void {
+    this.imageElement?.finish();
+    super.finish();
   }
 
   // ---------------------------------------------------------------------------------

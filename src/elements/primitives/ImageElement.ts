@@ -113,7 +113,7 @@ export class ImageElement extends TransformElement {
     }
   }
 
-  protected override drawSelf(ctx: CanvasRenderingContext2D): void {
+  public override drawSelf(ctx: CanvasRenderingContext2D): void {
     if (this.isAnimated) {
       this.drawAnimatedFrame(ctx);
     } else if (this.staticImage) {

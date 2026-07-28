@@ -38,19 +38,35 @@ export class DataScreenBounceBehavior extends DataElement {
     // Check horizontal bounds
     if (target.x < 0) {
       target.x = 0;
-      this.parent!.emitEvent("velocity-collision", { axis: "x", direction: 1 });
+      this.sceneEventBus?.emit("velocity-collision", {
+        sourceId: this.parent?.id,
+        axis: "x",
+        direction: 1,
+      });
     } else if (target.x + width > screenWidth) {
       target.x = screenWidth - width;
-      this.parent!.emitEvent("velocity-collision", { axis: "x", direction: -1 });
+      this.sceneEventBus?.emit("velocity-collision", {
+        sourceId: this.parent?.id,
+        axis: "x",
+        direction: -1,
+      });
     }
 
     // Check vertical bounds
     if (target.y < 0) {
       target.y = 0;
-      this.parent!.emitEvent("velocity-collision", { axis: "y", direction: 1 });
+      this.sceneEventBus?.emit("velocity-collision", {
+        sourceId: this.parent?.id,
+        axis: "y",
+        direction: 1,
+      });
     } else if (target.y + height > screenHeight) {
       target.y = screenHeight - height;
-      this.parent!.emitEvent("velocity-collision", { axis: "y", direction: -1 });
+      this.sceneEventBus?.emit("velocity-collision", {
+        sourceId: this.parent?.id,
+        axis: "y",
+        direction: -1,
+      });
     }
   }
 }

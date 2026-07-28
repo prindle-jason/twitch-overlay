@@ -57,8 +57,8 @@ export class DataRadialSpawnerElement extends DataElement {
       }
     }
 
-    // Listen for scheduler-fired events from parent
-    this.parent?.addEventListener("scheduler-fired", (detail: any) => {
+    // Listen for scheduler-fired events from scene event bus
+    this.sceneEventBus?.on("scheduler-fired", (detail: any) => {
       logger.warn("[DataRadialSpawner] Wave triggered", {
         wave: detail.tick,
         totalWaves: detail.totalTicks,

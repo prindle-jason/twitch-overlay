@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prndddl.dev/schemas/elements/DataImageElement.schema.json",
+  "title": "Data Image Element",
+  "description": "Renders a static image with configurable scaling and positioning",
+  "allOf": [
+    {
+      "$ref": "https://prndddl.dev/schemas/elements/DataElement.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "elementType": {
+          "const": "DataImageElement"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL or path to the image file"
+        },
+        "scaleStrategy": {
+          "type": "string",
+          "enum": ["fit", "fill", "stretch", "none"],
+          "default": "none",
+          "description": "How to scale the image: fit (contain), fill (cover), stretch (force), none (native)"
+        },
+        "scale": {
+          "oneOf": [
+            {
+              "type": "number",
+              "description": "Uniform scale factor (1.0 = 100%)"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" }
+              },
+              "description": "Non-uniform scale (separate x/y)"
+            }
+          ]
+        },
+        "width": {
+          "type": "number",
+          "description": "Optional width in pixels"
+        },
+        "height": {
+          "type": "number",
+          "description": "Optional height in pixels"
+        }
+      },
+      "required": ["elementType"],
+      "unevaluatedProperties": false
+    }
+  ]
+}

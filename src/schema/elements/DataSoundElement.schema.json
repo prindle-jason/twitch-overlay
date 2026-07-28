@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prndddl.dev/schemas/elements/DataSoundElement.schema.json",
+  "title": "Data Sound Element",
+  "description": "Plays audio with configurable volume, loop, and repeat count",
+  "allOf": [
+    {
+      "$ref": "https://prndddl.dev/schemas/elements/DataElement.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "elementType": {
+          "const": "DataSoundElement"
+        },
+        "audioUrl": {
+          "type": "string",
+          "description": "URL or path to the audio file"
+        },
+        "loop": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to loop the audio"
+        },
+        "baseVolume": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1,
+          "description": "Volume level (0.0-1.0), multiplied by global master volume"
+        },
+        "playCount": {
+          "type": "number",
+          "minimum": 1,
+          "default": 1,
+          "description": "Number of times to play the audio before finishing"
+        }
+      },
+      "required": ["elementType", "audioUrl"],
+      "unevaluatedProperties": false
+    }
+  ]
+}

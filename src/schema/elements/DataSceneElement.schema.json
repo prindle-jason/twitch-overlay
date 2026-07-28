@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prndddl.dev/schemas/elements/DataSceneElement.schema.json",
+  "title": "Data Scene Element",
+  "description": "Root scene container. Creates scene-scoped event bus for child-to-child communication.",
+  "allOf": [
+    {
+      "$ref": "https://prndddl.dev/schemas/elements/DataElement.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "elementType": {
+          "const": "DataSceneElement"
+        }
+      },
+      "unevaluatedProperties": false
+    }
+  ]
+}

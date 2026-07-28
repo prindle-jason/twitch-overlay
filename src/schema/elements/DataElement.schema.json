@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prndddl.dev/schemas/elements/DataElement.schema.json",
+  "title": "Base Data Element Configuration",
+  "description": "Common configuration properties shared by all data-driven elements",
+  "type": "object",
+  "properties": {
+    "elementType": {
+      "type": "string",
+      "description": "Element class name (e.g., DataImageElement, DataSoundElement)"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for this element (used for referencing in event listeners)"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration in milliseconds; element auto-finishes when elapsed exceeds this. -1 (default) means no auto-finish"
+    },
+    "eventListeners": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/eventListener"
+      },
+      "description": "Event listeners that trigger actions on this element or its children"
+    },
+    "children": {
+      "type": "array",
+      "items": {
+        "$ref": "https://prndddl.dev/schemas/custom-scene.schema.json#/definitions/element"
+      },
+      "description": "Child elements in the hierarchy"
+    }
+  },
+  "required": ["elementType"],
+  "definitions": {
+    "eventListener": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "type": "string",
+          "description": "Event type to listen for (e.g., 'sound-ended', 'scheduler-fired', 'data-element-finished')"
+        },
+        "action": {
+          "type": "string",
+          "description": "Method name to call on this element when the event fires (e.g., 'finish', 'playSound')"
+        },
+        "sourceId": {
+          "type": "string",
+          "description": "Optional: only trigger if event originates from this element ID"
+        },
+        "filter": {
+          "type": "object",
+          "description": "Optional: additional event detail properties that must match for the listener to trigger",
+          "additionalProperties": true
+        }
+      },
+      "required": ["event", "action"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prndddl.dev/schemas/elements/DataSoundOnPlayBehavior.schema.json",
+  "title": "Data Sound On Play Behavior",
+  "description": "Behavior configuration for actions to take when a sound element starts playing.",
+  "allOf": [
+    {
+      "$ref": "https://prndddl.dev/schemas/elements/DataElement.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "elementType": {
+          "const": "DataSoundOnPlayBehavior"
+        }
+      },
+      "unevaluatedProperties": false
+    }
+  ]
+}

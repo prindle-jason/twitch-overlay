@@ -1,21 +1,21 @@
-import { DataElement } from "./DataElement";
+import { DataElement, DataElementConfig } from "./DataElement";
 import { getSound } from "../../utils/assets/SoundLoader";
 import { EventBus } from "../../core/EventBus";
 import { globalSettings } from "../../overlay/GlobalSettingsStore";
 import { logger } from "../../utils/logger";
 
-interface DataSoundElementConfig {
-  audioUrl?: string;
+interface DataSoundElementConfig extends DataElementConfig {
+  audioUrl: string;
   loop?: boolean;
   baseVolume?: number;
-  id?: string;
+  playCount?: number;
 }
 
 /**
  * Data-driven sound element. Duplicates SoundElement functionality but:
  * - Extends DataElement instead of Element for data-driven lifecycle
- * - Emits "sound-ended" event to parent when audio completes naturally
- * - Uses local event system for parent-child communication
+ * - Emits "sound-ended" event to scene when audio completes naturally
+ * - Uses scene event system for cross-element communication
  * - Maintains global volume handling via EventBus
  */
 export class DataSoundElement extends DataElement {
@@ -23,6 +23,8 @@ export class DataSoundElement extends DataElement {
   private sound: HTMLAudioElement | null = null;
   private baseVolume: number;
   private loop: boolean;
+  private playCount: number;
+  private timesPlayed: number = 0;
 
   // Only true if the sound was actively playing when paused
   private paused = false;
@@ -30,18 +32,35 @@ export class DataSoundElement extends DataElement {
   // Event handlers stored for cleanup on finish()
   private volumeChangeHandler = this.changeVolume.bind(this);
   private soundEndedHandler = () => {
-    logger.warn("[DataSound] Sound ended, emitting to parent and finishing", { id: this.id });
-    this.parent?.emitEvent("sound-ended", { soundId: this.id });
-    this.finish();
+    logger.warn("[DataSound] Sound ended", {
+      id: this.id,
+      timesPlayed: this.timesPlayed,
+      playCount: this.playCount,
+    });
+
+    // Emit event each time sound ends
+    this.sceneEventBus?.emit("sound-ended", { sourceId: this.id });
+
+    // Only finish after final play
+    if (this.timesPlayed >= this.playCount) {
+      logger.warn("[DataSound] Reached playCount after final play, finishing", {
+        id: this.id,
+      });
+      this.finish();
+    }
   };
 
-  constructor(config: Partial<DataSoundElementConfig> = {}) {
-    super({ id: config.id });
-    this.audioUrl = config.audioUrl ?? "";
+  constructor(config: DataSoundElementConfig) {
+    super(config);
+    this.audioUrl = config.audioUrl;
     this.baseVolume = config.baseVolume ?? 1;
     this.loop = config.loop ?? false;
+    this.playCount = config.playCount ?? 1;
 
-    logger.warn("[DataSound] Created", { audioUrl: config.audioUrl, id: this.id });
+    logger.warn("[DataSound] Created", {
+      audioUrl: config.audioUrl,
+      id: this.id,
+    });
   }
 
   override async init(): Promise<void> {
@@ -71,10 +90,18 @@ export class DataSoundElement extends DataElement {
 
   playSound(): void {
     if (this.sound) {
+      this.sound.currentTime = 0;
       this.sound.volume = this.baseVolume * globalSettings.masterVolume;
       this.sound.loop = this.loop;
       this.sound.play();
       this.paused = false;
+
+      this.timesPlayed++;
+      logger.warn("[DataSound] Sound played", {
+        id: this.id,
+        timesPlayed: this.timesPlayed,
+        playCount: this.playCount,
+      });
     }
   }
 
@@ -116,7 +143,9 @@ export class DataSoundElement extends DataElement {
   }
 
   override finish(): void {
-    logger.warn("[DataSound] finish() called - destroying sound element", { id: this.id });
+    logger.warn("[DataSound] finish() called - destroying sound element", {
+      id: this.id,
+    });
 
     // Unsubscribe from global events
     EventBus.off("global-volume-changed", this.volumeChangeHandler);

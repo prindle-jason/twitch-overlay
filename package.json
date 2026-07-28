@@ -12,6 +12,7 @@
     "dev:watch": "npm run build && concurrently \"npm run start\" \"npm run watch:client\" \"npm run watch:server\""
   },
   "dependencies": {
+    "ajv": "^8.20.0",
     "express": "^5.2.1",
     "gifuct-js": "^2.1.2",
     "libwebp-wasm": "^0.1.6",

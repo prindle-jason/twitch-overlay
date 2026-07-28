@@ -1,7 +1,8 @@
 import { DataElement } from "../data-elements/primitives/DataElement";
 import { logger } from "../utils/logger";
+import { schemaValidator } from "../utils/SchemaValidator";
 import { ElementRegistry } from "./ElementRegistry";
-import { ElementConfig, ElementWithChildren } from "../types/SceneConfig";
+import { ElementConfig } from "../types/SceneConfig";
 // Import data elements index to auto-register all element types
 import "../data-elements";
 
@@ -16,14 +17,26 @@ export class DataSceneFactory {
   async createScene(config: any): Promise<DataElement | null> {
     logger.debug("[DataSceneFactory] Creating scene from config");
 
-    const sceneConfig = config.scene;
-    if (!sceneConfig || !sceneConfig.elementType) {
+    // TODO: Schema validation disabled until schema references are fully resolved
+    // if (
+    //   !schemaValidator.validateDataSceneElementAndWarn(
+    //     config,
+    //     "DataSceneFactory.createScene",
+    //   )
+    // ) {
+    //   logger.warn(
+    //     "[DataSceneFactory] Aborting scene creation due to schema validation failure",
+    //   );
+    //   return null;
+    // }
+
+    if (!config || !config.elementType) {
       logger.warn("[DataSceneFactory] Config missing scene.elementType");
       return null;
     }
 
     // Create the scene element and its children
-    const scene = this.createElementRecursive(sceneConfig);
+    const scene = this.createElementRecursive(config);
 
     if (!scene) {
       logger.warn("[DataSceneFactory] Failed to create scene element");
@@ -39,7 +52,7 @@ export class DataSceneFactory {
     }
 
     logger.debug("[DataSceneFactory] Scene created successfully", {
-      sceneType: sceneConfig.elementType,
+      sceneType: config.elementType,
       elementCount: this.elementMap.size,
     });
 
@@ -55,9 +68,9 @@ export class DataSceneFactory {
       return null;
     }
 
-    // Create the element
-    const payload = this.preparePayload(config as ElementWithChildren);
-    const element = ElementRegistry.create(config.elementType, payload);
+    // Create the element (config is now flat, no payload wrapper)
+    const elementConfig = this.prepareElementConfig(config);
+    const element = ElementRegistry.create(config.elementType, elementConfig);
 
     if (!element) {
       return null;
@@ -68,12 +81,9 @@ export class DataSceneFactory {
       this.elementMap.set(config.id, element);
     }
 
-    // Create children if present
-    const childConfigs = (config as ElementWithChildren).payload?.children as
-      | ElementConfig[]
-      | undefined;
-    if (childConfigs && Array.isArray(childConfigs)) {
-      for (const childConfig of childConfigs) {
+    // Create children if present (now at config.children, not config.payload.children)
+    if (config.children && Array.isArray(config.children)) {
+      for (const childConfig of config.children) {
         const child = this.createElementRecursive(childConfig);
         if (child) {
           element.addChild(child);
@@ -85,47 +95,10 @@ export class DataSceneFactory {
   }
 
   /**
-   * Prepare payload: add config ID and resolve ID references, remove children
+   * Prepare element config: copy all properties except elementType and children
    */
-  private preparePayload(config: ElementWithChildren): Record<string, unknown> {
-    const payload = { ...config.payload } || {};
-
-    // Add ID from config (if present)
-    if (config.id) {
-      payload.id = config.id;
-    }
-
-    // Remove children from payload (handled separately)
-    delete payload.children;
-
-    // Resolve element ID references
-    if (payload.schedulerId && typeof payload.schedulerId === "string") {
-      const scheduler = this.elementMap.get(payload.schedulerId);
-      if (scheduler) {
-        payload.scheduler = scheduler;
-      } else {
-        logger.warn(
-          `[DataSceneFactory] Scheduler not found: ${payload.schedulerId}`,
-        );
-      }
-      delete payload.schedulerId;
-    }
-
-    // Resolve template IDs array
-    if (payload.spawnTemplateIds && Array.isArray(payload.spawnTemplateIds)) {
-      const templates = payload.spawnTemplateIds
-        .map((id: string) => {
-          const template = this.elementMap.get(id);
-          if (!template) {
-            logger.warn(`[DataSceneFactory] Template not found: ${id}`);
-          }
-          return template;
-        })
-        .filter(Boolean);
-      payload.templates = templates;
-      delete payload.spawnTemplateIds;
-    }
-
-    return payload;
+  private prepareElementConfig(config: ElementConfig): Record<string, unknown> {
+    const { elementType, children, ...rest } = config;
+    return rest;
   }
 }

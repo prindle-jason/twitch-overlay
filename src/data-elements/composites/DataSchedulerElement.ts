@@ -1,16 +1,15 @@
-import { DataElement } from "../primitives/DataElement";
+import { DataElement, DataElementConfig } from "../primitives/DataElement";
 import { Range, getRandomInRange } from "../../utils/random";
 import { logger } from "../../utils/logger";
 
-interface DataSchedulerConfig {
+interface DataSchedulerConfig extends DataElementConfig {
   interval?: number | Range;
   count?: number;
-  id?: string;
 }
 
 /**
  * Data-driven scheduler element that emits events at regular or random intervals.
- * Events are emitted via EventBus with type "scheduler-fired".
+ * Events are emitted to the scene event bus with type "scheduler-fired".
  * Designed for use in data-driven scenes with the radial spawner.
  */
 export class DataSchedulerElement extends DataElement {
@@ -76,7 +75,8 @@ export class DataSchedulerElement extends DataElement {
         totalWaves: this.count,
       });
 
-      this.emitEvent("scheduler-fired", {
+      this.sceneEventBus?.emit("scheduler-fired", {
+        sourceId: this.id,
         tick: this.ticks,
         totalTicks: this.count,
       });

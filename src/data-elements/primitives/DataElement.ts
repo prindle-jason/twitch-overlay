@@ -1,18 +1,19 @@
 import type { LifecycleState } from "../../types/LifecycleStates";
 import { logger } from "../../utils/logger";
 import { EventBus } from "../../core/EventBus";
-import { EventEmitter } from "./EventEmitter";
+import type { SceneEventBus } from "../core/SceneEventBus";
 
 interface ChildEventListener {
   event: string;
   action: string;
+  sourceId?: string;
   filter?: Record<string, unknown>;
 }
 
 export interface DataElementConfig {
   duration?: number;
   id?: string;
-  childEventListeners?: ChildEventListener[];
+  eventListeners?: ChildEventListener[];
 }
 
 /**
@@ -32,8 +33,8 @@ export class DataElement {
   protected elapsed = 0;
   protected state: LifecycleState = "NEW";
   protected id?: string;
-  protected childEventListenersConfig: ChildEventListener[] = [];
-  protected event: EventEmitter;
+  protected eventListenersConfig: ChildEventListener[] = [];
+  protected sceneEventBus: SceneEventBus | null = null;
 
   // ---------------------------------------------------------------------------------
   // Local event system
@@ -41,10 +42,15 @@ export class DataElement {
   constructor(config: DataElementConfig = {}) {
     this.duration = config.duration ?? -1;
     this.id = config.id;
-    this.childEventListenersConfig = config.childEventListeners ?? [];
-    this.event = new EventEmitter();
+    this.eventListenersConfig = config.eventListeners ?? [];
 
     EventBus.emit("data-element-created", {
+      ctor: this.constructor.name,
+      instance: this,
+    });
+
+    this.sceneEventBus?.emit("data-element-created", {
+      sourceId: this.id,
       ctor: this.constructor.name,
       instance: this,
     });
@@ -55,8 +61,17 @@ export class DataElement {
   // ---------------------------------------------------------------------------------
   /** Attach a child element and wire its parent pointer. */
   addChild(child: DataElement): void {
-    logger.debug(this.constructor.name, "adding child", child.constructor.name);
+    logger.warn(this.constructor.name, "adding child", child.constructor.name, {
+      childId: child.id,
+      hasSceneEventBus: !!this.sceneEventBus,
+    });
     child.setParent(this);
+    if (this.sceneEventBus && typeof child.setSceneEventBus === "function") {
+      logger.warn(`[${this.constructor.name}] Injecting sceneEventBus into child`, {
+        childId: child.id,
+      });
+      child.setSceneEventBus(this.sceneEventBus);
+    }
     this.children.push(child);
   }
 
@@ -69,48 +84,103 @@ export class DataElement {
     }
   }
 
+  /** Set the scene event bus; propagated to children. */
+  setSceneEventBus(bus: SceneEventBus): void {
+    logger.warn(`[${this.constructor.name}] setSceneEventBus called`, { id: this.id });
+    this.sceneEventBus = bus;
+    this.children.forEach((child) => {
+      logger.warn(`[${this.constructor.name}] Propagating sceneEventBus to child`, {
+        childId: child.id,
+      });
+      child.setSceneEventBus(bus);
+    });
+  }
+
   setupChildEventListeners(): void {
-    for (const listener of this.childEventListenersConfig) {
-      logger.debug(
+    for (const listener of this.eventListenersConfig) {
+      logger.warn(
         `[${this.constructor.name}] Setting up child event listener`,
         {
           event: listener.event,
           action: listener.action,
+          sourceId: listener.sourceId,
         },
       );
 
-      this.addEventListener(listener.event, (detail?: any) => {
-        // Check filter if present
+      const eventHandler = (detail?: any) => {
+        logger.warn(
+          `[${this.constructor.name}] Event received on listener`,
+          {
+            event: listener.event,
+            sourceId: listener.sourceId,
+            detailSourceId: detail?.sourceId,
+          },
+        );
+
+        // Check sourceId filter if present
+        if (listener.sourceId && detail?.sourceId !== listener.sourceId) {
+          logger.warn(
+            `[${this.constructor.name}] Event filtered out - sourceId mismatch`,
+            {
+              expected: listener.sourceId,
+              got: detail?.sourceId,
+            },
+          );
+          return;
+        }
+
+        // Check other filters if present
         if (listener.filter) {
           const matches = Object.entries(listener.filter).every(
             ([key, value]) => detail?.[key] === value,
           );
           if (!matches) {
+            logger.warn(
+              `[${this.constructor.name}] Event filtered out - detail filter mismatch`,
+              { filter: listener.filter },
+            );
             return;
           }
         }
 
         // Execute action
-        logger.debug(
-          `[${this.constructor.name}] Child event listener triggered`,
+        logger.warn(
+          `[${this.constructor.name}] Child event listener triggered, calling action`,
           {
             event: listener.event,
             action: listener.action,
+            sourceId: listener.sourceId,
           },
         );
 
         const actionFunc = (this as any)[listener.action];
         if (typeof actionFunc === "function") {
+          logger.warn(`[${this.constructor.name}] Calling action: ${listener.action}`);
           actionFunc.call(this);
         } else {
           logger.warn(
             `[${this.constructor.name}] No function found with name`,
             {
               action: listener.action,
+              available: Object.getOwnPropertyNames(Object.getPrototypeOf(this)),
             },
           );
         }
-      });
+      };
+
+      // Listen on scene event bus if available
+      if (this.sceneEventBus) {
+        logger.warn(
+          `[${this.constructor.name}] Registering listener on scene event bus`,
+          { event: listener.event },
+        );
+        this.sceneEventBus.on(listener.event, eventHandler);
+      } else {
+        logger.warn(
+          `[${this.constructor.name}] Child event listener setup called before sceneEventBus was set`,
+          { event: listener.event, action: listener.action },
+        );
+      }
     }
   }
 
@@ -238,13 +308,18 @@ export class DataElement {
       instance: this,
     });
 
+    this.sceneEventBus?.emit("data-element-finished", {
+      sourceId: this.id,
+      ctor: this.constructor.name,
+      instance: this,
+    });
+
     this.children.forEach((child) => {
       child.finish();
     });
 
     this.children = [];
     this.parent = null;
-    this.event.clear();
   }
 
   // ---------------------------------------------------------------------------------
@@ -329,20 +404,5 @@ export class DataElement {
     });
 
     return cloned;
-  }
-
-  // ---------------------------------------------------------------------------------
-  // Local event system
-  // ---------------------------------------------------------------------------------
-  addEventListener(eventType: string, listener: (detail?: any) => void): void {
-    this.event.addEventListener(eventType, listener);
-  }
-
-  removeEventListener(eventType: string, listener: Function): void {
-    this.event.removeEventListener(eventType, listener);
-  }
-
-  emitEvent(eventType: string, detail?: any): void {
-    this.event.emit(eventType, detail);
   }
 }

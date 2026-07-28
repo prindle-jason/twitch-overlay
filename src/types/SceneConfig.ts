@@ -10,11 +10,15 @@ export interface SceneConfig {
 export interface ElementConfig {
   elementType: string;
   id?: string;
-  payload?: Record<string, unknown>;
+  duration?: number;
+  eventListeners?: ChildEventListener[];
+  children?: ElementConfig[];
+  [key: string]: unknown;
 }
 
-export interface ElementWithChildren extends ElementConfig {
-  payload?: Record<string, unknown> & {
-    children?: ElementConfig[];
-  };
+export interface ChildEventListener {
+  event: string;
+  action: string;
+  sourceId?: string;
+  filter?: Record<string, unknown>;
 }

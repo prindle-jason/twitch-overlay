@@ -1,0 +1,24 @@
+{
+  "type": "custom-event",
+  "scene": {
+    "elementType": "DataSceneElement",
+    "eventListeners": [
+      {
+        "event": "sound-ended",
+        "action": "finish"
+      }
+    ],
+    "children": [
+      {
+        "elementType": "DataSoundElement",
+        "id": "sound1",
+        "audioUrl": "/audio/friends/oh-my-god-shes-insane.mp3",
+        "children": [
+          {
+            "elementType": "DataSoundOnPlayBehavior"
+          }
+        ]
+      }
+    ]
+  }
+}

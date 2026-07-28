@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prndddl.dev/schemas/elements/DataSchedulerElement.schema.json",
+  "title": "Data Scheduler Element",
+  "description": "Fires events at regular or random intervals, used to trigger other elements",
+  "allOf": [
+    {
+      "$ref": "https://prndddl.dev/schemas/elements/DataElement.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "elementType": {
+          "const": "DataSchedulerElement"
+        },
+        "interval": {
+          "oneOf": [
+            {
+              "type": "number",
+              "description": "Fixed interval in milliseconds between events"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "min": { "type": "number" },
+                "max": { "type": "number" }
+              },
+              "required": ["min", "max"],
+              "description": "Random interval range in milliseconds"
+            }
+          ],
+          "default": 1000
+        },
+        "count": {
+          "type": "number",
+          "minimum": 1,
+          "default": "Infinity",
+          "description": "Number of events to fire before finishing"
+        }
+      },
+      "required": ["elementType"],
+      "unevaluatedProperties": false
+    }
+  ]
+}

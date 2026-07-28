@@ -168,7 +168,7 @@ export class OverlayController {
     try {
       logger.debug("[overlay] handling custom-event");
       const factory = new DataSceneFactory();
-      const scene = await factory.createScene(msg.payload);
+      const scene = await factory.createScene(msg.scene);
 
       if (!scene) {
         logger.warn("[overlay] No scene created from custom-event");
