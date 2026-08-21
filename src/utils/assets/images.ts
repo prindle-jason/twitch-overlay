@@ -36,6 +36,7 @@ export const localImages = {
 
   // NyanFollowerScene
   nyanCat: "/images/OriginalNyan.webp",
+  goldNyan: "/images/goldNyan.webp",
 
   // Friend emotes
   ashBeakL: "/images/friendEmotes/ashBeakL.gif",

@@ -17,6 +17,7 @@ export { HypeChatScene } from "./HypeChatScene";
 export { DvdScene as PooledDvdScene } from "./DvdScene";
 export { VideoScene } from "./VideoScene";
 export { NyanFollowerScene } from "./NyanFollowerScene";
+export { NyanSubscriberScene } from "./NyanSubscriberScene";
 export { SideSlideScene } from "./SideSlideScene";
 
 // Test scenes

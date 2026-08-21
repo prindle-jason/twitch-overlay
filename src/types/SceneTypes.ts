@@ -23,6 +23,7 @@ export type SceneType =
   | "glitchRepeater"
   | "video"
   | "nyanFollower"
+  | "nyanSubscriber"
   | "sideSlide";
 
 /**

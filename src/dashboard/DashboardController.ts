@@ -79,6 +79,9 @@ export class DashboardController {
     ui.onButtonClick("nyanFollowerBtn", () =>
       this.dispatchSceneEvent("nyanFollower"),
     );
+    ui.onButtonClick("nyanSubscriberBtn", () =>
+      this.dispatchSceneEvent("nyanSubscriber"),
+    );
     ui.onButtonClick("imageLinesBtn", () => {
       this.dispatchSceneEvent("imageLines", {
         variant: "topBottom",

@@ -53,6 +53,7 @@ export class SceneFactory {
       return new Scenes.VideoScene(payload);
     },
     nyanFollower: (p) => new Scenes.NyanFollowerScene(p as any),
+    nyanSubscriber: (p) => new Scenes.NyanSubscriberScene(p as any),
     sideSlide: (p) => new Scenes.SideSlideScene(p as any),
 
     // Triggerable pools

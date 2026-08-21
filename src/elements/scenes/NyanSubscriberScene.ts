@@ -19,9 +19,9 @@ import {
 import { localImages } from "../../utils/assets/images";
 import { localSounds } from "../../utils/assets/sounds";
 
-const CAT_COUNT_RANGE: Range = { min: 6, max: 12 };
-const CAT_TRAVEL_DURATION_RANGE: Range = { min: 8000, max: 12000 };
-const CAT_SCALE_RANGE: Range = { min: 0.25, max: 0.35 };
+const CAT_COUNT_RANGE: Range = { min: 30, max: 40 };
+const CAT_TRAVEL_DURATION_RANGE: Range = { min: 5000, max: 8000 };
+const CAT_SCALE_RANGE: Range = { min: 0.15, max: 0.25 };
 const CAT_WAVE_AMPLITUDE_RANGE: Range = { min: 16, max: 52 };
 const CAT_WAVE_CYCLE_RANGE: Range = { min: 0.4, max: 1.1 };
 
@@ -45,14 +45,14 @@ const SCENE_GUARD_DURATION_MS = 60000;
 const CAT_SPAWN_WINDOW_MS = 10000;
 const SCENE_FINISH_GRACE_MS = 500;
 
-interface NyanFollowerConfig {
+interface NyanSubscriberConfig {
   catImageUrl?: string;
   musicUrl?: string;
   catCount?: number;
 }
 
-export class NyanFollowerScene extends SceneElement {
-  readonly type = "nyanFollower" as const;
+export class NyanSubscriberScene extends SceneElement {
+  readonly type = "nyanSubscriber" as const;
 
   private catImageUrl: string;
   private musicUrl: string;
@@ -66,11 +66,11 @@ export class NyanFollowerScene extends SceneElement {
   private musicEnded = false;
   private finishedAtMs: number | null = null;
 
-  constructor(cfg: NyanFollowerConfig = {}) {
+  constructor(cfg: NyanSubscriberConfig = {}) {
     super();
     this.duration = SCENE_GUARD_DURATION_MS;
 
-    this.catImageUrl = cfg.catImageUrl ?? localImages.nyanCat;
+    this.catImageUrl = cfg.catImageUrl ?? localImages.goldNyan;
     this.musicUrl = cfg.musicUrl ?? localSounds.nyanMusic;
     this.catCount = cfg.catCount ?? getRandomIntInRange(CAT_COUNT_RANGE);
   }
@@ -184,6 +184,7 @@ export class NyanFollowerScene extends SceneElement {
       stampWidth: TRAIL_STAMP_WIDTH,
       stripeHeight: TRAIL_STRIPE_HEIGHT,
       duration: TRAIL_DURATION,
+      palette: "gold",
     });
     this.addChild(stamp);
   }
