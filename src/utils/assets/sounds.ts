@@ -36,3 +36,11 @@ export const localSounds = {
   // Watermark sounds
   jojoToBeContinued: "/audio/watermarks/jojo-to-be-continued.mp3",
 } as const;
+
+// Folders of sounds to randomly choose from, rather than a single fixed file.
+export const soundFolders = {
+  xJasonRandom: Array.from(
+    { length: 19 },
+    (_, i) => `/audio/xJason/${i + 1}.mp3`,
+  ),
+} as const;

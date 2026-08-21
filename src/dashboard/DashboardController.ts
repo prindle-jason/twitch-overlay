@@ -71,6 +71,9 @@ export class DashboardController {
       this.dispatchSceneEvent("dvdBounce", dvdType ? { dvdType } : {});
     });
     ui.onButtonClick("xJasonBtn", () => this.dispatchSceneEvent("xJason"));
+    ui.onButtonClick("xJasonSingleBtn", () =>
+      this.dispatchSceneEvent("xJasonSingle"),
+    );
     ui.onButtonClick("videoRandomBtn", () => this.dispatchSceneEvent("video"));
     ui.onButtonClick("videoSelectedBtn", () => {
       const videoKey = ui.getSelectedVideoKey();

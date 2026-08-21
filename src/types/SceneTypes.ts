@@ -15,6 +15,7 @@ export type SceneType =
   | "imageWave"
   | "ticker"
   | "xJason"
+  | "xJasonSingle"
   | "chatMessageTest"
   | "newImageTest"
   | "hypeChat"

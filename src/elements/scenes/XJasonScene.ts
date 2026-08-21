@@ -74,10 +74,9 @@ export class XJasonScene extends SceneElement {
       duration: duration,
     });
 
-    const imageBlurConfig = { fadeTime: 0.4, maxBlur: 16 };
     popup.addChild(new JitterBehavior({ jitterAmount: 6 }));
     popup.addChild(new FadeInOutBehavior({ fadeTime: 0.4 }));
-    popup.addChild(new BlurInOutBehavior(imageBlurConfig));
+    popup.addChild(new BlurInOutBehavior({ fadeTime: 0.4, maxBlur: 16 }));
 
     await popup.init();
 

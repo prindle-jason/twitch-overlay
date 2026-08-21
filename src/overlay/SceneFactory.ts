@@ -44,6 +44,7 @@ export class SceneFactory {
     imageWave: (p) => new Scenes.ImageWaveScene(p as any),
     ticker: (p) => new Scenes.TickerScene(p as any),
     xJason: (p) => new Scenes.XJasonScene(),
+    xJasonSingle: (p) => new Scenes.XJasonSingleScene(),
     video: (p) => {
       const presetKeys = Object.keys(VIDEO_PRESETS) as Array<
         keyof typeof VIDEO_PRESETS

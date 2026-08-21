@@ -1,12 +1,13 @@
 import { Element } from "./Element";
-import { getSound } from "../../utils/assets/SoundLoader";
+import { getSound, getRandomSound } from "../../utils/assets/SoundLoader";
 import { EventBus } from "../../core/EventBus";
 import { globalSettings } from "../../overlay/GlobalSettingsStore";
 
 type SoundEndedListener = () => void;
 
 export class SoundElement extends Element {
-  soundUrl: string;
+  /** A single sound URL, or a pool of URLs to randomly choose from on init. */
+  soundUrl: string | readonly string[];
   sound: HTMLAudioElement | null = null;
   baseVolume = 1;
   loop = false;
@@ -21,13 +22,15 @@ export class SoundElement extends Element {
     this.endedListeners.forEach((listener) => listener());
   };
 
-  constructor(soundUrl: string) {
+  constructor(soundUrl: string | readonly string[]) {
     super();
     this.soundUrl = soundUrl;
   }
 
   async init() {
-    this.sound = await getSound(this.soundUrl);
+    this.sound = Array.isArray(this.soundUrl)
+      ? await getRandomSound(this.soundUrl)
+      : await getSound(this.soundUrl as string);
     this.sound.addEventListener("ended", this.soundEndedHandler);
 
     // Subscribe to global settings events

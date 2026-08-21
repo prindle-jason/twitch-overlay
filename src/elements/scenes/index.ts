@@ -13,6 +13,7 @@ export { ImageLinesScene } from "./ImageLinesScene";
 export { ImageWaveScene } from "./ImageWaveScene";
 export { TickerScene } from "./TickerScene";
 export { XJasonScene } from "./XJasonScene";
+export { XJasonSingleScene } from "./XJasonSingleScene";
 export { HypeChatScene } from "./HypeChatScene";
 export { DvdScene as PooledDvdScene } from "./DvdScene";
 export { VideoScene } from "./VideoScene";
